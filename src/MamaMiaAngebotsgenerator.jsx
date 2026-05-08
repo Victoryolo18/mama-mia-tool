@@ -52,11 +52,11 @@ const ANLAESSE = {
     description: "Festliches Buffet für die ganze Familie",
     image: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&q=80",
   },
-  taufe: {
-    label: "Taufe & Konfirmation",
-    icon: "🕊️",
-    subtitle: "Besondere Momente",
-    description: "Stilvolles Buffet für feierliche Anlässe",
+  individuell: {
+    label: "Individuell",
+    icon: "✨",
+    subtitle: "Ihr besonderer Anlass",
+    description: "Taufe, Konfirmation, Jugendweihe, Jubiläum & mehr",
     image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80",
   },
   firmenfeier: {
@@ -75,37 +75,55 @@ const ANLAESSE = {
   },
 };
 
-/* ── 🎨 THEMEN PRO ANLASS ── */
+/* ── 🎨 THEMEN PRO ANLASS (mit Bildern!) ── */
 const THEMEN = {
   hochzeit: [
-    { id: "klassisch",    name: "Klassisch elegant",    desc: "Zeitlose Eleganz, raffinierte Klassiker" },
-    { id: "mediterran",   name: "Mediterrane Hochzeit", desc: "Antipasti, Pasta, frische Aromen" },
-    { id: "brandenburg",  name: "Brandenburger Landhochzeit", desc: "Regional, herzhaft, traditionell" },
+    { id: "klassisch",   name: "Klassisch elegant",        desc: "Zeitlose Eleganz, raffinierte Klassiker",
+      image: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80" },
+    { id: "mediterran",  name: "Mediterrane Hochzeit",     desc: "Antipasti, Pasta, frische Aromen",
+      image: "https://images.unsplash.com/photo-1432139509613-5c4255815697?w=600&q=80" },
+    { id: "brandenburg", name: "Brandenburger Landhochzeit", desc: "Regional, herzhaft, traditionell",
+      image: "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80" },
   ],
   geburtstag: [
-    { id: "buffet",       name: "Klassisches Buffet",    desc: "Beliebte Klassiker für alle Generationen" },
-    { id: "mediterran",   name: "Mediterrane Tafel",     desc: "Bunte Vielfalt vom Mittelmeer" },
-    { id: "fingerfood",   name: "Fingerfood & Häppchen", desc: "Modern, leicht, gesellig" },
+    { id: "kinder",       name: "Kindergeburtstag",         desc: "Bunt, kindgerecht, mit Spaßfaktor",
+      image: "https://images.unsplash.com/photo-1558636508-e0db3814bd1d?w=600&q=80" },
+    { id: "klassisch",    name: "Klassisches Buffet",       desc: "Beliebte Klassiker für alle Generationen",
+      image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80" },
+    { id: "fingerfood",   name: "Fingerfood & Häppchen",    desc: "Modern, leicht, gesellig",
+      image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80" },
   ],
   einschulung: [
-    { id: "familie",      name: "Klassisches Familienbuffet", desc: "Etwas für jeden Geschmack" },
-    { id: "bunt",         name: "Bunt & kindgerecht",    desc: "Kinderaugen leuchten lassen" },
-    { id: "suess",        name: "Süße Köstlichkeiten",   desc: "Kuchen, Muffins, Naschereien" },
+    { id: "familie",      name: "Klassisches Familienbuffet", desc: "Etwas für jeden Geschmack",
+      image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80" },
+    { id: "bunt",         name: "Bunt & kindgerecht",       desc: "Kinderaugen leuchten lassen",
+      image: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&q=80" },
+    { id: "suess",        name: "Süße Köstlichkeiten",      desc: "Kuchen, Muffins, Naschereien",
+      image: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=80" },
   ],
-  taufe: [
-    { id: "festlich",     name: "Festliches Buffet",     desc: "Feierlich und stilvoll" },
-    { id: "kaffeekuchen", name: "Kaffee & Kuchen",       desc: "Klassische Nachmittagsfeier" },
-    { id: "mediterran",   name: "Mediterrane Tafel",     desc: "Leicht und elegant" },
+  individuell: [
+    { id: "festlich",     name: "Festliches Buffet",        desc: "Feierlich und stilvoll für jeden Anlass",
+      image: "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80" },
+    { id: "klassisch",    name: "Klassisch & vielfältig",   desc: "Etwas Warmes, etwas Kaltes, für alle",
+      image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80" },
+    { id: "mediterran",   name: "Mediterrane Tafel",        desc: "Leicht, frisch und elegant",
+      image: "https://images.unsplash.com/photo-1432139509613-5c4255815697?w=600&q=80" },
   ],
   firmenfeier: [
-    { id: "lunch",        name: "Business Lunch",        desc: "Effizient, hochwertig, repräsentativ" },
-    { id: "sommerfest",   name: "Sommerfest-Buffet",     desc: "Entspannt feiern mit Kollegen" },
-    { id: "empfang",      name: "Fingerfood & Empfang",  desc: "Stilvoll für Networking" },
+    { id: "lunch",        name: "Business Lunch",           desc: "Effizient, hochwertig, repräsentativ",
+      image: "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80" },
+    { id: "sommerfest",   name: "Sommerfest-Buffet",        desc: "Entspannt feiern mit Kollegen",
+      image: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&q=80" },
+    { id: "empfang",      name: "Fingerfood & Empfang",     desc: "Stilvoll für Networking",
+      image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80" },
   ],
   fruehstueck: [
-    { id: "klassisch",    name: "Klassisches Frühstücksbuffet", desc: "Brötchen, Aufschnitt, Käse, Marmeladen" },
-    { id: "brunch",       name: "Brunch & Genuss",       desc: "Warm & kalt, herzhaft & süß kombiniert" },
-    { id: "business",     name: "Business Breakfast",    desc: "Schnell, hochwertig, im Meeting genießen" },
+    { id: "klassisch",    name: "Klassisches Frühstücksbuffet", desc: "Brötchen, Aufschnitt, Käse, Marmeladen",
+      image: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=600&q=80" },
+    { id: "brunch",       name: "Brunch & Genuss",          desc: "Warm & kalt, herzhaft & süß kombiniert",
+      image: "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=600&q=80" },
+    { id: "business",     name: "Business Breakfast",       desc: "Schnell, hochwertig, im Meeting genießen",
+      image: "https://images.unsplash.com/photo-1493770348161-369560ae357d?w=600&q=80" },
   ],
 };
 
@@ -114,7 +132,7 @@ const PREISE = {
   hochzeit:    { Klassisch: 28, Genuss: 42, Premium: 62 },
   geburtstag:  { Klassisch: 22, Genuss: 32, Premium: 48 },
   einschulung: { Klassisch: 18, Genuss: 26, Premium: 38 },
-  taufe:       { Klassisch: 22, Genuss: 32, Premium: 46 },
+  individuell: { Klassisch: 22, Genuss: 32, Premium: 46 },
   firmenfeier: { Klassisch: 24, Genuss: 35, Premium: 52 },
   fruehstueck: { Klassisch: 16, Genuss: 24, Premium: 36 },
 };
@@ -160,10 +178,10 @@ const PAKETE = [
     name: "Klassisch",
     tagline: "Schmackhaft & solide",
     features: [
-      "3-4 Hauptkomponenten",
-      "Brot & Beilagen inklusive",
-      "Frische saisonale Zutaten",
-      "Selbstabholung möglich",
+      "1 Hauptgericht",
+      "1 Beilage zur Wahl",
+      "1 Salat zur Wahl",
+      "Brot & Butter inklusive",
     ],
     badge: null,
   },
@@ -172,11 +190,11 @@ const PAKETE = [
     name: "Genuss",
     tagline: "Die beliebteste Wahl",
     features: [
-      "5-7 Komponenten warm & kalt",
-      "Premium-Brote & Vorspeisen",
-      "Dessert-Variation inklusive",
-      "Lieferung & Aufbau möglich",
-      "Persönliche Beratung",
+      "1 Vorspeise zur Wahl",
+      "2 Hauptgerichte",
+      "1 Beilage zur Wahl",
+      "1 Dessert zur Wahl",
+      "Brot, Butter & Aufstriche",
     ],
     badge: "Meistgebucht",
   },
@@ -185,16 +203,312 @@ const PAKETE = [
     name: "Premium",
     tagline: "Das volle Erlebnis",
     features: [
-      "8+ Komponenten exklusiv",
-      "Auswahl edler Zutaten",
-      "Mehrgängige Dessert-Auswahl",
-      "Lieferung, Aufbau & Service",
-      "Persönliche Wunschberatung",
-      "Individuelle Menü-Anpassung",
+      "Suppe oder Vorspeise",
+      "2 Hauptgerichte premium",
+      "2 Beilagen zur Wahl",
+      "Dessert-Variation",
+      "Brot, Butter, Aufstriche & Antipasti",
+      "Persönliche Wunsch-Beratung",
     ],
     badge: "Premium",
   },
 ];
+
+/* ── 👥 GÄSTEZAHL OPTIONEN ── */
+
+/* ════════════════════════════════════════════════════════════════
+   MENÜ-KOMPONENTEN PRO ANLASS + PAKET
+   3 Stimmungsbilder + Liste von Komponenten
+   - "fix": ist immer dabei (kein Häkchen)
+   - "wahl": Kunde wählt EINS davon aus (Radio-Auswahl)
+   ══════════════════════════════════════════════════════════════════ */
+const MENU_DATA = {
+  /* ── HOCHZEIT ── */
+  hochzeit: {
+    Klassisch: {
+      bilder: [
+        "https://images.unsplash.com/photo-1519741497674-611481863552?w=600&q=80",
+        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
+        "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80",
+      ],
+      kategorien: [
+        { typ: "fix",  label: "Hauptgericht", item: "Hähnchenbrust in Kräuterrahm" },
+        { typ: "wahl", label: "Beilage",      options: ["Kräuterkartoffeln", "Reis-Pilaw", "Spätzle"] },
+        { typ: "wahl", label: "Salat",        options: ["Bunter Blattsalat", "Tomate-Mozzarella"] },
+        { typ: "fix",  label: "Inklusive",    item: "Brot & Butter" },
+      ],
+    },
+    Genuss: {
+      bilder: [
+        "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80",
+        "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80",
+        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
+      ],
+      kategorien: [
+        { typ: "wahl", label: "Vorspeise",      options: ["Tomate-Mozzarella mit Basilikum", "Carpaccio vom Rind"] },
+        { typ: "fix",  label: "Hauptgericht 1", item: "Rinderfilet mit Rotweinsauce" },
+        { typ: "fix",  label: "Hauptgericht 2", item: "Lachsfilet auf Kräuterbett" },
+        { typ: "wahl", label: "Beilage",        options: ["Rosmarinkartoffeln", "Risotto mit Pilzen", "Gemüse-Couscous"] },
+        { typ: "wahl", label: "Dessert",        options: ["Tiramisu", "Mousse au Chocolat", "Panna Cotta mit Beeren"] },
+        { typ: "fix",  label: "Inklusive",      item: "Brot, Butter & hausgemachte Aufstriche" },
+      ],
+    },
+    Premium: {
+      bilder: [
+        "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&q=80",
+        "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80",
+        "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80",
+      ],
+      kategorien: [
+        { typ: "wahl", label: "Suppe oder Vorspeise", options: ["Kürbis-Cremesuppe", "Vitello Tonnato", "Garnelen-Cocktail"] },
+        { typ: "fix",  label: "Hauptgericht 1",       item: "Filet vom Rind, medium" },
+        { typ: "fix",  label: "Hauptgericht 2",       item: "Lachs in Hummersauce" },
+        { typ: "wahl", label: "Beilage 1",            options: ["Trüffelkartoffeln", "Risotto al Tartufo"] },
+        { typ: "wahl", label: "Beilage 2",            options: ["Saisonales Gemüse", "Glasierte Karotten"] },
+        { typ: "fix",  label: "Dessert-Variation",    item: "3-er Auswahl: Tiramisu, Mousse, Panna Cotta" },
+        { typ: "fix",  label: "Inklusive",            item: "Brot, Butter, Aufstriche & Antipasti-Platte" },
+      ],
+    },
+  },
+
+  /* ── GEBURTSTAG ── */
+  geburtstag: {
+    Klassisch: {
+      bilder: [
+        "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&q=80",
+        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
+        "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&q=80",
+      ],
+      kategorien: [
+        { typ: "fix",  label: "Hauptgericht", item: "Schweinebraten mit Rotkohl" },
+        { typ: "wahl", label: "Beilage",      options: ["Kartoffelklöße", "Bratkartoffeln", "Pommes"] },
+        { typ: "wahl", label: "Salat",        options: ["Krautsalat", "Gurkensalat", "Bunter Salat"] },
+        { typ: "fix",  label: "Inklusive",    item: "Brot & Butter" },
+      ],
+    },
+    Genuss: {
+      bilder: [
+        "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&q=80",
+        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
+        "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80",
+      ],
+      kategorien: [
+        { typ: "wahl", label: "Vorspeise",      options: ["Gefüllte Champignons", "Bruschetta-Variation"] },
+        { typ: "fix",  label: "Hauptgericht 1", item: "Hähnchen-Spieße mit Kräutern" },
+        { typ: "fix",  label: "Hauptgericht 2", item: "Schweinemedaillons in Pfeffersauce" },
+        { typ: "wahl", label: "Beilage",        options: ["Ofenkartoffeln mit Kräuterquark", "Reis", "Pasta"] },
+        { typ: "wahl", label: "Dessert",        options: ["Tiramisu", "Käsekuchen", "Obstsalat"] },
+        { typ: "fix",  label: "Inklusive",      item: "Brot, Butter & Aufstriche" },
+      ],
+    },
+    Premium: {
+      bilder: [
+        "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&q=80",
+        "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80",
+        "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=80",
+      ],
+      kategorien: [
+        { typ: "wahl", label: "Suppe oder Vorspeise", options: ["Tomatencreme-Suppe", "Lachs-Carpaccio"] },
+        { typ: "fix",  label: "Hauptgericht 1",       item: "Roastbeef mit Remoulade" },
+        { typ: "fix",  label: "Hauptgericht 2",       item: "Lachs auf Spinatbett" },
+        { typ: "wahl", label: "Beilage 1",            options: ["Rosmarinkartoffeln", "Wildreis"] },
+        { typ: "wahl", label: "Beilage 2",            options: ["Saisonales Gemüse", "Mediterraner Couscous"] },
+        { typ: "fix",  label: "Dessert-Variation",    item: "3-er Auswahl: Mousse, Tiramisu, Obst-Tartelettes" },
+        { typ: "fix",  label: "Inklusive",            item: "Brot, Butter, Aufstriche & Antipasti" },
+      ],
+    },
+  },
+
+  /* ── EINSCHULUNG ── */
+  einschulung: {
+    Klassisch: {
+      bilder: [
+        "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&q=80",
+        "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=80",
+        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
+      ],
+      kategorien: [
+        { typ: "fix",  label: "Hauptgericht", item: "Mini-Frikadellen mit Kräuterdip" },
+        { typ: "wahl", label: "Beilage",      options: ["Pommes", "Kartoffelpüree", "Nudelsalat"] },
+        { typ: "wahl", label: "Süßes",        options: ["Schoko-Muffins", "Obstspieße"] },
+        { typ: "fix",  label: "Inklusive",    item: "Brot & Butter" },
+      ],
+    },
+    Genuss: {
+      bilder: [
+        "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&q=80",
+        "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=80",
+        "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&q=80",
+      ],
+      kategorien: [
+        { typ: "wahl", label: "Salat",          options: ["Bunter Salat", "Nudelsalat"] },
+        { typ: "fix",  label: "Hauptgericht 1", item: "Hähnchen-Nuggets mit Dip" },
+        { typ: "fix",  label: "Hauptgericht 2", item: "Mini-Schnitzel" },
+        { typ: "wahl", label: "Beilage",        options: ["Pommes", "Bratkartoffeln", "Spätzle"] },
+        { typ: "wahl", label: "Dessert",        options: ["Schoko-Muffins", "Obstsalat", "Vanillepudding"] },
+        { typ: "fix",  label: "Inklusive",      item: "Brot, Butter & Aufstriche" },
+      ],
+    },
+    Premium: {
+      bilder: [
+        "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&q=80",
+        "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=80",
+        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
+      ],
+      kategorien: [
+        { typ: "wahl", label: "Vorspeise",            options: ["Tomate-Mozzarella am Spieß", "Gefüllte Eier"] },
+        { typ: "fix",  label: "Hauptgericht 1",       item: "Rinderbraten mit Sauce" },
+        { typ: "fix",  label: "Hauptgericht 2",       item: "Putenröllchen gefüllt" },
+        { typ: "wahl", label: "Beilage 1",            options: ["Kroketten", "Reis", "Spätzle"] },
+        { typ: "wahl", label: "Beilage 2",            options: ["Buntes Gemüse", "Kartoffelgratin"] },
+        { typ: "fix",  label: "Dessert-Variation",    item: "Muffins, Obstspieße, Tiramisu-Becher" },
+        { typ: "fix",  label: "Inklusive",            item: "Brot, Butter, Aufstriche & Käseplatte" },
+      ],
+    },
+  },
+
+  /* ── INDIVIDUELL (Taufe, Konfirmation, Jugendweihe, Jubiläum etc.) ── */
+  individuell: {
+    Klassisch: {
+      bilder: [
+        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
+        "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80",
+        "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=80",
+      ],
+      kategorien: [
+        { typ: "fix",  label: "Hauptgericht", item: "Hähnchenbrust in Cremesauce" },
+        { typ: "wahl", label: "Beilage",      options: ["Kräuterkartoffeln", "Reis", "Spätzle"] },
+        { typ: "wahl", label: "Salat",        options: ["Bunter Salat", "Tomate-Mozzarella"] },
+        { typ: "fix",  label: "Inklusive",    item: "Brot & Butter" },
+      ],
+    },
+    Genuss: {
+      bilder: [
+        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
+        "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80",
+        "https://images.unsplash.com/photo-1432139509613-5c4255815697?w=600&q=80",
+      ],
+      kategorien: [
+        { typ: "wahl", label: "Vorspeise",      options: ["Tomate-Mozzarella", "Lachs-Tatar"] },
+        { typ: "fix",  label: "Hauptgericht 1", item: "Rinderbraten mit Rotweinsauce" },
+        { typ: "fix",  label: "Hauptgericht 2", item: "Pute Cordon Bleu" },
+        { typ: "wahl", label: "Beilage",        options: ["Rosmarinkartoffeln", "Risotto", "Spätzle"] },
+        { typ: "wahl", label: "Dessert",        options: ["Tiramisu", "Käsekuchen", "Mousse au Chocolat"] },
+        { typ: "fix",  label: "Inklusive",      item: "Brot, Butter & Aufstriche" },
+      ],
+    },
+    Premium: {
+      bilder: [
+        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
+        "https://images.unsplash.com/photo-1432139509613-5c4255815697?w=600&q=80",
+        "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=80",
+      ],
+      kategorien: [
+        { typ: "wahl", label: "Suppe oder Vorspeise", options: ["Tomatensuppe", "Lachs-Carpaccio", "Vitello Tonnato"] },
+        { typ: "fix",  label: "Hauptgericht 1",       item: "Filetstreifen Stroganoff" },
+        { typ: "fix",  label: "Hauptgericht 2",       item: "Lachs in Dillsauce" },
+        { typ: "wahl", label: "Beilage 1",            options: ["Trüffelkartoffeln", "Risotto"] },
+        { typ: "wahl", label: "Beilage 2",            options: ["Buntes Gemüse", "Couscous"] },
+        { typ: "fix",  label: "Dessert-Variation",    item: "3-er Auswahl: Tiramisu, Mousse, Panna Cotta" },
+        { typ: "fix",  label: "Inklusive",            item: "Brot, Butter, Aufstriche & Antipasti" },
+      ],
+    },
+  },
+
+  /* ── FIRMENFEIER ── */
+  firmenfeier: {
+    Klassisch: {
+      bilder: [
+        "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&q=80",
+        "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80",
+        "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80",
+      ],
+      kategorien: [
+        { typ: "fix",  label: "Hauptgericht", item: "Hähnchenbrust mit Kräutern" },
+        { typ: "wahl", label: "Beilage",      options: ["Kartoffelsalat", "Reissalat", "Nudelsalat"] },
+        { typ: "wahl", label: "Salat",        options: ["Blattsalat", "Tomate-Mozzarella"] },
+        { typ: "fix",  label: "Inklusive",    item: "Brot, Butter & Aufstriche" },
+      ],
+    },
+    Genuss: {
+      bilder: [
+        "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&q=80",
+        "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80",
+        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
+      ],
+      kategorien: [
+        { typ: "wahl", label: "Vorspeise",      options: ["Bruschetta-Variation", "Antipasti-Mix"] },
+        { typ: "fix",  label: "Hauptgericht 1", item: "Hähnchen-Curry" },
+        { typ: "fix",  label: "Hauptgericht 2", item: "Penne Arrabbiata" },
+        { typ: "wahl", label: "Beilage",        options: ["Reis", "Kartoffelgratin", "Couscous-Salat"] },
+        { typ: "wahl", label: "Dessert",        options: ["Tiramisu", "Obstsalat", "Mini-Käsekuchen"] },
+        { typ: "fix",  label: "Inklusive",      item: "Brot, Butter, Aufstriche & Käseplatte" },
+      ],
+    },
+    Premium: {
+      bilder: [
+        "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&q=80",
+        "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80",
+        "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=80",
+      ],
+      kategorien: [
+        { typ: "wahl", label: "Suppe oder Vorspeise", options: ["Kürbissuppe", "Vitello Tonnato", "Lachs-Tatar"] },
+        { typ: "fix",  label: "Hauptgericht 1",       item: "Rinderfilet mit Pfeffersauce" },
+        { typ: "fix",  label: "Hauptgericht 2",       item: "Lachs auf mediterranem Gemüse" },
+        { typ: "wahl", label: "Beilage 1",            options: ["Trüffelkartoffeln", "Risotto al Tartufo"] },
+        { typ: "wahl", label: "Beilage 2",            options: ["Saisonales Gemüse", "Mediterraner Couscous"] },
+        { typ: "fix",  label: "Dessert-Variation",    item: "Tiramisu, Mousse au Chocolat, Panna Cotta" },
+        { typ: "fix",  label: "Inklusive",            item: "Brot, Butter, Aufstriche, Antipasti & Käseplatte" },
+      ],
+    },
+  },
+
+  /* ── FRÜHSTÜCK / BRUNCH ── */
+  fruehstueck: {
+    Klassisch: {
+      bilder: [
+        "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=600&q=80",
+        "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=600&q=80",
+        "https://images.unsplash.com/photo-1493770348161-369560ae357d?w=600&q=80",
+      ],
+      kategorien: [
+        { typ: "fix",  label: "Brötchen-Auswahl",   item: "Vollkorn, Weiß, Mehrkorn, Mohn" },
+        { typ: "fix",  label: "Aufschnitt & Käse",  item: "Klassische Auswahl" },
+        { typ: "wahl", label: "Süßer Aufstrich",    options: ["Erdbeer- & Aprikosenmarmelade", "Honig & Nutella"] },
+        { typ: "fix",  label: "Inklusive",          item: "Butter, Frischkäse, frisches Obst" },
+      ],
+    },
+    Genuss: {
+      bilder: [
+        "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=600&q=80",
+        "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=600&q=80",
+        "https://images.unsplash.com/photo-1493770348161-369560ae357d?w=600&q=80",
+      ],
+      kategorien: [
+        { typ: "fix",  label: "Brötchen-Vielfalt",  item: "Kleine & große, süß & herzhaft" },
+        { typ: "fix",  label: "Aufschnitt & Käse",  item: "Premium-Auswahl mit regionalen Spezialitäten" },
+        { typ: "wahl", label: "Warmer Hauptgang",   options: ["Rührei mit Schnittlauch", "Pancakes mit Beeren", "Mini-Quiches"] },
+        { typ: "wahl", label: "Süße Auswahl",       options: ["Croissants & Muffins", "Obstsalat & Joghurt"] },
+        { typ: "fix",  label: "Inklusive",          item: "Butter, Frischkäse, Aufstriche, Lachs, Obst" },
+      ],
+    },
+    Premium: {
+      bilder: [
+        "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=600&q=80",
+        "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=600&q=80",
+        "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80",
+      ],
+      kategorien: [
+        { typ: "fix",  label: "Brötchen-Vielfalt",  item: "Premium-Auswahl, hausgebacken & lokal" },
+        { typ: "fix",  label: "Wurst & Käse",       item: "Premium-Aufschnitt mit edlen Käsesorten" },
+        { typ: "wahl", label: "Warmer Hauptgang 1", options: ["Eggs Benedict", "Rührei mit Räucherlachs", "Shakshuka"] },
+        { typ: "wahl", label: "Warmer Hauptgang 2", options: ["Pancakes mit Ahornsirup", "Mini-Quiches", "Frittata"] },
+        { typ: "fix",  label: "Süßes",              item: "Croissants, Muffins, hausgemachte Torte" },
+        { typ: "fix",  label: "Inklusive",          item: "Butter, Aufstriche, Lachs, Antipasti, Obstplatte" },
+      ],
+    },
+  },
+};
 
 /* ── 👥 GÄSTEZAHL OPTIONEN ── */
 const GAESTE_OPTIONEN = [10, 15, 20, 25, 30, 40, 50, 60, 80, 100, 120, 150, 200];
@@ -286,6 +600,8 @@ export default function MamaMiaAngebotsgenerator() {
     plz: "",
     lieferung: "lieferung",
     paket: null,
+    menue_auswahl: {},   // Format: { "Beilage": "Pommes", "Salat": "Krautsalat" }
+    zusatzwuensche: "",
     kontaktart: "whatsapp",
     kontaktdaten: "",
     name: "",
@@ -313,7 +629,7 @@ export default function MamaMiaAngebotsgenerator() {
 
   /* ── Helper ── */
   const update = (key, value) => setData(d => ({ ...d, [key]: value }));
-  const next = () => setStep(s => Math.min(s + 1, 5));
+  const next = () => setStep(s => Math.min(s + 1, 6));
   const prev = () => setStep(s => Math.max(s - 1, 1));
 
   const preisProPerson = data.anlass && data.paket
@@ -344,6 +660,9 @@ export default function MamaMiaAngebotsgenerator() {
       "Name": data.name || "—",
       "Kontaktart": data.kontaktart,
       "Kontaktdaten": data.kontaktdaten,
+      "Menü-Auswahl": Object.entries(data.menue_auswahl || {})
+        .map(([k, v]) => `${k}: ${v}`).join(" · ") || "—",
+      "Zusatzwünsche": data.zusatzwuensche || "—",
       "Notizen": data.notizen || "—",
       "Preis pro Person": preisProPerson,
       "Speisenpreis": speisenPreis,
@@ -412,7 +731,7 @@ export default function MamaMiaAngebotsgenerator() {
       {!submitted && (
         <div style={S.stepperWrap}>
           <div style={S.stepper} className="mm-stepper">
-            {["Anlass", "Thema", "Details", "Paket", "Anfrage"].map((label, i) => {
+            {["Anlass", "Thema", "Details", "Paket", "Menü", "Anfrage"].map((label, i) => {
               const num = i + 1;
               const active = step === num;
               const done   = step > num;
@@ -430,7 +749,7 @@ export default function MamaMiaAngebotsgenerator() {
                     color: active ? C.burgundy : done ? C.cappuccino : C.cappuccino,
                     fontWeight: active ? 700 : 500,
                   }}>{label}</div>
-                  {i < 4 && (
+                  {i < 5 && (
                     <div style={{
                       ...S.stepLine,
                       background: done ? C.gold : C.border,
@@ -454,7 +773,14 @@ export default function MamaMiaAngebotsgenerator() {
             {step === 3 && <Step3Details data={data} update={update} next={next} />}
             {step === 4 && <Step4Paket  data={data} update={update} next={next} preise={PREISE[data.anlass]} />}
             {step === 5 && (
-              <Step5Anfrage
+              <Step5Menue
+                data={data}
+                update={update}
+                next={next}
+              />
+            )}
+            {step === 6 && (
+              <Step6Anfrage
                 data={data}
                 update={update}
                 onSubmit={handleSubmit}
@@ -562,10 +888,16 @@ function Step2Thema({ data, update, next }) {
                 animationDelay: `${i * 80}ms`,
               }}
             >
-              <div style={S.themaNumber}>0{i + 1}</div>
-              <div style={S.themaName}>{t.name}</div>
-              <div style={S.themaDesc}>{t.desc}</div>
-              <div style={S.themaArrow}>→</div>
+              <div style={{
+                ...S.themaImage,
+                backgroundImage: `linear-gradient(180deg, rgba(28,16,8,0) 50%, rgba(28,16,8,.55) 100%), url(${t.image})`,
+              }} />
+              <div style={S.themaContent}>
+                <div style={S.themaNumberSmall}>0{i + 1}</div>
+                <div style={S.themaName}>{t.name}</div>
+                <div style={S.themaDesc}>{t.desc}</div>
+                <div style={S.themaArrow}>→</div>
+              </div>
             </button>
           );
         })}
@@ -730,9 +1062,6 @@ function Step4Paket({ data, update, next, preise }) {
                 <span style={S.paketPrice}>{formatEUR(preis)}</span>
                 <span style={S.paketPriceUnit}>pro Person</span>
               </div>
-              <div style={S.paketTotal}>
-                ca. {formatEUR(preis * data.gaeste)} gesamt
-              </div>
 
               <div style={S.divider} />
 
@@ -763,7 +1092,149 @@ function Step4Paket({ data, update, next, preise }) {
 /* ════════════════════════════════════════════════════════════════
    SCHRITT 5 — ANFRAGE
    ══════════════════════════════════════════════════════════════════ */
-function Step5Anfrage({ data, update, onSubmit, submitting, preisProPerson, speisenPreis, lieferzuschlag, lieferInfo, gesamtpreis }) {
+/* ════════════════════════════════════════════════════════════════
+   SCHRITT 5 — MENÜ ANPASSEN (NEU!)
+   Stimmungsbilder + auswählbare Komponenten + Zusatzwünsche
+   ══════════════════════════════════════════════════════════════════ */
+function Step5Menue({ data, update, next }) {
+  const menuData = MENU_DATA[data.anlass]?.[data.paket];
+
+  // Falls kein Menü-Daten existieren (Fallback)
+  if (!menuData) {
+    return (
+      <div className="mm-fade">
+        <div style={S.heroBlock}>
+          <h1 style={S.heroTitle} className="mm-hero-title">
+            <em style={S.italic}>Fast geschafft</em>
+          </h1>
+          <p style={S.heroSub} className="mm-hero-sub">
+            Ich erstelle Ihr Menü individuell nach unserer Beratung.
+          </p>
+        </div>
+        <button onClick={next} className="mm-btn-press" style={{ ...S.primaryBtn, maxWidth: 400, margin: "0 auto", display: "block" }}>
+          Weiter zur Anfrage →
+        </button>
+      </div>
+    );
+  }
+
+  // Initialisiere Menü-Auswahl mit ersten Optionen falls noch leer
+  const auswahl = data.menue_auswahl || {};
+  const setAuswahl = (label, option) => {
+    update("menue_auswahl", { ...auswahl, [label]: option });
+  };
+
+  // Prüfen ob alle Wahl-Kategorien bedient sind
+  const wahlKategorien = menuData.kategorien.filter(k => k.typ === "wahl");
+  const alleGewaehlt = wahlKategorien.every(k => auswahl[k.label]);
+
+  return (
+    <div className="mm-fade">
+      <div style={S.heroBlock}>
+        <div style={S.heroEyebrow}>Schritt 5 von 6 · {data.paket}</div>
+        <h1 style={S.heroTitle} className="mm-hero-title">
+          Ihr <em style={S.italic}>Menü</em>
+        </h1>
+        <p style={S.heroSub} className="mm-hero-sub">
+          Stellen Sie Ihre Lieblings-Komponenten zusammen.
+        </p>
+      </div>
+
+      {/* Stimmungsbilder */}
+      <div style={S.menueBilder}>
+        {menuData.bilder.map((url, i) => (
+          <div
+            key={i}
+            style={{
+              ...S.menueBild,
+              backgroundImage: `url(${url})`,
+              animationDelay: `${i * 100}ms`,
+            }}
+            className="mm-fade"
+          />
+        ))}
+      </div>
+
+      {/* Komponenten */}
+      <div style={S.menueCard}>
+        <div style={S.menueCardTitle}>Ihre Komponenten</div>
+
+        {menuData.kategorien.map((kat, i) => (
+          <div key={i} style={S.menueKategorie}>
+            <div style={S.menueKatLabel}>{kat.label}</div>
+
+            {kat.typ === "fix" ? (
+              <div style={S.menueFixItem}>
+                <span style={S.menueFixCheck}>✓</span>
+                <span>{kat.item}</span>
+              </div>
+            ) : (
+              <div style={S.menueWahlGroup}>
+                {kat.options.map(opt => {
+                  const isSelected = auswahl[kat.label] === opt;
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setAuswahl(kat.label, opt)}
+                      className="mm-btn-press"
+                      style={{
+                        ...S.menueWahlBtn,
+                        ...(isSelected ? S.menueWahlBtnActive : {}),
+                      }}
+                    >
+                      <span style={{
+                        ...S.menueRadio,
+                        ...(isSelected ? S.menueRadioActive : {}),
+                      }}>
+                        {isSelected && <span style={S.menueRadioInner} />}
+                      </span>
+                      <span>{opt}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ))}
+
+        {/* Zusatzwünsche */}
+        <div style={{ ...S.menueKategorie, marginTop: 24, paddingTop: 24, borderTop: `2px dashed ${C.border}` }}>
+          <div style={S.menueKatLabel}>Ihre Zusatzwünsche (optional)</div>
+          <textarea
+            value={data.zusatzwuensche}
+            onChange={e => update("zusatzwuensche", e.target.value)}
+            placeholder="Allergien, Vegetarier, besondere Wünsche, eigene Ideen…"
+            rows={3}
+            style={{ ...S.input, resize: "vertical", fontFamily: "inherit", marginTop: 8 }}
+            className="mm-input"
+          />
+          <div style={S.menueZusatzHint}>
+            ✨ Zusatzwünsche besprechen wir gern persönlich. Der Endpreis kann sich dadurch leicht ändern.
+          </div>
+        </div>
+
+        <button
+          onClick={next}
+          disabled={!alleGewaehlt}
+          className="mm-btn-press"
+          style={{
+            ...S.primaryBtn,
+            ...(alleGewaehlt ? {} : S.btnDisabled),
+            marginTop: 24,
+          }}
+        >
+          {alleGewaehlt ? "Weiter zur Anfrage →" : "Bitte alle Komponenten auswählen"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SCHRITT 6 — ANFRAGE (vorher Schritt 5)
+   ══════════════════════════════════════════════════════════════════ */
+function Step6Anfrage({ data, update, onSubmit, submitting, preisProPerson, speisenPreis, lieferzuschlag, lieferInfo, gesamtpreis }) {
   const canSubmit = data.kontaktdaten.trim().length > 4;
   const istLieferung = data.lieferung === "lieferung";
   const lieferzoneUnbekannt = istLieferung && !lieferInfo.bekannt;
@@ -771,7 +1242,7 @@ function Step5Anfrage({ data, update, onSubmit, submitting, preisProPerson, spei
   return (
     <div className="mm-fade">
       <div style={S.heroBlock}>
-        <div style={S.heroEyebrow}>Schritt 5 von 5</div>
+        <div style={S.heroEyebrow}>Schritt 6 von 6</div>
         <h1 style={S.heroTitle} className="mm-hero-title">
           <em style={S.italic}>Fast geschafft!</em>
         </h1>
@@ -791,6 +1262,26 @@ function Step5Anfrage({ data, update, onSubmit, submitting, preisProPerson, spei
           <SummaryRow label="Datum"    value={data.datum ? new Date(data.datum).toLocaleDateString("de-DE", { day:"2-digit", month:"long", year:"numeric" }) : "—"} />
           <SummaryRow label="Ort"      value={`${data.plz} (${istLieferung ? "Lieferung" : "Selbstabholung"})`} />
           <SummaryRow label="Paket"    value={data.paket} />
+
+          {/* Menü-Auswahl */}
+          {data.menue_auswahl && Object.keys(data.menue_auswahl).length > 0 && (
+            <>
+              <div style={S.summarySubDivider} />
+              <div style={S.summarySubTitle}>Ihre Auswahl</div>
+              {Object.entries(data.menue_auswahl).map(([label, value]) => (
+                <SummaryRow key={label} label={label} value={value} />
+              ))}
+            </>
+          )}
+
+          {/* Zusatzwünsche */}
+          {data.zusatzwuensche && data.zusatzwuensche.trim() && (
+            <>
+              <div style={S.summarySubDivider} />
+              <div style={S.summarySubTitle}>Zusatzwünsche</div>
+              <div style={S.summaryNotiz}>{data.zusatzwuensche}</div>
+            </>
+          )}
 
           <div style={S.summaryDivider} />
 
@@ -829,6 +1320,7 @@ function Step5Anfrage({ data, update, onSubmit, submitting, preisProPerson, spei
 
           <div style={S.summaryNote}>
             * Unverbindliche Schätzung. Endpreis nach individueller Beratung.
+            Eigene Zusatzwünsche oder besondere Komponenten können den Preis leicht beeinflussen.
           </div>
         </div>
 
@@ -1200,20 +1692,32 @@ const S = {
     background: C.white,
     border: `2px solid ${C.border}`,
     borderRadius: 20,
-    padding: 32,
+    padding: 0,
     cursor: "pointer",
     fontFamily: "inherit",
     textAlign: "left",
     position: "relative",
     boxShadow: "0 2px 8px rgba(28,16,8,.04)",
-    minHeight: 220,
+    minHeight: 360,
+    overflow: "hidden",
     display: "flex",
     flexDirection: "column",
   },
   themaCardActive: {
     borderColor: C.gold,
-    background: C.creamSoft,
     boxShadow: `0 8px 24px ${C.gold}40`,
+  },
+  themaImage: {
+    height: 160,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    flexShrink: 0,
+  },
+  themaContent: {
+    padding: "20px 24px 24px",
+    display: "flex",
+    flexDirection: "column",
+    flex: 1,
   },
   themaNumber: {
     fontFamily: "'Playfair Display', serif",
@@ -1225,9 +1729,18 @@ const S = {
     opacity: .35,
     marginBottom: 12,
   },
+  themaNumberSmall: {
+    fontFamily: "'Playfair Display', serif",
+    fontSize: 14,
+    fontWeight: 600,
+    color: C.gold,
+    fontStyle: "italic",
+    letterSpacing: "1px",
+    marginBottom: 6,
+  },
   themaName: {
     fontFamily: "'Playfair Display', serif",
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 700,
     color: C.burgundy,
     marginBottom: 8,
@@ -1240,10 +1753,126 @@ const S = {
     flex: 1,
   },
   themaArrow: {
-    fontSize: 24,
+    fontSize: 22,
     color: C.gold,
-    marginTop: 20,
+    marginTop: 16,
     fontWeight: 300,
+  },
+
+  /* Step 5: Menü-Anpassung */
+  menueBilder: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: 12,
+    marginBottom: 24,
+    maxWidth: 720,
+    margin: "0 auto 24px",
+  },
+  menueBild: {
+    aspectRatio: "1 / 1",
+    borderRadius: 16,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    boxShadow: "0 4px 12px rgba(28,16,8,.10)",
+    animation: "fadeUp .5s ease-out backwards",
+  },
+  menueCard: {
+    background: C.white,
+    borderRadius: 24,
+    padding: 32,
+    maxWidth: 720,
+    margin: "0 auto",
+    boxShadow: "0 8px 32px rgba(28,16,8,.06)",
+    border: `1px solid ${C.border}`,
+  },
+  menueCardTitle: {
+    fontFamily: "'Playfair Display', serif",
+    fontSize: 22,
+    fontWeight: 700,
+    color: C.burgundy,
+    marginBottom: 24,
+    fontStyle: "italic",
+  },
+  menueKategorie: {
+    marginBottom: 20,
+  },
+  menueKatLabel: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: C.gold,
+    letterSpacing: "1.5px",
+    textTransform: "uppercase",
+    marginBottom: 10,
+  },
+  menueFixItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    background: C.creamSoft,
+    padding: "14px 16px",
+    borderRadius: 12,
+    fontSize: 15,
+    color: C.ink,
+    fontWeight: 500,
+  },
+  menueFixCheck: {
+    color: C.gold,
+    fontWeight: 700,
+    fontSize: 16,
+    flexShrink: 0,
+  },
+  menueWahlGroup: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+  },
+  menueWahlBtn: {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    background: C.creamSoft,
+    border: `2px solid ${C.border}`,
+    borderRadius: 12,
+    padding: "14px 16px",
+    fontSize: 15,
+    color: C.ink,
+    cursor: "pointer",
+    fontFamily: "inherit",
+    textAlign: "left",
+    transition: "all .2s",
+  },
+  menueWahlBtnActive: {
+    background: C.white,
+    borderColor: C.gold,
+    boxShadow: `0 4px 12px ${C.gold}30`,
+    fontWeight: 600,
+  },
+  menueRadio: {
+    width: 20,
+    height: 20,
+    borderRadius: "50%",
+    border: `2px solid ${C.cappuccino}`,
+    flexShrink: 0,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transition: "all .2s",
+  },
+  menueRadioActive: {
+    borderColor: C.gold,
+  },
+  menueRadioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: "50%",
+    background: C.gold,
+  },
+  menueZusatzHint: {
+    fontSize: 12,
+    color: C.cappuccino,
+    marginTop: 8,
+    fontStyle: "italic",
+    lineHeight: 1.5,
   },
 
   /* Step 3: Form */
@@ -1491,6 +2120,29 @@ const S = {
     background: C.gold,
     opacity: .3,
     margin: "20px 0 16px",
+  },
+  summarySubDivider: {
+    height: 1,
+    background: C.gold,
+    opacity: .15,
+    margin: "16px 0 8px",
+  },
+  summarySubTitle: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: C.gold,
+    letterSpacing: "1.5px",
+    textTransform: "uppercase",
+    marginBottom: 6,
+    marginTop: 4,
+  },
+  summaryNotiz: {
+    fontSize: 13,
+    color: C.cream,
+    fontStyle: "italic",
+    lineHeight: 1.5,
+    opacity: .9,
+    padding: "4px 0 8px",
   },
   summaryBreakdown: {
     marginBottom: 16,
