@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createClient } from "@supabase/supabase-js";
 
 /* ════════════════════════════════════════════════════════════════
    MAMA MIA EVENTS & CATERING — ANGEBOTSGENERATOR
@@ -8,11 +9,17 @@ import React, { useState, useEffect } from "react";
    - PREISE pro Anlass / Paket
    - THEMEN pro Anlass
    - ANLÄSSE mit Beschreibung & Bildern
-   - AIRTABLE Anbindung (URL & Token später eintragen)
+   - SUPABASE-Anbindung (Phase 2)
    
    Hosting: Vercel (kostenlos)
    Aufruf via Framer:  ?anlass=hochzeit  oder  ?anlass=geburtstag  etc.
    ══════════════════════════════════════════════════════════════════ */
+
+/* ── 🔌 SUPABASE CLIENT ── */
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 /* ── 🎨 FARBPALETTE ── */
 const C = {
@@ -642,40 +649,173 @@ export default function MamaMiaAngebotsgenerator() {
   const lieferzuschlag = lieferInfo.zuschlag ?? 0;
   const gesamtpreis = speisenPreis + lieferzuschlag;
 
-  /* ── Submit ── */
+  /* ── Submit (Supabase + E-Mail) ── */
   async function handleSubmit() {
     setSubmitting(true);
-    const id = generateAngebotsId();
-    setAngebotsId(id);
 
-    const submitData = {
-      "Angebots-ID": id,
-      "Anlass": ANLAESSE[data.anlass]?.label,
-      "Thema": THEMEN[data.anlass]?.find(t => t.id === data.thema)?.name,
-      "Paket": data.paket,
-      "Gäste": data.gaeste,
-      "Datum": data.datum,
-      "PLZ": data.plz,
-      "Lieferung": data.lieferung === "lieferung" ? "Lieferung" : "Selbstabholung",
-      "Name": data.name || "—",
-      "Kontaktart": data.kontaktart,
-      "Kontaktdaten": data.kontaktdaten,
-      "Menü-Auswahl": Object.entries(data.menue_auswahl || {})
-        .map(([k, v]) => `${k}: ${v}`).join(" · ") || "—",
-      "Zusatzwünsche": data.zusatzwuensche || "—",
-      "Notizen": data.notizen || "—",
-      "Preis pro Person": preisProPerson,
-      "Speisenpreis": speisenPreis,
-      "Lieferzuschlag": lieferzuschlag,
-      "Lieferzone bekannt": lieferInfo.bekannt,
-      "Gesamtpreis": gesamtpreis,
-      "Status": "Neu",
-      "Erstellt": new Date().toISOString(),
-    };
+    try {
+      // 1) Request Number aus DB-Funktion holen
+      const { data: numData, error: numErr } = await supabase.rpc("generate_request_number");
+      if (numErr) throw numErr;
+      const requestNumber = numData;
+      setAngebotsId(requestNumber);
 
-    await sendToAirtable(submitData);
-    setSubmitting(false);
-    setSubmitted(true);
+      // 2) Aktuelle Pakete-Version laden (für Snapshot)
+      const { data: paketeVersion } = await supabase
+        .from("pakete_versionen")
+        .select("id, pakete_data")
+        .order("gueltig_ab", { ascending: false })
+        .limit(1)
+        .single();
+
+      // 3) Anfrage in Datenbank speichern
+      const insertData = {
+        request_number: requestNumber,
+        source: "generator",
+        status: "neu",
+        customer_name: data.name || null,
+        customer_phone: data.kontaktart !== "email" ? data.kontaktdaten : null,
+        customer_email: data.kontaktart === "email" ? data.kontaktdaten : null,
+        customer_contact_preference: data.kontaktart,
+        anlass: data.anlass,
+        thema: THEMEN[data.anlass]?.find(t => t.id === data.thema)?.name || null,
+        paket: data.paket,
+        gaeste: data.gaeste,
+        event_datum: data.datum || null,
+        plz: data.plz || null,
+        lieferung: data.lieferung,
+        menue_auswahl: data.menue_auswahl || {},
+        zusatzwuensche: data.zusatzwuensche || null,
+        interne_notiz: data.notizen || null,
+        preis_pro_person: preisProPerson,
+        speisenpreis: speisenPreis,
+        lieferzuschlag: lieferzuschlag,
+        gesamtpreis: gesamtpreis,
+        pakete_version_id: paketeVersion?.id || null,
+        pakete_snapshot: paketeVersion?.pakete_data || null,
+      };
+
+      const { data: savedRequest, error: insertErr } = await supabase
+        .from("requests")
+        .insert(insertData)
+        .select()
+        .single();
+
+      if (insertErr) throw insertErr;
+
+      // 4) E-Mails versenden (Fehler hier blockieren das Submit nicht)
+      try {
+        await sendNotificationEmails(savedRequest);
+      } catch (emailErr) {
+        console.error("E-Mail-Versand fehlgeschlagen:", emailErr);
+      }
+
+      setSubmitted(true);
+    } catch (err) {
+      console.error("Submit-Fehler:", err);
+      alert("Es gab ein Problem beim Senden Ihrer Anfrage. Bitte versuchen Sie es erneut oder kontaktieren Sie uns direkt unter info@mama-mia-events.de");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  /* ── E-Mail-Helper ── */
+  async function sendNotificationEmails(request) {
+    const anlassLabel = ANLAESSE[request.anlass]?.label || request.anlass;
+    const datumFormatted = request.event_datum
+      ? new Date(request.event_datum).toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" })
+      : "Datum offen";
+
+    // E-Mail an Kunden (Bestätigung) — nur wenn E-Mail bekannt
+    if (request.customer_email) {
+      const customerHtml = `
+        <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; color: #1C1008;">
+          <div style="text-align: center; padding: 32px 0; border-bottom: 2px solid #E8DCC4;">
+            <h1 style="font-family: Georgia, serif; font-size: 32px; color: #C9A84C; font-style: italic; margin: 0;">Mama Mia</h1>
+            <p style="color: #A88968; margin: 4px 0 0; letter-spacing: 2px; text-transform: uppercase; font-size: 11px;">Events &amp; Catering</p>
+          </div>
+          <h2 style="color: #5C2818; font-family: Georgia, serif;">Vielen Dank für Ihre Anfrage!</h2>
+          <p>Liebe/r ${request.customer_name || "Gast"},</p>
+          <p>Ihre Anfrage <strong>${request.request_number}</strong> ist bei mir eingegangen. Ich melde mich innerhalb von <strong>24 Stunden</strong> persönlich bei Ihnen.</p>
+          <div style="background: #FEF8E0; border-left: 4px solid #C9A84C; padding: 16px 20px; margin: 24px 0; border-radius: 6px;">
+            <h3 style="margin: 0 0 12px; color: #5C2818;">Ihre Anfrage</h3>
+            <p style="margin: 4px 0;"><strong>Anlass:</strong> ${anlassLabel}</p>
+            <p style="margin: 4px 0;"><strong>Datum:</strong> ${datumFormatted}</p>
+            <p style="margin: 4px 0;"><strong>Gäste:</strong> ${request.gaeste} Personen</p>
+            <p style="margin: 4px 0;"><strong>Paket:</strong> ${request.paket}</p>
+          </div>
+          <p>Bei Rückfragen erreichen Sie mich unter:<br>
+          📞 <a href="tel:01739344723" style="color: #5C2818;">0173 9344723</a><br>
+          ✉️ <a href="mailto:info@mama-mia-events.de" style="color: #5C2818;">info@mama-mia-events.de</a></p>
+          <p style="margin-top: 32px;">Herzliche Grüße,<br><em style="color: #C9A84C; font-family: Georgia, serif;">Jana Ketelhohn</em></p>
+          <div style="border-top: 1px solid #E8DCC4; margin-top: 32px; padding-top: 16px; font-size: 11px; color: #A88968; text-align: center;">
+            Mama Mia Events &amp; Catering · Eichenallee 20, 16767 Leegebruch
+          </div>
+        </div>
+      `;
+
+      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          to: request.customer_email,
+          subject: `Ihre Anfrage bei Mama Mia (${request.request_number})`,
+          html: customerHtml,
+          type: "customer_confirmation",
+        }),
+      });
+    }
+
+    // E-Mail an Jana (Benachrichtigung)
+    const kontaktInfo = request.customer_email
+      ? `E-Mail: <a href="mailto:${request.customer_email}">${request.customer_email}</a>`
+      : `Telefon: <a href="tel:${request.customer_phone}">${request.customer_phone}</a>`;
+
+    const janaHtml = `
+      <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; color: #1C1008;">
+        <h2 style="color: #5C2818;">🔔 Neue Anfrage über die Webseite</h2>
+        <p><strong>${request.request_number}</strong> · ${new Date().toLocaleString("de-DE")}</p>
+        <div style="background: #FEF8E0; padding: 16px 20px; margin: 16px 0; border-radius: 8px;">
+          <h3 style="margin: 0 0 12px; color: #5C2818;">Kunde</h3>
+          <p style="margin: 4px 0;"><strong>Name:</strong> ${request.customer_name || "—"}</p>
+          <p style="margin: 4px 0;"><strong>Bevorzugt:</strong> ${request.customer_contact_preference}</p>
+          <p style="margin: 4px 0;">${kontaktInfo}</p>
+        </div>
+        <div style="background: #FEF8E0; padding: 16px 20px; margin: 16px 0; border-radius: 8px;">
+          <h3 style="margin: 0 0 12px; color: #5C2818;">Event</h3>
+          <p style="margin: 4px 0;"><strong>Anlass:</strong> ${anlassLabel} (${request.thema || "—"})</p>
+          <p style="margin: 4px 0;"><strong>Paket:</strong> ${request.paket}</p>
+          <p style="margin: 4px 0;"><strong>Gäste:</strong> ${request.gaeste}</p>
+          <p style="margin: 4px 0;"><strong>Datum:</strong> ${datumFormatted}</p>
+          <p style="margin: 4px 0;"><strong>Ort:</strong> ${request.plz || "—"} (${request.lieferung})</p>
+          <p style="margin: 4px 0;"><strong>Geschätzter Preis:</strong> ${request.gesamtpreis} €</p>
+        </div>
+        ${request.zusatzwuensche ? `
+        <div style="background: #FFF3E0; border-left: 4px solid #E07B00; padding: 12px 16px; margin: 16px 0; border-radius: 6px;">
+          <strong>Zusatzwünsche:</strong> ${request.zusatzwuensche}
+        </div>` : ""}
+        <p style="margin-top: 32px; font-size: 13px; color: #A88968;">
+          Direkt im CRM ansehen: <a href="https://mama-mia-crm.vercel.app/anfragen/${request.id}" style="color: #5C2818;">CRM öffnen</a>
+        </p>
+      </div>
+    `;
+
+    await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        to: "info@mama-mia-events.de",
+        subject: `🔔 Neue Anfrage: ${request.customer_name || "Anonym"} — ${anlassLabel}`,
+        html: janaHtml,
+        type: "jana_notification",
+      }),
+    });
   }
 
   /* ════════════════════════════════════════════════════════════
