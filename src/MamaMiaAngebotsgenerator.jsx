@@ -145,7 +145,7 @@ const PREISE = {
 };
 
 /* ── 🚚 LIEFERZONEN (unsichtbar für Kunden — sie sehen nur den €-Zuschlag) ── */
-// Leegebruch = 16767 (Yanas Standort)
+// Leegebruch = 16767 (Janas Standort)
 const LIEFERZONEN = {
   // Zone 1: Leegebruch selbst → kostenlos
   zone1: {
@@ -939,7 +939,7 @@ export default function MamaMiaAngebotsgenerator() {
       {/* Footer */}
       <footer style={S.footer}>
         <div style={S.footerText}>
-          © {new Date().getFullYear()} Mama Mia Events &amp; Catering · Yana Ketelhohn · Leegebruch
+          © {new Date().getFullYear()} Mama Mia Events &amp; Catering · Jana Ketelhohn · Leegebruch
         </div>
       </footer>
     </div>
@@ -1575,7 +1575,7 @@ function SuccessScreen({ angebotsId, kontaktart }) {
 
         <p style={S.successFooter}>
           Mit Vorfreude auf Ihr Event,<br />
-          <em style={S.italic}>Yana Ketelhohn</em>
+          <em style={S.italic}>Jana Ketelhohn</em>
         </p>
 
         <a href="/" style={S.successBackLink}>← Zurück zur Startseite</a>
