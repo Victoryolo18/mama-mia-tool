@@ -60,7 +60,7 @@ const ANLAESSE = {
     image: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&q=80",
   },
   individuell: {
-    label: "Individuell",
+    label: "Private Feier",
     icon: "✨",
     subtitle: "Ihr besonderer Anlass",
     description: "Taufe, Konfirmation, Jugendweihe, Jubiläum & mehr",
@@ -731,7 +731,12 @@ function Step1Anlass({ data, update, next }) {
    SCHRITT 2 — THEMA
    ══════════════════════════════════════════════════════════════════ */
 function Step2Thema({ data, update, next, themen: allThemen }) {
-  const themen = (allThemen || {})[data.anlass] || [];
+  const rawThemen = (allThemen || {})[data.anlass] || [];
+  // "individuell" always last
+  const themen = [
+    ...rawThemen.filter(t => t.id !== "individuell"),
+    ...rawThemen.filter(t => t.id === "individuell"),
+  ];
   const anlass = ANLAESSE[data.anlass];
   const FALLBACK_IMG = "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80";
 
@@ -756,6 +761,7 @@ function Step2Thema({ data, update, next, themen: allThemen }) {
         {themen.map((t, i) => {
           const selected = data.thema === t.id;
           const imgUrl = t.image || FALLBACK_IMG;
+          const isIndividuell = t.id === "individuell";
           return (
             <button
               key={t.id}
@@ -764,6 +770,7 @@ function Step2Thema({ data, update, next, themen: allThemen }) {
               style={{
                 ...S.themaCard,
                 ...(selected ? S.themaCardActive : {}),
+                ...(isIndividuell && !selected ? { border: `2px dashed ${C.border}`, opacity: 0.85 } : {}),
                 animationDelay: `${i * 80}ms`,
                 minHeight: 240,
                 padding: 0,
@@ -985,10 +992,10 @@ function Step4Paket({ data, update, next, preise }) {
    Stimmungsbilder + auswählbare Komponenten + Zusatzwünsche
    ══════════════════════════════════════════════════════════════════ */
 function DietIcon({ dish }) {
-  const sub = (dish.unterkategorie || "").toLowerCase();
-  if (dish.vegetarisch) return <span title="Vegetarisch" style={{ fontSize: 14, marginRight: 4 }}>🟢</span>;
-  if (sub.includes("fisch") || sub.includes("lachs") || sub.includes("meeresfrüchte")) return <span title="Fisch/Meeresfrüchte" style={{ fontSize: 14, marginRight: 4 }}>🐟</span>;
-  return <span title="Fleisch" style={{ fontSize: 14, marginRight: 4 }}>🍖</span>;
+  const sub = (dish.unterkategorie || "").toLowerCase().trim();
+  if (dish.vegetarisch) return <span title="Vegetarisch" style={{ fontSize: 16, lineHeight: 1, marginRight: 5, flexShrink: 0 }}>🟢</span>;
+  if (sub === "fisch") return <span title="Fisch" style={{ fontSize: 16, lineHeight: 1, marginRight: 5, flexShrink: 0 }}>🐟</span>;
+  return <span title="Fleisch" style={{ fontSize: 16, lineHeight: 1, marginRight: 5, flexShrink: 0 }}>🍖</span>;
 }
 
 function groupByUnterkategorie(dishes) {
@@ -1095,13 +1102,20 @@ function Step5Menue({ data, update, next, menuData, menuLoading }) {
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 6 }}>
                 <div style={S.menueKatLabel}>{kat.label}</div>
                 {kat.typ !== "fix" && (
-                  <div style={{ fontSize: 12, color: satisfied ? "#4CAF50" : C.cappuccino, fontWeight: 600 }}>
+                  <div style={{ fontSize: 12, color: satisfied ? "#4CAF50" : C.gold, fontWeight: 700 }}>
                     {isMulti
-                      ? `${selectedCount} / ${max} ausgewählt${!satisfied ? ` (mind. ${min})` : ""}`
-                      : (auswahl[kat.label] ? "✓" : `Bitte wählen`)}
+                      ? `${selectedCount} von ${max} ausgewählt`
+                      : (auswahl[kat.label] ? "✓ Ausgewählt" : "Bitte wählen")}
                   </div>
                 )}
               </div>
+              {kat.typ !== "fix" && !satisfied && (
+                <div style={{ fontSize: 12, color: C.cappuccino, marginTop: 2, marginBottom: 6 }}>
+                  {isMulti
+                    ? `Bitte wählen Sie ${min === max ? `genau ${min}` : `${min}–${max}`} ${min === 1 ? "Gericht" : "Gerichte"}`
+                    : "Bitte ein Gericht auswählen"}
+                </div>
+              )}
 
               {kat.typ === "fix" ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
@@ -1285,17 +1299,33 @@ function Step7Anfrage({ data, update, onSubmit, submitting, preisProPerson, spei
             <>
               <div style={S.summarySubDivider} />
               <div style={S.summarySubTitle}>Ihre Auswahl</div>
-              {Object.entries(data.menue_auswahl).map(([label, value]) => (
-                <SummaryRow key={label} label={label} value={value} />
+              {Object.entries(data.menue_auswahl).map(([label, value]) => {
+                const display = Array.isArray(value) ? value.join(", ") : value;
+                if (!display) return null;
+                return <SummaryRow key={label} label={label} value={display} />;
+              })}
+            </>
+          )}
+
+          {/* Extras / Zusatzwünsche aus DB */}
+          {data.extras && data.extras.length > 0 && (
+            <>
+              <div style={S.summarySubDivider} />
+              <div style={S.summarySubTitle}>Extras <span style={{ fontSize: 11, color: C.cappuccino, fontWeight: 400 }}>(Preis auf Anfrage)</span></div>
+              {data.extras.map(e => (
+                <div key={e} style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "4px 0" }}>
+                  <span style={{ color: C.gold, flexShrink: 0 }}>+</span>
+                  <span style={{ fontSize: 13, color: C.ink }}>{e}</span>
+                </div>
               ))}
             </>
           )}
 
-          {/* Zusatzwünsche */}
+          {/* Freie Anmerkungen */}
           {data.zusatzwuensche && data.zusatzwuensche.trim() && (
             <>
               <div style={S.summarySubDivider} />
-              <div style={S.summarySubTitle}>Zusatzwünsche</div>
+              <div style={S.summarySubTitle}>Anmerkungen</div>
               <div style={S.summaryNotiz}>{data.zusatzwuensche}</div>
             </>
           )}
