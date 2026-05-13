@@ -271,7 +271,7 @@ export default function MamaMiaAngebotsgenerator() {
       const byAnlass = {};
       for (const t of (themenRows || [])) {
         if (!byAnlass[t.anlass]) byAnlass[t.anlass] = [];
-        byAnlass[t.anlass].push({ id: t.slug, name: t.name, desc: t.beschreibung, image: t.bild_url });
+        byAnlass[t.anlass].push({ id: t.slug, name: t.label, desc: t.beschreibung, image: t.bild_url });
       }
       setDbThemen(byAnlass);
       setDbLieferzonen(lieferRows || []);
