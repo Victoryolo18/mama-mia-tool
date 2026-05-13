@@ -60,7 +60,7 @@ const ANLAESSE = {
     image: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&q=80",
   },
   individuell: {
-    label: "Individuell",
+    label: "Private Feier",
     icon: "✨",
     subtitle: "Ihr besonderer Anlass",
     description: "Taufe, Konfirmation, Jugendweihe, Jubiläum & mehr",
@@ -82,99 +82,17 @@ const ANLAESSE = {
   },
 };
 
-/* ── 🎨 THEMEN PRO ANLASS (mit Bildern!) ── */
-const THEMEN = {
-  hochzeit: [
-    { id: "klassisch",   name: "Klassisch elegant",        desc: "Zeitlose Eleganz, raffinierte Klassiker",
-      image: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80" },
-    { id: "mediterran",  name: "Mediterrane Hochzeit",     desc: "Antipasti, Pasta, frische Aromen",
-      image: "https://images.unsplash.com/photo-1432139509613-5c4255815697?w=600&q=80" },
-    { id: "brandenburg", name: "Brandenburger Landhochzeit", desc: "Regional, herzhaft, traditionell",
-      image: "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80" },
-  ],
-  geburtstag: [
-    { id: "kinder",       name: "Kindergeburtstag",         desc: "Bunt, kindgerecht, mit Spaßfaktor",
-      image: "https://images.unsplash.com/photo-1558636508-e0db3814bd1d?w=600&q=80" },
-    { id: "klassisch",    name: "Klassisches Buffet",       desc: "Beliebte Klassiker für alle Generationen",
-      image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80" },
-    { id: "fingerfood",   name: "Fingerfood & Häppchen",    desc: "Modern, leicht, gesellig",
-      image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80" },
-  ],
-  einschulung: [
-    { id: "familie",      name: "Klassisches Familienbuffet", desc: "Etwas für jeden Geschmack",
-      image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80" },
-    { id: "bunt",         name: "Bunt & kindgerecht",       desc: "Kinderaugen leuchten lassen",
-      image: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&q=80" },
-    { id: "suess",        name: "Süße Köstlichkeiten",      desc: "Kuchen, Muffins, Naschereien",
-      image: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=80" },
-  ],
-  individuell: [
-    { id: "festlich",     name: "Festliches Buffet",        desc: "Feierlich und stilvoll für jeden Anlass",
-      image: "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80" },
-    { id: "klassisch",    name: "Klassisch & vielfältig",   desc: "Etwas Warmes, etwas Kaltes, für alle",
-      image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80" },
-    { id: "mediterran",   name: "Mediterrane Tafel",        desc: "Leicht, frisch und elegant",
-      image: "https://images.unsplash.com/photo-1432139509613-5c4255815697?w=600&q=80" },
-  ],
-  firmenfeier: [
-    { id: "lunch",        name: "Business Lunch",           desc: "Effizient, hochwertig, repräsentativ",
-      image: "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80" },
-    { id: "sommerfest",   name: "Sommerfest-Buffet",        desc: "Entspannt feiern mit Kollegen",
-      image: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&q=80" },
-    { id: "empfang",      name: "Fingerfood & Empfang",     desc: "Stilvoll für Networking",
-      image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80" },
-  ],
-  fruehstueck: [
-    { id: "klassisch",    name: "Klassisches Frühstücksbuffet", desc: "Brötchen, Aufschnitt, Käse, Marmeladen",
-      image: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=600&q=80" },
-    { id: "brunch",       name: "Brunch & Genuss",          desc: "Warm & kalt, herzhaft & süß kombiniert",
-      image: "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=600&q=80" },
-    { id: "business",     name: "Business Breakfast",       desc: "Schnell, hochwertig, im Meeting genießen",
-      image: "https://images.unsplash.com/photo-1493770348161-369560ae357d?w=600&q=80" },
-  ],
-};
-
-/* ── 💰 PREISE PRO PERSON (€ inkl. MwSt.) ── */
-const PREISE = {
-  hochzeit:    { Klassisch: 28, Genuss: 42, Premium: 62 },
-  geburtstag:  { Klassisch: 22, Genuss: 32, Premium: 48 },
-  einschulung: { Klassisch: 18, Genuss: 26, Premium: 38 },
-  individuell: { Klassisch: 22, Genuss: 32, Premium: 46 },
-  firmenfeier: { Klassisch: 24, Genuss: 35, Premium: 52 },
-  fruehstueck: { Klassisch: 16, Genuss: 24, Premium: 36 },
-};
-
-/* ── 🚚 LIEFERZONEN (unsichtbar für Kunden — sie sehen nur den €-Zuschlag) ── */
-// Leegebruch = 16767 (Janas Standort)
-const LIEFERZONEN = {
-  // Zone 1: Leegebruch selbst → kostenlos
-  zone1: {
-    plz: ["16767"],
-    zuschlag: 0,
-  },
-  // Zone 2: Direktes Umland (Oranienburg, Velten, Hennigsdorf, Kremmen…) → 25 €
-  zone2: {
-    plz: ["16515", "16761", "16727", "16766", "16775", "16559", "16792", "16798"],
-    zuschlag: 25,
-  },
-  // Zone 3: Erweiterter Brandenburg-Norden → 45 €
-  zone3: {
-    plz: ["16321", "16348", "16356", "16352", "16359", "16540", "16548", "16562", "16567", "16816", "16827", "16833", "16837", "16845", "16866"],
-    zuschlag: 45,
-  },
-  // Zone 4: Berlin-Nord/Mitte (PLZ 13xxx) → 55 €
-  // Zone 5: Restliches Berlin (10xxx, 12xxx, 14xxx) → 70 €
-};
-
-function getLieferzuschlag(plz) {
-  if (!plz || plz.length !== 5) return { zuschlag: null, bekannt: false };
-  if (LIEFERZONEN.zone1.plz.includes(plz)) return { zuschlag: 0,  bekannt: true };
-  if (LIEFERZONEN.zone2.plz.includes(plz)) return { zuschlag: 25, bekannt: true };
-  if (LIEFERZONEN.zone3.plz.includes(plz)) return { zuschlag: 45, bekannt: true };
-  if (plz.startsWith("13"))                return { zuschlag: 55, bekannt: true };
-  if (plz.startsWith("10") || plz.startsWith("12") || plz.startsWith("14"))
-                                            return { zuschlag: 70, bekannt: true };
-  // Unbekannte PLZ → "auf Anfrage"
+/* ── 🚚 LIEFERZONEN — aus Supabase geladen, Matching per plz_liste + plz_pattern ── */
+function getLieferzuschlag(plz, lieferzonen) {
+  if (!plz || plz.length !== 5 || !lieferzonen?.length) return { zuschlag: null, bekannt: false };
+  const sorted = [...lieferzonen].filter(z => z.aktiv).sort((a, b) => a.reihenfolge - b.reihenfolge);
+  for (const zone of sorted) {
+    if (zone.plz_liste?.includes(plz)) return { zuschlag: Number(zone.zuschlag), bekannt: true };
+    if (zone.plz_pattern) {
+      const patterns = zone.plz_pattern.split(",").map(p => p.trim());
+      if (patterns.some(p => plz.startsWith(p))) return { zuschlag: Number(zone.zuschlag), bekannt: true };
+    }
+  }
   return { zuschlag: null, bekannt: false };
 }
 
@@ -220,302 +138,6 @@ const PAKETE = [
     badge: "Premium",
   },
 ];
-
-/* ── 👥 GÄSTEZAHL OPTIONEN ── */
-
-/* ════════════════════════════════════════════════════════════════
-   MENÜ-KOMPONENTEN PRO ANLASS + PAKET
-   3 Stimmungsbilder + Liste von Komponenten
-   - "fix": ist immer dabei (kein Häkchen)
-   - "wahl": Kunde wählt EINS davon aus (Radio-Auswahl)
-   ══════════════════════════════════════════════════════════════════ */
-const MENU_DATA = {
-  /* ── HOCHZEIT ── */
-  hochzeit: {
-    Klassisch: {
-      bilder: [
-        "https://images.unsplash.com/photo-1519741497674-611481863552?w=600&q=80",
-        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
-        "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80",
-      ],
-      kategorien: [
-        { typ: "fix",  label: "Hauptgericht", item: "Hähnchenbrust in Kräuterrahm" },
-        { typ: "wahl", label: "Beilage",      options: ["Kräuterkartoffeln", "Reis-Pilaw", "Spätzle"] },
-        { typ: "wahl", label: "Salat",        options: ["Bunter Blattsalat", "Tomate-Mozzarella"] },
-        { typ: "fix",  label: "Inklusive",    item: "Brot & Butter" },
-      ],
-    },
-    Genuss: {
-      bilder: [
-        "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80",
-        "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80",
-        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
-      ],
-      kategorien: [
-        { typ: "wahl", label: "Vorspeise",      options: ["Tomate-Mozzarella mit Basilikum", "Carpaccio vom Rind"] },
-        { typ: "fix",  label: "Hauptgericht 1", item: "Rinderfilet mit Rotweinsauce" },
-        { typ: "fix",  label: "Hauptgericht 2", item: "Lachsfilet auf Kräuterbett" },
-        { typ: "wahl", label: "Beilage",        options: ["Rosmarinkartoffeln", "Risotto mit Pilzen", "Gemüse-Couscous"] },
-        { typ: "wahl", label: "Dessert",        options: ["Tiramisu", "Mousse au Chocolat", "Panna Cotta mit Beeren"] },
-        { typ: "fix",  label: "Inklusive",      item: "Brot, Butter & hausgemachte Aufstriche" },
-      ],
-    },
-    Premium: {
-      bilder: [
-        "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600&q=80",
-        "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=600&q=80",
-        "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80",
-      ],
-      kategorien: [
-        { typ: "wahl", label: "Suppe oder Vorspeise", options: ["Kürbis-Cremesuppe", "Vitello Tonnato", "Garnelen-Cocktail"] },
-        { typ: "fix",  label: "Hauptgericht 1",       item: "Filet vom Rind, medium" },
-        { typ: "fix",  label: "Hauptgericht 2",       item: "Lachs in Hummersauce" },
-        { typ: "wahl", label: "Beilage 1",            options: ["Trüffelkartoffeln", "Risotto al Tartufo"] },
-        { typ: "wahl", label: "Beilage 2",            options: ["Saisonales Gemüse", "Glasierte Karotten"] },
-        { typ: "fix",  label: "Dessert-Variation",    item: "3-er Auswahl: Tiramisu, Mousse, Panna Cotta" },
-        { typ: "fix",  label: "Inklusive",            item: "Brot, Butter, Aufstriche & Antipasti-Platte" },
-      ],
-    },
-  },
-
-  /* ── GEBURTSTAG ── */
-  geburtstag: {
-    Klassisch: {
-      bilder: [
-        "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&q=80",
-        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
-        "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&q=80",
-      ],
-      kategorien: [
-        { typ: "fix",  label: "Hauptgericht", item: "Schweinebraten mit Rotkohl" },
-        { typ: "wahl", label: "Beilage",      options: ["Kartoffelklöße", "Bratkartoffeln", "Pommes"] },
-        { typ: "wahl", label: "Salat",        options: ["Krautsalat", "Gurkensalat", "Bunter Salat"] },
-        { typ: "fix",  label: "Inklusive",    item: "Brot & Butter" },
-      ],
-    },
-    Genuss: {
-      bilder: [
-        "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&q=80",
-        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
-        "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80",
-      ],
-      kategorien: [
-        { typ: "wahl", label: "Vorspeise",      options: ["Gefüllte Champignons", "Bruschetta-Variation"] },
-        { typ: "fix",  label: "Hauptgericht 1", item: "Hähnchen-Spieße mit Kräutern" },
-        { typ: "fix",  label: "Hauptgericht 2", item: "Schweinemedaillons in Pfeffersauce" },
-        { typ: "wahl", label: "Beilage",        options: ["Ofenkartoffeln mit Kräuterquark", "Reis", "Pasta"] },
-        { typ: "wahl", label: "Dessert",        options: ["Tiramisu", "Käsekuchen", "Obstsalat"] },
-        { typ: "fix",  label: "Inklusive",      item: "Brot, Butter & Aufstriche" },
-      ],
-    },
-    Premium: {
-      bilder: [
-        "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&q=80",
-        "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80",
-        "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=80",
-      ],
-      kategorien: [
-        { typ: "wahl", label: "Suppe oder Vorspeise", options: ["Tomatencreme-Suppe", "Lachs-Carpaccio"] },
-        { typ: "fix",  label: "Hauptgericht 1",       item: "Roastbeef mit Remoulade" },
-        { typ: "fix",  label: "Hauptgericht 2",       item: "Lachs auf Spinatbett" },
-        { typ: "wahl", label: "Beilage 1",            options: ["Rosmarinkartoffeln", "Wildreis"] },
-        { typ: "wahl", label: "Beilage 2",            options: ["Saisonales Gemüse", "Mediterraner Couscous"] },
-        { typ: "fix",  label: "Dessert-Variation",    item: "3-er Auswahl: Mousse, Tiramisu, Obst-Tartelettes" },
-        { typ: "fix",  label: "Inklusive",            item: "Brot, Butter, Aufstriche & Antipasti" },
-      ],
-    },
-  },
-
-  /* ── EINSCHULUNG ── */
-  einschulung: {
-    Klassisch: {
-      bilder: [
-        "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&q=80",
-        "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=80",
-        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
-      ],
-      kategorien: [
-        { typ: "fix",  label: "Hauptgericht", item: "Mini-Frikadellen mit Kräuterdip" },
-        { typ: "wahl", label: "Beilage",      options: ["Pommes", "Kartoffelpüree", "Nudelsalat"] },
-        { typ: "wahl", label: "Süßes",        options: ["Schoko-Muffins", "Obstspieße"] },
-        { typ: "fix",  label: "Inklusive",    item: "Brot & Butter" },
-      ],
-    },
-    Genuss: {
-      bilder: [
-        "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&q=80",
-        "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=80",
-        "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600&q=80",
-      ],
-      kategorien: [
-        { typ: "wahl", label: "Salat",          options: ["Bunter Salat", "Nudelsalat"] },
-        { typ: "fix",  label: "Hauptgericht 1", item: "Hähnchen-Nuggets mit Dip" },
-        { typ: "fix",  label: "Hauptgericht 2", item: "Mini-Schnitzel" },
-        { typ: "wahl", label: "Beilage",        options: ["Pommes", "Bratkartoffeln", "Spätzle"] },
-        { typ: "wahl", label: "Dessert",        options: ["Schoko-Muffins", "Obstsalat", "Vanillepudding"] },
-        { typ: "fix",  label: "Inklusive",      item: "Brot, Butter & Aufstriche" },
-      ],
-    },
-    Premium: {
-      bilder: [
-        "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&q=80",
-        "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=80",
-        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
-      ],
-      kategorien: [
-        { typ: "wahl", label: "Vorspeise",            options: ["Tomate-Mozzarella am Spieß", "Gefüllte Eier"] },
-        { typ: "fix",  label: "Hauptgericht 1",       item: "Rinderbraten mit Sauce" },
-        { typ: "fix",  label: "Hauptgericht 2",       item: "Putenröllchen gefüllt" },
-        { typ: "wahl", label: "Beilage 1",            options: ["Kroketten", "Reis", "Spätzle"] },
-        { typ: "wahl", label: "Beilage 2",            options: ["Buntes Gemüse", "Kartoffelgratin"] },
-        { typ: "fix",  label: "Dessert-Variation",    item: "Muffins, Obstspieße, Tiramisu-Becher" },
-        { typ: "fix",  label: "Inklusive",            item: "Brot, Butter, Aufstriche & Käseplatte" },
-      ],
-    },
-  },
-
-  /* ── INDIVIDUELL (Taufe, Konfirmation, Jugendweihe, Jubiläum etc.) ── */
-  individuell: {
-    Klassisch: {
-      bilder: [
-        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
-        "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80",
-        "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=80",
-      ],
-      kategorien: [
-        { typ: "fix",  label: "Hauptgericht", item: "Hähnchenbrust in Cremesauce" },
-        { typ: "wahl", label: "Beilage",      options: ["Kräuterkartoffeln", "Reis", "Spätzle"] },
-        { typ: "wahl", label: "Salat",        options: ["Bunter Salat", "Tomate-Mozzarella"] },
-        { typ: "fix",  label: "Inklusive",    item: "Brot & Butter" },
-      ],
-    },
-    Genuss: {
-      bilder: [
-        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
-        "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80",
-        "https://images.unsplash.com/photo-1432139509613-5c4255815697?w=600&q=80",
-      ],
-      kategorien: [
-        { typ: "wahl", label: "Vorspeise",      options: ["Tomate-Mozzarella", "Lachs-Tatar"] },
-        { typ: "fix",  label: "Hauptgericht 1", item: "Rinderbraten mit Rotweinsauce" },
-        { typ: "fix",  label: "Hauptgericht 2", item: "Pute Cordon Bleu" },
-        { typ: "wahl", label: "Beilage",        options: ["Rosmarinkartoffeln", "Risotto", "Spätzle"] },
-        { typ: "wahl", label: "Dessert",        options: ["Tiramisu", "Käsekuchen", "Mousse au Chocolat"] },
-        { typ: "fix",  label: "Inklusive",      item: "Brot, Butter & Aufstriche" },
-      ],
-    },
-    Premium: {
-      bilder: [
-        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
-        "https://images.unsplash.com/photo-1432139509613-5c4255815697?w=600&q=80",
-        "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=80",
-      ],
-      kategorien: [
-        { typ: "wahl", label: "Suppe oder Vorspeise", options: ["Tomatensuppe", "Lachs-Carpaccio", "Vitello Tonnato"] },
-        { typ: "fix",  label: "Hauptgericht 1",       item: "Filetstreifen Stroganoff" },
-        { typ: "fix",  label: "Hauptgericht 2",       item: "Lachs in Dillsauce" },
-        { typ: "wahl", label: "Beilage 1",            options: ["Trüffelkartoffeln", "Risotto"] },
-        { typ: "wahl", label: "Beilage 2",            options: ["Buntes Gemüse", "Couscous"] },
-        { typ: "fix",  label: "Dessert-Variation",    item: "3-er Auswahl: Tiramisu, Mousse, Panna Cotta" },
-        { typ: "fix",  label: "Inklusive",            item: "Brot, Butter, Aufstriche & Antipasti" },
-      ],
-    },
-  },
-
-  /* ── FIRMENFEIER ── */
-  firmenfeier: {
-    Klassisch: {
-      bilder: [
-        "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&q=80",
-        "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80",
-        "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80",
-      ],
-      kategorien: [
-        { typ: "fix",  label: "Hauptgericht", item: "Hähnchenbrust mit Kräutern" },
-        { typ: "wahl", label: "Beilage",      options: ["Kartoffelsalat", "Reissalat", "Nudelsalat"] },
-        { typ: "wahl", label: "Salat",        options: ["Blattsalat", "Tomate-Mozzarella"] },
-        { typ: "fix",  label: "Inklusive",    item: "Brot, Butter & Aufstriche" },
-      ],
-    },
-    Genuss: {
-      bilder: [
-        "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&q=80",
-        "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80",
-        "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",
-      ],
-      kategorien: [
-        { typ: "wahl", label: "Vorspeise",      options: ["Bruschetta-Variation", "Antipasti-Mix"] },
-        { typ: "fix",  label: "Hauptgericht 1", item: "Hähnchen-Curry" },
-        { typ: "fix",  label: "Hauptgericht 2", item: "Penne Arrabbiata" },
-        { typ: "wahl", label: "Beilage",        options: ["Reis", "Kartoffelgratin", "Couscous-Salat"] },
-        { typ: "wahl", label: "Dessert",        options: ["Tiramisu", "Obstsalat", "Mini-Käsekuchen"] },
-        { typ: "fix",  label: "Inklusive",      item: "Brot, Butter, Aufstriche & Käseplatte" },
-      ],
-    },
-    Premium: {
-      bilder: [
-        "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&q=80",
-        "https://images.unsplash.com/photo-1555244162-803834f70033?w=600&q=80",
-        "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600&q=80",
-      ],
-      kategorien: [
-        { typ: "wahl", label: "Suppe oder Vorspeise", options: ["Kürbissuppe", "Vitello Tonnato", "Lachs-Tatar"] },
-        { typ: "fix",  label: "Hauptgericht 1",       item: "Rinderfilet mit Pfeffersauce" },
-        { typ: "fix",  label: "Hauptgericht 2",       item: "Lachs auf mediterranem Gemüse" },
-        { typ: "wahl", label: "Beilage 1",            options: ["Trüffelkartoffeln", "Risotto al Tartufo"] },
-        { typ: "wahl", label: "Beilage 2",            options: ["Saisonales Gemüse", "Mediterraner Couscous"] },
-        { typ: "fix",  label: "Dessert-Variation",    item: "Tiramisu, Mousse au Chocolat, Panna Cotta" },
-        { typ: "fix",  label: "Inklusive",            item: "Brot, Butter, Aufstriche, Antipasti & Käseplatte" },
-      ],
-    },
-  },
-
-  /* ── FRÜHSTÜCK / BRUNCH ── */
-  fruehstueck: {
-    Klassisch: {
-      bilder: [
-        "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=600&q=80",
-        "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=600&q=80",
-        "https://images.unsplash.com/photo-1493770348161-369560ae357d?w=600&q=80",
-      ],
-      kategorien: [
-        { typ: "fix",  label: "Brötchen-Auswahl",   item: "Vollkorn, Weiß, Mehrkorn, Mohn" },
-        { typ: "fix",  label: "Aufschnitt & Käse",  item: "Klassische Auswahl" },
-        { typ: "wahl", label: "Süßer Aufstrich",    options: ["Erdbeer- & Aprikosenmarmelade", "Honig & Nutella"] },
-        { typ: "fix",  label: "Inklusive",          item: "Butter, Frischkäse, frisches Obst" },
-      ],
-    },
-    Genuss: {
-      bilder: [
-        "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=600&q=80",
-        "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=600&q=80",
-        "https://images.unsplash.com/photo-1493770348161-369560ae357d?w=600&q=80",
-      ],
-      kategorien: [
-        { typ: "fix",  label: "Brötchen-Vielfalt",  item: "Kleine & große, süß & herzhaft" },
-        { typ: "fix",  label: "Aufschnitt & Käse",  item: "Premium-Auswahl mit regionalen Spezialitäten" },
-        { typ: "wahl", label: "Warmer Hauptgang",   options: ["Rührei mit Schnittlauch", "Pancakes mit Beeren", "Mini-Quiches"] },
-        { typ: "wahl", label: "Süße Auswahl",       options: ["Croissants & Muffins", "Obstsalat & Joghurt"] },
-        { typ: "fix",  label: "Inklusive",          item: "Butter, Frischkäse, Aufstriche, Lachs, Obst" },
-      ],
-    },
-    Premium: {
-      bilder: [
-        "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=600&q=80",
-        "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=600&q=80",
-        "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80",
-      ],
-      kategorien: [
-        { typ: "fix",  label: "Brötchen-Vielfalt",  item: "Premium-Auswahl, hausgebacken & lokal" },
-        { typ: "fix",  label: "Wurst & Käse",       item: "Premium-Aufschnitt mit edlen Käsesorten" },
-        { typ: "wahl", label: "Warmer Hauptgang 1", options: ["Eggs Benedict", "Rührei mit Räucherlachs", "Shakshuka"] },
-        { typ: "wahl", label: "Warmer Hauptgang 2", options: ["Pancakes mit Ahornsirup", "Mini-Quiches", "Frittata"] },
-        { typ: "fix",  label: "Süßes",              item: "Croissants, Muffins, hausgemachte Torte" },
-        { typ: "fix",  label: "Inklusive",          item: "Butter, Aufstriche, Lachs, Antipasti, Obstplatte" },
-      ],
-    },
-  },
-};
 
 /* ── 👥 GÄSTEZAHL OPTIONEN ── */
 const GAESTE_OPTIONEN = [10, 15, 20, 25, 30, 40, 50, 60, 80, 100, 120, 150, 200];
@@ -607,7 +229,8 @@ export default function MamaMiaAngebotsgenerator() {
     plz: "",
     lieferung: "lieferung",
     paket: null,
-    menue_auswahl: {},   // Format: { "Beilage": "Pommes", "Salat": "Krautsalat" }
+    menue_auswahl: {},
+    extras: [],
     zusatzwuensche: "",
     kontaktart: "whatsapp",
     kontaktdaten: "",
@@ -618,6 +241,16 @@ export default function MamaMiaAngebotsgenerator() {
   const [submitted, setSubmitted] = useState(false);
   const [angebotsId, setAngebotsId] = useState(null);
 
+  /* ── DB-State ── */
+  const [dbThemen,          setDbThemen]          = useState({});
+  const [dbLieferzonen,     setDbLieferzonen]     = useState([]);
+  const [dbPreise,          setDbPreise]          = useState({});
+  const [dbMenuData,        setDbMenuData]        = useState(null);
+  const [dbZusatzwuensche,  setDbZusatzwuensche]  = useState([]);
+  const [dbPaketFeatures,   setDbPaketFeatures]   = useState({});
+  const [appLoading,        setAppLoading]        = useState(true);
+  const [menuLoading,       setMenuLoading]       = useState(false);
+
   /* ── Fonts laden ── */
   useEffect(() => {
     const link = document.createElement("link");
@@ -626,6 +259,108 @@ export default function MamaMiaAngebotsgenerator() {
     document.head.appendChild(link);
     return () => document.head.removeChild(link);
   }, []);
+
+  /* ── Initial load: Themen + Lieferzonen ── */
+  useEffect(() => {
+    async function init() {
+      const [{ data: themenRows }, { data: lieferRows }, { data: zusatzRows }] = await Promise.all([
+        supabase.from("themen").select("*").eq("aktiv", true).order("anlass").order("reihenfolge"),
+        supabase.from("lieferzonen").select("*").eq("aktiv", true).order("reihenfolge"),
+        supabase.from("zusatzwuensche").select("*").eq("aktiv", true).order("reihenfolge"),
+      ]);
+      const byAnlass = {};
+      for (const t of (themenRows || [])) {
+        if (!byAnlass[t.anlass]) byAnlass[t.anlass] = [];
+        byAnlass[t.anlass].push({ id: t.slug, name: t.name, desc: t.beschreibung, image: t.bild_url });
+      }
+      setDbThemen(byAnlass);
+      setDbLieferzonen(lieferRows || []);
+      setDbZusatzwuensche(zusatzRows || []);
+      setAppLoading(false);
+    }
+    init();
+  }, []);
+
+  /* ── Preise laden wenn Anlass + Thema gewählt ── */
+  useEffect(() => {
+    if (!data.anlass || !data.thema) { setDbPreise({}); return; }
+    supabase
+      .from("paket_konfiguration")
+      .select("paket, preis_pro_person")
+      .eq("anlass", data.anlass)
+      .eq("theme_slug", data.thema)
+      .eq("aktiv", true)
+      .then(({ data: rows }) => {
+        const map = {};
+        for (const r of (rows || [])) map[r.paket] = Number(r.preis_pro_person);
+        setDbPreise(map);
+      });
+  }, [data.anlass, data.thema]);
+
+  /* ── Paket-Features laden wenn Anlass + Thema gewählt ── */
+  useEffect(() => {
+    if (!data.anlass || !data.thema) { setDbPaketFeatures({}); return; }
+    async function loadFeatures() {
+      const paketNames = ["Klassisch", "Genuss", "Premium"];
+      const results = await Promise.all(paketNames.map(async paket => {
+        const { data: konf } = await supabase
+          .from("paket_konfiguration").select("id")
+          .eq("anlass", data.anlass).eq("theme_slug", data.thema).eq("paket", paket).limit(1);
+        if (!konf?.length) return [paket, []];
+        const { data: slots } = await supabase
+          .from("paket_slots").select("label, min_auswahl, max_auswahl, typ")
+          .eq("paket_konfiguration_id", konf[0].id).eq("aktiv", true).order("reihenfolge");
+        return [paket, slots || []];
+      }));
+      setDbPaketFeatures(Object.fromEntries(results));
+    }
+    loadFeatures();
+  }, [data.anlass, data.thema]);
+
+  /* ── Menü laden wenn Anlass + Thema + Paket gewählt ── */
+  useEffect(() => {
+    if (!data.anlass || !data.thema || !data.paket) { setDbMenuData(null); return; }
+    async function loadMenu() {
+      setMenuLoading(true);
+      const { data: konf } = await supabase
+        .from("paket_konfiguration")
+        .select("id")
+        .eq("anlass", data.anlass)
+        .eq("theme_slug", data.thema)
+        .eq("paket", data.paket)
+        .limit(1);
+      if (!konf?.length) { setDbMenuData(null); setMenuLoading(false); return; }
+      const { data: slots } = await supabase
+        .from("paket_slots")
+        .select("id, label, kategorie, typ, min_auswahl, max_auswahl, reihenfolge, slot_gerichte(reihenfolge, gericht:gerichte(id, name, vegetarisch, unterkategorie))")
+        .eq("paket_konfiguration_id", konf[0].id)
+        .eq("aktiv", true)
+        .order("reihenfolge");
+      if (slots) {
+        const kategorien = slots.map(slot => {
+          const dishes = (slot.slot_gerichte || [])
+            .sort((a, b) => a.reihenfolge - b.reihenfolge)
+            .map(sg => ({
+              id: sg.gericht.id,
+              name: sg.gericht.name,
+              vegetarisch: sg.gericht.vegetarisch,
+              unterkategorie: sg.gericht.unterkategorie || "",
+            }));
+          return {
+            typ: slot.typ,
+            label: slot.label,
+            min_auswahl: slot.min_auswahl,
+            max_auswahl: slot.max_auswahl,
+            dishes,
+          };
+        });
+        const themaImg = (dbThemen[data.anlass] || []).find(t => t.id === data.thema)?.image || "";
+        setDbMenuData({ bilder: themaImg ? [themaImg, themaImg, themaImg] : [], kategorien });
+      }
+      setMenuLoading(false);
+    }
+    loadMenu();
+  }, [data.anlass, data.thema, data.paket, dbThemen]);
 
   /* ── Wenn Anlass aus URL kommt, springe zu Schritt 2 ── */
   useEffect(() => {
@@ -636,15 +371,13 @@ export default function MamaMiaAngebotsgenerator() {
 
   /* ── Helper ── */
   const update = (key, value) => setData(d => ({ ...d, [key]: value }));
-  const next = () => setStep(s => Math.min(s + 1, 6));
+  const next = () => setStep(s => Math.min(s + 1, 7));
   const prev = () => setStep(s => Math.max(s - 1, 1));
 
-  const preisProPerson = data.anlass && data.paket
-    ? PREISE[data.anlass]?.[data.paket]
-    : 0;
+  const preisProPerson = (data.anlass && data.paket && dbPreise[data.paket]) || 0;
   const speisenPreis = preisProPerson * data.gaeste;
   const lieferInfo = data.lieferung === "lieferung"
-    ? getLieferzuschlag(data.plz)
+    ? getLieferzuschlag(data.plz, dbLieferzonen)
     : { zuschlag: 0, bekannt: true };
   const lieferzuschlag = lieferInfo.zuschlag ?? 0;
   const gesamtpreis = speisenPreis + lieferzuschlag;
@@ -678,14 +411,17 @@ export default function MamaMiaAngebotsgenerator() {
         customer_email: data.kontaktart === "email" ? data.kontaktdaten : null,
         customer_contact_preference: data.kontaktart,
         anlass: data.anlass,
-        thema: THEMEN[data.anlass]?.find(t => t.id === data.thema)?.name || null,
+        thema: (dbThemen[data.anlass] || []).find(t => t.id === data.thema)?.name || null,
         paket: data.paket,
         gaeste: data.gaeste,
         event_datum: data.datum || null,
         plz: data.plz || null,
         lieferung: data.lieferung,
         menue_auswahl: data.menue_auswahl || {},
-        zusatzwuensche: data.zusatzwuensche || null,
+        zusatzwuensche: [
+          ...(data.extras || []),
+          ...(data.zusatzwuensche ? [data.zusatzwuensche] : []),
+        ].join("\n") || null,
         interne_notiz: data.notizen || null,
         preis_pro_person: preisProPerson,
         speisenpreis: speisenPreis,
@@ -822,6 +558,12 @@ export default function MamaMiaAngebotsgenerator() {
      RENDER
      ══════════════════════════════════════════════════════════════ */
 
+  if (appLoading) return (
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#FAF7F2", fontFamily: "'DM Sans', sans-serif", color: "#A88968", fontSize: 18 }}>
+      Lade Mama Mia …
+    </div>
+  );
+
   return (
     <div style={S.root}>
       <style>{`
@@ -871,7 +613,7 @@ export default function MamaMiaAngebotsgenerator() {
       {!submitted && (
         <div style={S.stepperWrap}>
           <div style={S.stepper} className="mm-stepper">
-            {["Anlass", "Thema", "Details", "Paket", "Menü", "Anfrage"].map((label, i) => {
+            {["Anlass", "Thema", "Details", "Paket", "Menü", "Extras", "Anfrage"].map((label, i) => {
               const num = i + 1;
               const active = step === num;
               const done   = step > num;
@@ -889,7 +631,7 @@ export default function MamaMiaAngebotsgenerator() {
                     color: active ? C.burgundy : done ? C.cappuccino : C.cappuccino,
                     fontWeight: active ? 700 : 500,
                   }}>{label}</div>
-                  {i < 5 && (
+                  {i < 6 && (
                     <div style={{
                       ...S.stepLine,
                       background: done ? C.gold : C.border,
@@ -909,18 +651,28 @@ export default function MamaMiaAngebotsgenerator() {
         ) : (
           <>
             {step === 1 && <Step1Anlass data={data} update={update} next={next} />}
-            {step === 2 && <Step2Thema  data={data} update={update} next={next} />}
+            {step === 2 && <Step2Thema  data={data} update={update} next={next} themen={dbThemen} />}
             {step === 3 && <Step3Details data={data} update={update} next={next} />}
-            {step === 4 && <Step4Paket  data={data} update={update} next={next} preise={PREISE[data.anlass]} />}
+            {step === 4 && <Step4Paket  data={data} update={update} next={next} preise={dbPreise} paketFeatures={dbPaketFeatures} />}
             {step === 5 && (
               <Step5Menue
                 data={data}
                 update={update}
                 next={next}
+                menuData={dbMenuData}
+                menuLoading={menuLoading}
               />
             )}
             {step === 6 && (
-              <Step6Anfrage
+              <Step6Extras
+                data={data}
+                update={update}
+                next={next}
+                zusatzwuensche={dbZusatzwuensche}
+              />
+            )}
+            {step === 7 && (
+              <Step7Anfrage
                 data={data}
                 update={update}
                 onSubmit={handleSubmit}
@@ -930,6 +682,7 @@ export default function MamaMiaAngebotsgenerator() {
                 lieferzuschlag={lieferzuschlag}
                 lieferInfo={lieferInfo}
                 gesamtpreis={gesamtpreis}
+                dbThemen={dbThemen}
               />
             )}
           </>
@@ -953,7 +706,7 @@ function Step1Anlass({ data, update, next }) {
   return (
     <div className="mm-fade">
       <div style={S.heroBlock}>
-        <div style={S.heroEyebrow}>Schritt 1 von 5</div>
+        <div style={S.heroEyebrow}>Schritt 1 von 7</div>
         <h1 style={S.heroTitle} className="mm-hero-title">
           Welcher <em style={S.italic}>Anlass</em> darf es sein?
         </h1>
@@ -998,14 +751,25 @@ function Step1Anlass({ data, update, next }) {
 /* ════════════════════════════════════════════════════════════════
    SCHRITT 2 — THEMA
    ══════════════════════════════════════════════════════════════════ */
-function Step2Thema({ data, update, next }) {
-  const themen = THEMEN[data.anlass] || [];
+function Step2Thema({ data, update, next, themen: allThemen }) {
+  const rawThemen = (allThemen || {})[data.anlass] || [];
+  // "individuell" always last
+  const themen = [
+    ...rawThemen.filter(t => t.id !== "individuell"),
+    ...rawThemen.filter(t => t.id === "individuell"),
+  ];
   const anlass = ANLAESSE[data.anlass];
+  const FALLBACK_IMG = "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80";
 
   return (
     <div className="mm-fade">
+      <style>{`
+        .mm-thema-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        @media (max-width: 640px) { .mm-thema-grid { grid-template-columns: 1fr !important; } }
+      `}</style>
+
       <div style={S.heroBlock}>
-        <div style={S.heroEyebrow}>Schritt 2 von 5 · {anlass?.label}</div>
+        <div style={S.heroEyebrow}>Schritt 2 von 7 · {anlass?.label}</div>
         <h1 style={S.heroTitle} className="mm-hero-title">
           Welche <em style={S.italic}>Richtung</em> dürfen wir nehmen?
         </h1>
@@ -1014,9 +778,11 @@ function Step2Thema({ data, update, next }) {
         </p>
       </div>
 
-      <div style={{ ...S.grid, gridTemplateColumns: "repeat(3, 1fr)" }} className="mm-grid-3">
+      <div className="mm-thema-grid">
         {themen.map((t, i) => {
           const selected = data.thema === t.id;
+          const imgUrl = t.image || FALLBACK_IMG;
+          const isIndividuell = t.id === "individuell";
           return (
             <button
               key={t.id}
@@ -1025,18 +791,28 @@ function Step2Thema({ data, update, next }) {
               style={{
                 ...S.themaCard,
                 ...(selected ? S.themaCardActive : {}),
+                ...(isIndividuell && !selected ? { border: `2px dashed ${C.border}`, opacity: 0.85 } : {}),
                 animationDelay: `${i * 80}ms`,
+                minHeight: 240,
+                padding: 0,
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
               }}
             >
               <div style={{
-                ...S.themaImage,
-                backgroundImage: `linear-gradient(180deg, rgba(28,16,8,0) 50%, rgba(28,16,8,.55) 100%), url(${t.image})`,
+                height: 140,
+                backgroundImage: `linear-gradient(180deg, rgba(28,16,8,0) 40%, rgba(28,16,8,.7) 100%), url(${imgUrl})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                flexShrink: 0,
               }} />
-              <div style={S.themaContent}>
-                <div style={S.themaNumberSmall}>0{i + 1}</div>
-                <div style={S.themaName}>{t.name}</div>
-                <div style={S.themaDesc}>{t.desc}</div>
-                <div style={S.themaArrow}>→</div>
+              <div style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
+                <div style={{ fontSize: 22, fontWeight: 700, color: selected ? C.gold : C.burgundy, lineHeight: 1.2 }}>{t.name}</div>
+                <div style={{ fontSize: 13, color: C.cappuccino, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.desc}</div>
+                <div style={{ marginTop: "auto", paddingTop: 8, fontSize: 13, fontWeight: 600, color: selected ? C.gold : C.cappuccino }}>
+                  {selected ? "✓ Ausgewählt" : "Wählen →"}
+                </div>
               </div>
             </button>
           );
@@ -1055,7 +831,7 @@ function Step3Details({ data, update, next }) {
   return (
     <div className="mm-fade">
       <div style={S.heroBlock}>
-        <div style={S.heroEyebrow}>Schritt 3 von 5</div>
+        <div style={S.heroEyebrow}>Schritt 3 von 7</div>
         <h1 style={S.heroTitle} className="mm-hero-title">
           Erzählen Sie uns mehr über Ihr <em style={S.italic}>Event</em>
         </h1>
@@ -1151,11 +927,18 @@ function Step3Details({ data, update, next }) {
 /* ════════════════════════════════════════════════════════════════
    SCHRITT 4 — PAKET
    ══════════════════════════════════════════════════════════════════ */
-function Step4Paket({ data, update, next, preise }) {
+function slotFeatureText(slot) {
+  if (slot.typ === "fix") return `${slot.label} inklusive`;
+  const max = slot.max_auswahl || 1;
+  if (max > 1) return `${max}× ${slot.label} wählbar`;
+  return `${slot.label} wählbar`;
+}
+
+function Step4Paket({ data, update, next, preise, paketFeatures }) {
   return (
     <div className="mm-fade">
       <div style={S.heroBlock}>
-        <div style={S.heroEyebrow}>Schritt 4 von 5</div>
+        <div style={S.heroEyebrow}>Schritt 4 von 7</div>
         <h1 style={S.heroTitle} className="mm-hero-title">
           Welches <em style={S.italic}>Paket</em> passt zu Ihnen?
         </h1>
@@ -1169,6 +952,8 @@ function Step4Paket({ data, update, next, preise }) {
           const preis = preise?.[p.id] || 0;
           const selected = data.paket === p.id;
           const isMittelpaket = p.id === "Genuss";
+          const dbFeatures = (paketFeatures?.[p.id] || []).map(slotFeatureText);
+          const featureList = dbFeatures.length > 0 ? dbFeatures : p.features;
           return (
             <button
               key={p.id}
@@ -1190,10 +975,7 @@ function Step4Paket({ data, update, next, preise }) {
                   {p.badge}
                 </div>
               )}
-              <div style={{
-                ...S.paketName,
-                color: isMittelpaket ? C.gold : C.burgundy,
-              }}>
+              <div style={{ ...S.paketName, color: isMittelpaket ? C.gold : C.burgundy }}>
                 {p.name}
               </div>
               <div style={S.paketTagline}>{p.tagline}</div>
@@ -1206,7 +988,7 @@ function Step4Paket({ data, update, next, preise }) {
               <div style={S.divider} />
 
               <ul style={S.paketFeatures}>
-                {p.features.map((f, idx) => (
+                {featureList.map((f, idx) => (
                   <li key={idx} style={S.paketFeatureItem}>
                     <span style={S.checkmark}>✓</span>
                     <span>{f}</span>
@@ -1236,10 +1018,32 @@ function Step4Paket({ data, update, next, preise }) {
    SCHRITT 5 — MENÜ ANPASSEN (NEU!)
    Stimmungsbilder + auswählbare Komponenten + Zusatzwünsche
    ══════════════════════════════════════════════════════════════════ */
-function Step5Menue({ data, update, next }) {
-  const menuData = MENU_DATA[data.anlass]?.[data.paket];
+function DietIcon({ dish }) {
+  const sub = (dish.unterkategorie || "").toLowerCase().trim();
+  if (dish.vegetarisch) return <span title="Vegetarisch" style={{ fontSize: 16, lineHeight: 1, marginRight: 5, flexShrink: 0 }}>🟢</span>;
+  if (sub === "fisch") return <span title="Fisch" style={{ fontSize: 16, lineHeight: 1, marginRight: 5, flexShrink: 0 }}>🐟</span>;
+  return <span title="Fleisch" style={{ fontSize: 16, lineHeight: 1, marginRight: 5, flexShrink: 0 }}>🍖</span>;
+}
 
-  // Falls kein Menü-Daten existieren (Fallback)
+function groupByUnterkategorie(dishes) {
+  const groups = [];
+  const seen = {};
+  for (const d of dishes) {
+    const key = d.unterkategorie || "";
+    if (!seen[key]) { seen[key] = true; groups.push({ key, items: [] }); }
+    groups.find(g => g.key === key).items.push(d);
+  }
+  const multiGroup = groups.length > 1;
+  return { groups, multiGroup };
+}
+
+function Step5Menue({ data, update, next, menuData, menuLoading }) {
+  if (menuLoading) return (
+    <div className="mm-fade" style={{ textAlign: "center", padding: "60px 20px", color: "#A88968", fontFamily: "'DM Sans', sans-serif", fontSize: 18 }}>
+      Lade Menü …
+    </div>
+  );
+
   if (!menuData) {
     return (
       <div className="mm-fade">
@@ -1252,26 +1056,46 @@ function Step5Menue({ data, update, next }) {
           </p>
         </div>
         <button onClick={next} className="mm-btn-press" style={{ ...S.primaryBtn, maxWidth: 400, margin: "0 auto", display: "block" }}>
-          Weiter zur Anfrage →
+          Weiter zu Extras →
         </button>
       </div>
     );
   }
 
-  // Initialisiere Menü-Auswahl mit ersten Optionen falls noch leer
   const auswahl = data.menue_auswahl || {};
-  const setAuswahl = (label, option) => {
-    update("menue_auswahl", { ...auswahl, [label]: option });
+
+  const getSelected = (label) => auswahl[label] || (auswahl[label] === undefined ? [] : auswahl[label]);
+  const getSelectedArr = (label) => {
+    const v = auswahl[label];
+    if (!v) return [];
+    return Array.isArray(v) ? v : [v];
   };
 
-  // Prüfen ob alle Wahl-Kategorien bedient sind
-  const wahlKategorien = menuData.kategorien.filter(k => k.typ === "wahl");
-  const alleGewaehlt = wahlKategorien.every(k => auswahl[k.label]);
+  const setEinzel = (label, name) => update("menue_auswahl", { ...auswahl, [label]: name });
+  const toggleMehrfach = (label, name, max) => {
+    const cur = getSelectedArr(label);
+    const next = cur.includes(name) ? cur.filter(x => x !== name) : (cur.length < max ? [...cur, name] : cur);
+    update("menue_auswahl", { ...auswahl, [label]: next });
+  };
+
+  const wahlSlots = menuData.kategorien.filter(k => k.typ !== "fix");
+  const alleGewaehlt = wahlSlots.every(k => {
+    const min = k.min_auswahl ?? 1;
+    if (k.max_auswahl > 1) return getSelectedArr(k.label).length >= min;
+    return !!auswahl[k.label];
+  });
 
   return (
     <div className="mm-fade">
+      <style>{`
+        .mm-dish-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+        @media (max-width: 640px) { .mm-dish-grid { grid-template-columns: 1fr !important; } }
+        .mm-sticky-btn { position: sticky; bottom: 16px; z-index: 10; }
+        @media (min-width: 641px) { .mm-sticky-btn { position: static; } }
+      `}</style>
+
       <div style={S.heroBlock}>
-        <div style={S.heroEyebrow}>Schritt 5 von 6 · {data.paket}</div>
+        <div style={S.heroEyebrow}>Schritt 5 von 7 · {data.paket}</div>
         <h1 style={S.heroTitle} className="mm-hero-title">
           Ihr <em style={S.italic}>Menü</em>
         </h1>
@@ -1280,101 +1104,195 @@ function Step5Menue({ data, update, next }) {
         </p>
       </div>
 
-      {/* Stimmungsbilder */}
-      <div style={S.menueBilder}>
-        {menuData.bilder.map((url, i) => (
-          <div
-            key={i}
-            style={{
-              ...S.menueBild,
-              backgroundImage: `url(${url})`,
-              animationDelay: `${i * 100}ms`,
-            }}
-            className="mm-fade"
-          />
-        ))}
-      </div>
+      {menuData.bilder.length > 0 && (
+        <div style={S.menueBilder}>
+          {menuData.bilder.map((url, i) => (
+            <div key={i} style={{ ...S.menueBild, backgroundImage: `url(${url})`, animationDelay: `${i * 100}ms` }} className="mm-fade" />
+          ))}
+        </div>
+      )}
 
-      {/* Komponenten */}
       <div style={S.menueCard}>
         <div style={S.menueCardTitle}>Ihre Komponenten</div>
 
-        {menuData.kategorien.map((kat, i) => (
-          <div key={i} style={S.menueKategorie}>
-            <div style={S.menueKatLabel}>{kat.label}</div>
+        {menuData.kategorien.map((kat, i) => {
+          const min = kat.min_auswahl ?? 1;
+          const max = kat.max_auswahl ?? 1;
+          const isMulti = kat.typ === "wahl_mehrfach" && max > 1;
+          const selectedArr = getSelectedArr(kat.label);
+          const selectedCount = selectedArr.length;
+          const satisfied = isMulti ? selectedCount >= min : !!auswahl[kat.label];
+          const { groups, multiGroup } = groupByUnterkategorie(kat.dishes || []);
 
-            {kat.typ === "fix" ? (
-              <div style={S.menueFixItem}>
-                <span style={S.menueFixCheck}>✓</span>
-                <span>{kat.item}</span>
+          return (
+            <div key={i} style={S.menueKategorie}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 6 }}>
+                <div style={S.menueKatLabel}>{kat.label}</div>
+                {kat.typ !== "fix" && (
+                  <div style={{ fontSize: 12, color: satisfied ? "#4CAF50" : C.gold, fontWeight: 700 }}>
+                    {isMulti
+                      ? `${selectedCount} von ${max} ausgewählt`
+                      : (auswahl[kat.label] ? "✓ Ausgewählt" : "Bitte wählen")}
+                  </div>
+                )}
               </div>
-            ) : (
-              <div style={S.menueWahlGroup}>
-                {kat.options.map(opt => {
-                  const isSelected = auswahl[kat.label] === opt;
-                  return (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => setAuswahl(kat.label, opt)}
-                      className="mm-btn-press"
-                      style={{
-                        ...S.menueWahlBtn,
-                        ...(isSelected ? S.menueWahlBtnActive : {}),
-                      }}
-                    >
-                      <span style={{
-                        ...S.menueRadio,
-                        ...(isSelected ? S.menueRadioActive : {}),
-                      }}>
-                        {isSelected && <span style={S.menueRadioInner} />}
-                      </span>
-                      <span>{opt}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        ))}
+              {kat.typ !== "fix" && !satisfied && (
+                <div style={{ fontSize: 12, color: C.cappuccino, marginTop: 2, marginBottom: 6 }}>
+                  {isMulti
+                    ? `Bitte wählen Sie ${min === max ? `genau ${min}` : `${min}–${max}`} ${min === 1 ? "Gericht" : "Gerichte"}`
+                    : "Bitte ein Gericht auswählen"}
+                </div>
+              )}
 
-        {/* Zusatzwünsche */}
+              {kat.typ === "fix" ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
+                  {(kat.dishes || []).map((d, di) => (
+                    <div key={di} style={S.menueFixItem}>
+                      <span style={S.menueFixCheck}>✓</span>
+                      <DietIcon dish={d} />
+                      <span>{d.name}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ marginTop: 8 }}>
+                  {groups.map(({ key, items }) => (
+                    <div key={key}>
+                      {multiGroup && key && (
+                        <div style={{ fontSize: 11, fontWeight: 700, color: C.cappuccino, textTransform: "uppercase", letterSpacing: 1, margin: "10px 0 6px" }}>
+                          {key}
+                        </div>
+                      )}
+                      <div className="mm-dish-grid">
+                        {items.map(dish => {
+                          const isSelected = isMulti
+                            ? selectedArr.includes(dish.name)
+                            : auswahl[kat.label] === dish.name;
+                          const isDisabled = isMulti && !isSelected && selectedCount >= max;
+                          return (
+                            <button
+                              key={dish.id}
+                              type="button"
+                              disabled={isDisabled}
+                              onClick={() => isMulti
+                                ? toggleMehrfach(kat.label, dish.name, max)
+                                : setEinzel(kat.label, dish.name)
+                              }
+                              className="mm-btn-press"
+                              style={{
+                                ...S.menueWahlBtn,
+                                ...(isSelected ? S.menueWahlBtnActive : {}),
+                                ...(isDisabled ? { opacity: 0.4, cursor: "not-allowed" } : {}),
+                                textAlign: "left",
+                                alignItems: "center",
+                              }}
+                            >
+                              {isMulti ? (
+                                <span style={{
+                                  width: 18, height: 18, borderRadius: 4, border: `2px solid ${isSelected ? C.gold : C.border}`,
+                                  background: isSelected ? C.gold : "transparent", flexShrink: 0,
+                                  display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: C.burgundy,
+                                }}>
+                                  {isSelected && "✓"}
+                                </span>
+                              ) : (
+                                <span style={{ ...S.menueRadio, ...(isSelected ? S.menueRadioActive : {}) }}>
+                                  {isSelected && <span style={S.menueRadioInner} />}
+                                </span>
+                              )}
+                              <span style={{ display: "flex", alignItems: "center", gap: 2 }}>
+                                <DietIcon dish={dish} />
+                                {dish.name}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+
         <div style={{ ...S.menueKategorie, marginTop: 24, paddingTop: 24, borderTop: `2px dashed ${C.border}` }}>
-          <div style={S.menueKatLabel}>Ihre Zusatzwünsche (optional)</div>
+          <div style={S.menueKatLabel}>Anmerkungen (optional)</div>
           <textarea
             value={data.zusatzwuensche}
             onChange={e => update("zusatzwuensche", e.target.value)}
-            placeholder="Allergien, Vegetarier, besondere Wünsche, eigene Ideen…"
+            placeholder="Allergien, Vegetarier, besondere Wünsche…"
             rows={3}
             style={{ ...S.input, resize: "vertical", fontFamily: "inherit", marginTop: 8 }}
             className="mm-input"
           />
-          <div style={S.menueZusatzHint}>
-            ✨ Zusatzwünsche besprechen wir gern persönlich. Der Endpreis kann sich dadurch leicht ändern.
-          </div>
         </div>
 
-        <button
-          onClick={next}
-          disabled={!alleGewaehlt}
-          className="mm-btn-press"
-          style={{
-            ...S.primaryBtn,
-            ...(alleGewaehlt ? {} : S.btnDisabled),
-            marginTop: 24,
-          }}
-        >
-          {alleGewaehlt ? "Weiter zur Anfrage →" : "Bitte alle Komponenten auswählen"}
-        </button>
+        <div className="mm-sticky-btn" style={{ marginTop: 24 }}>
+          <button
+            onClick={next}
+            disabled={!alleGewaehlt}
+            className="mm-btn-press"
+            style={{ ...S.primaryBtn, ...(alleGewaehlt ? {} : S.btnDisabled), width: "100%" }}
+          >
+            {alleGewaehlt ? "Weiter zu Extras →" : "Bitte alle Pflichtfelder auswählen"}
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
 /* ════════════════════════════════════════════════════════════════
-   SCHRITT 6 — ANFRAGE (vorher Schritt 5)
+   SCHRITT 6 — EXTRAS / ZUSATZWÜNSCHE
    ══════════════════════════════════════════════════════════════════ */
-function Step6Anfrage({ data, update, onSubmit, submitting, preisProPerson, speisenPreis, lieferzuschlag, lieferInfo, gesamtpreis }) {
+function Step6Extras({ data, update, next, zusatzwuensche }) {
+  const selected = data.extras || [];
+  const toggle = (label) => {
+    const updated = selected.includes(label)
+      ? selected.filter(x => x !== label)
+      : [...selected, label];
+    update("extras", updated);
+  };
+  return (
+    <div className="mm-fade">
+      <div style={S.heroBlock}>
+        <div style={S.heroEyebrow}>Schritt 6 von 7 · Optional</div>
+        <h1 style={S.heroTitle} className="mm-hero-title">
+          Noch etwas <em style={S.italic}>Besonderes</em>?
+        </h1>
+        <p style={S.heroSub} className="mm-hero-sub">
+          Diese Extras sind optional — Preise auf Anfrage.
+        </p>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 600, margin: "0 auto" }}>
+        {zusatzwuensche.map(z => {
+          const checked = selected.includes(z.label);
+          return (
+            <label key={z.id} style={{ display: "flex", alignItems: "flex-start", gap: 14, background: checked ? C.burgundy : C.cream, border: `2px solid ${checked ? C.gold : C.border}`, borderRadius: 10, padding: "14px 18px", cursor: "pointer", transition: "all .2s" }}>
+              <input type="checkbox" checked={checked} onChange={() => toggle(z.label)} style={{ marginTop: 3, accentColor: C.gold, width: 18, height: 18, flexShrink: 0 }} />
+              <div>
+                <div style={{ fontWeight: 600, color: checked ? C.cream : C.ink, fontSize: 15 }}>{z.label}</div>
+                {z.beschreibung && <div style={{ fontSize: 13, color: checked ? C.gold : C.cappuccino, marginTop: 2 }}>{z.beschreibung}</div>}
+              </div>
+            </label>
+          );
+        })}
+        {zusatzwuensche.length === 0 && (
+          <p style={{ color: C.cappuccino, textAlign: "center", padding: "20px 0" }}>Keine Extras verfügbar.</p>
+        )}
+      </div>
+      <button onClick={next} className="mm-btn-press" style={{ ...S.primaryBtn, maxWidth: 400, margin: "32px auto 0", display: "block" }}>
+        Weiter zur Anfrage →
+      </button>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SCHRITT 7 — ANFRAGE
+   ══════════════════════════════════════════════════════════════════ */
+function Step7Anfrage({ data, update, onSubmit, submitting, preisProPerson, speisenPreis, lieferzuschlag, lieferInfo, gesamtpreis, dbThemen }) {
   const canSubmit = data.kontaktdaten.trim().length > 4;
   const istLieferung = data.lieferung === "lieferung";
   const lieferzoneUnbekannt = istLieferung && !lieferInfo.bekannt;
@@ -1382,7 +1300,7 @@ function Step6Anfrage({ data, update, onSubmit, submitting, preisProPerson, spei
   return (
     <div className="mm-fade">
       <div style={S.heroBlock}>
-        <div style={S.heroEyebrow}>Schritt 6 von 6</div>
+        <div style={S.heroEyebrow}>Schritt 7 von 7</div>
         <h1 style={S.heroTitle} className="mm-hero-title">
           <em style={S.italic}>Fast geschafft!</em>
         </h1>
@@ -1397,7 +1315,7 @@ function Step6Anfrage({ data, update, onSubmit, submitting, preisProPerson, spei
           <div style={S.summaryTitle}>Ihre Anfrage</div>
 
           <SummaryRow label="Anlass"   value={ANLAESSE[data.anlass]?.label} />
-          <SummaryRow label="Thema"    value={THEMEN[data.anlass]?.find(t => t.id === data.thema)?.name} />
+          <SummaryRow label="Thema"    value={(dbThemen[data.anlass] || []).find(t => t.id === data.thema)?.name} />
           <SummaryRow label="Gäste"    value={`${data.gaeste} Personen`} />
           <SummaryRow label="Datum"    value={data.datum ? new Date(data.datum).toLocaleDateString("de-DE", { day:"2-digit", month:"long", year:"numeric" }) : "—"} />
           <SummaryRow label="Ort"      value={`${data.plz} (${istLieferung ? "Lieferung" : "Selbstabholung"})`} />
@@ -1408,17 +1326,33 @@ function Step6Anfrage({ data, update, onSubmit, submitting, preisProPerson, spei
             <>
               <div style={S.summarySubDivider} />
               <div style={S.summarySubTitle}>Ihre Auswahl</div>
-              {Object.entries(data.menue_auswahl).map(([label, value]) => (
-                <SummaryRow key={label} label={label} value={value} />
+              {Object.entries(data.menue_auswahl).map(([label, value]) => {
+                const display = Array.isArray(value) ? value.join(", ") : value;
+                if (!display) return null;
+                return <SummaryRow key={label} label={label} value={display} />;
+              })}
+            </>
+          )}
+
+          {/* Extras / Zusatzwünsche aus DB */}
+          {data.extras && data.extras.length > 0 && (
+            <>
+              <div style={S.summarySubDivider} />
+              <div style={S.summarySubTitle}>Extras <span style={{ fontSize: 11, color: C.cappuccino, fontWeight: 400 }}>(Preis auf Anfrage)</span></div>
+              {data.extras.map(e => (
+                <div key={e} style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "4px 0" }}>
+                  <span style={{ color: C.gold, flexShrink: 0 }}>+</span>
+                  <span style={{ fontSize: 13, color: C.ink }}>{e}</span>
+                </div>
               ))}
             </>
           )}
 
-          {/* Zusatzwünsche */}
+          {/* Freie Anmerkungen */}
           {data.zusatzwuensche && data.zusatzwuensche.trim() && (
             <>
               <div style={S.summarySubDivider} />
-              <div style={S.summarySubTitle}>Zusatzwünsche</div>
+              <div style={S.summarySubTitle}>Anmerkungen</div>
               <div style={S.summaryNotiz}>{data.zusatzwuensche}</div>
             </>
           )}
