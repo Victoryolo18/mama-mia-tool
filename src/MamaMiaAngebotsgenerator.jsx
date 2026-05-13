@@ -224,7 +224,7 @@ export default function MamaMiaAngebotsgenerator() {
   const [data, setData] = useState({
     anlass: getUrlParam("anlass") || null,
     thema: null,
-    gaeste: 30,
+    gaeste: '',
     datum: "",
     plz: "",
     lieferung: "lieferung",
@@ -827,7 +827,14 @@ function Step2Thema({ data, update, next, themen: allThemen }) {
    SCHRITT 3 — DETAILS (Gäste, Datum, PLZ, Lieferung)
    ══════════════════════════════════════════════════════════════════ */
 function Step3Details({ data, update, next }) {
-  const canContinue = data.gaeste && data.datum && data.plz && data.lieferung;
+  const gaesteNum = Number(data.gaeste);
+  const gaesteError = data.gaeste !== '' && data.gaeste !== null
+    ? gaesteNum < 8 ? "Mindestbestellung ab 8 Personen"
+    : gaesteNum > 250 ? "Bitte kontaktieren Sie uns direkt für Großveranstaltungen"
+    : null
+    : null;
+  const gaesteValid = data.gaeste !== '' && data.gaeste !== null && gaesteNum >= 8 && gaesteNum <= 250;
+  const canContinue = gaesteValid && data.datum && data.plz && data.lieferung;
 
   return (
     <div className="mm-fade">
@@ -845,16 +852,20 @@ function Step3Details({ data, update, next }) {
         {/* Gästezahl */}
         <div style={S.field}>
           <label style={S.label}>👥 Wie viele Gäste erwarten Sie?</label>
-          <select
-            value={data.gaeste}
-            onChange={e => update("gaeste", Number(e.target.value))}
-            style={S.select}
+          <input
+            type="number"
+            min="8"
+            max="250"
+            value={data.gaeste ?? ''}
+            onChange={e => update("gaeste", e.target.value === '' ? '' : Number(e.target.value))}
+            placeholder="z.B. 25"
+            style={{ ...S.input, ...(gaesteError ? { borderColor: '#C0392B' } : {}) }}
             className="mm-input"
-          >
-            {GAESTE_OPTIONEN.map(n => (
-              <option key={n} value={n}>{n} Personen</option>
-            ))}
-          </select>
+          />
+          {gaesteError
+            ? <div style={{ fontSize: 12, color: '#C0392B', marginTop: 4 }}>{gaesteError}</div>
+            : <div style={{ fontSize: 12, color: C.cappuccino, marginTop: 4 }}>Mindestbestellung ab 8 Personen</div>
+          }
         </div>
 
         {/* Datum */}
@@ -1294,7 +1305,7 @@ function Step6Extras({ data, update, next, zusatzwuensche }) {
    SCHRITT 7 — ANFRAGE
    ══════════════════════════════════════════════════════════════════ */
 function Step7Anfrage({ data, update, onSubmit, submitting, preisProPerson, speisenPreis, lieferzuschlag, lieferInfo, gesamtpreis, dbThemen }) {
-  const canSubmit = data.kontaktdaten.trim().length > 4;
+  const canSubmit = data.name.trim().length >= 2 && data.kontaktdaten.trim().length >= 5;
   const istLieferung = data.lieferung === "lieferung";
   const lieferzoneUnbekannt = istLieferung && !lieferInfo.bekannt;
 
@@ -1403,7 +1414,7 @@ function Step7Anfrage({ data, update, onSubmit, submitting, preisProPerson, spei
         <div style={S.formCard} className="mm-form-card">
           {/* Name */}
           <div style={S.field}>
-            <label style={S.label}>Ihr Name (optional)</label>
+            <label style={S.label}>Ihr Name <span style={{ color: C.gold, fontSize: 11 }}>*</span></label>
             <input
               type="text"
               value={data.name}
