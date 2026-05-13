@@ -247,6 +247,7 @@ export default function MamaMiaAngebotsgenerator() {
   const [dbPreise,          setDbPreise]          = useState({});
   const [dbMenuData,        setDbMenuData]        = useState(null);
   const [dbZusatzwuensche,  setDbZusatzwuensche]  = useState([]);
+  const [dbPaketFeatures,   setDbPaketFeatures]   = useState({});
   const [appLoading,        setAppLoading]        = useState(true);
   const [menuLoading,       setMenuLoading]       = useState(false);
 
@@ -295,6 +296,27 @@ export default function MamaMiaAngebotsgenerator() {
         setDbPreise(map);
       });
   }, [data.anlass, data.thema]);
+
+  /* ── Paket-Features laden wenn Anlass + Thema gewählt ── */
+  useEffect(() => {
+    if (!data.anlass || !data.thema) { setDbPaketFeatures({}); return; }
+    async function loadFeatures() {
+      const paketNames = ["Klassisch", "Genuss", "Premium"];
+      const results = await Promise.all(paketNames.map(async paket => {
+        const { data: konf } = await supabase
+          .from("paket_konfiguration").select("id")
+          .eq("anlass", data.anlass).eq("theme_slug", data.thema).eq("paket", paket).limit(1);
+        if (!konf?.length) return [paket, []];
+        const { data: slots } = await supabase
+          .from("paket_slots").select("label, min_auswahl, max_auswahl, typ")
+          .eq("paket_konfiguration_id", konf[0].id).eq("aktiv", true).order("reihenfolge");
+        return [paket, slots || []];
+      }));
+      setDbPaketFeatures(Object.fromEntries(results));
+    }
+    loadFeatures();
+  }, [data.anlass, data.thema]);
+
 
   /* ── Menü laden wenn Anlass + Thema + Paket gewählt ── */
   useEffect(() => {
@@ -632,7 +654,7 @@ export default function MamaMiaAngebotsgenerator() {
             {step === 1 && <Step1Anlass data={data} update={update} next={next} />}
             {step === 2 && <Step2Thema  data={data} update={update} next={next} themen={dbThemen} />}
             {step === 3 && <Step3Details data={data} update={update} next={next} />}
-            {step === 4 && <Step4Paket  data={data} update={update} next={next} preise={dbPreise} />}
+            {step === 4 && <Step4Paket  data={data} update={update} next={next} preise={dbPreise} paketFeatures={dbPaketFeatures} />}
             {step === 5 && (
               <Step5Menue
                 data={data}
@@ -906,7 +928,14 @@ function Step3Details({ data, update, next }) {
 /* ════════════════════════════════════════════════════════════════
    SCHRITT 4 — PAKET
    ══════════════════════════════════════════════════════════════════ */
-function Step4Paket({ data, update, next, preise }) {
+function slotFeatureText(slot) {
+  if (slot.typ === "fix") return `${slot.label} inklusive`;
+  const max = slot.max_auswahl || 1;
+  if (max > 1) return `${max}× ${slot.label} wählbar`;
+  return `${slot.label} wählbar`;
+}
+
+function Step4Paket({ data, update, next, preise, paketFeatures }) {
   return (
     <div className="mm-fade">
       <div style={S.heroBlock}>
@@ -924,6 +953,8 @@ function Step4Paket({ data, update, next, preise }) {
           const preis = preise?.[p.id] || 0;
           const selected = data.paket === p.id;
           const isMittelpaket = p.id === "Genuss";
+          const dbFeatures = (paketFeatures?.[p.id] || []).map(slotFeatureText);
+          const featureList = dbFeatures.length > 0 ? dbFeatures : p.features;
           return (
             <button
               key={p.id}
@@ -945,10 +976,7 @@ function Step4Paket({ data, update, next, preise }) {
                   {p.badge}
                 </div>
               )}
-              <div style={{
-                ...S.paketName,
-                color: isMittelpaket ? C.gold : C.burgundy,
-              }}>
+              <div style={{ ...S.paketName, color: isMittelpaket ? C.gold : C.burgundy }}>
                 {p.name}
               </div>
               <div style={S.paketTagline}>{p.tagline}</div>
@@ -961,7 +989,7 @@ function Step4Paket({ data, update, next, preise }) {
               <div style={S.divider} />
 
               <ul style={S.paketFeatures}>
-                {p.features.map((f, idx) => (
+                {featureList.map((f, idx) => (
                   <li key={idx} style={S.paketFeatureItem}>
                     <span style={S.checkmark}>✓</span>
                     <span>{f}</span>
@@ -1242,11 +1270,11 @@ function Step6Extras({ data, update, next, zusatzwuensche }) {
         {zusatzwuensche.map(z => {
           const checked = selected.includes(z.label);
           return (
-            <label key={z.id} style={{ display: "flex", alignItems: "flex-start", gap: 14, background: checked ? C.creamSoft : C.white, border: `1.5px solid ${checked ? C.gold : C.border}`, borderRadius: 10, padding: "14px 18px", cursor: "pointer", transition: "all .2s" }}>
-              <input type="checkbox" checked={checked} onChange={() => toggle(z.label)} style={{ marginTop: 2, accentColor: C.gold, width: 18, height: 18, flexShrink: 0 }} />
+            <label key={z.id} style={{ display: "flex", alignItems: "flex-start", gap: 14, background: checked ? C.burgundy : C.cream, border: `2px solid ${checked ? C.gold : C.border}`, borderRadius: 10, padding: "14px 18px", cursor: "pointer", transition: "all .2s" }}>
+              <input type="checkbox" checked={checked} onChange={() => toggle(z.label)} style={{ marginTop: 3, accentColor: C.gold, width: 18, height: 18, flexShrink: 0 }} />
               <div>
-                <div style={{ fontWeight: 600, color: C.ink, fontSize: 15 }}>{z.label}</div>
-                {z.beschreibung && <div style={{ fontSize: 13, color: C.cappuccino, marginTop: 2 }}>{z.beschreibung}</div>}
+                <div style={{ fontWeight: 600, color: checked ? C.cream : C.ink, fontSize: 15 }}>{z.label}</div>
+                {z.beschreibung && <div style={{ fontSize: 13, color: checked ? C.gold : C.cappuccino, marginTop: 2 }}>{z.beschreibung}</div>}
               </div>
             </label>
           );
