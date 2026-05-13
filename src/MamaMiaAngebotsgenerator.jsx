@@ -1343,7 +1343,7 @@ function Step7Anfrage({ data, update, onSubmit, submitting, preisProPerson, spei
               {data.extras.map(e => (
                 <div key={e} style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "4px 0" }}>
                   <span style={{ color: C.gold, flexShrink: 0 }}>+</span>
-                  <span style={{ fontSize: 13, color: C.ink }}>{e}</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: C.cream }}>{e}</span>
                 </div>
               ))}
             </>
