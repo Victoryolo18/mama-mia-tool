@@ -229,7 +229,8 @@ export default function MamaMiaAngebotsgenerator() {
     plz: "",
     lieferung: "lieferung",
     paket: null,
-    menue_auswahl: {},   // Format: { "Beilage": "Pommes", "Salat": "Krautsalat" }
+    menue_auswahl: {},
+    extras: [],
     zusatzwuensche: "",
     kontaktart: "whatsapp",
     kontaktdaten: "",
@@ -241,12 +242,13 @@ export default function MamaMiaAngebotsgenerator() {
   const [angebotsId, setAngebotsId] = useState(null);
 
   /* ── DB-State ── */
-  const [dbThemen,     setDbThemen]     = useState({});   // { anlass: [{id, name, desc, image}] }
-  const [dbLieferzonen, setDbLieferzonen] = useState([]); // lieferzonen rows
-  const [dbPreise,     setDbPreise]     = useState({});   // { Klassisch: n, Genuss: n, Premium: n }
-  const [dbMenuData,   setDbMenuData]   = useState(null); // { bilder: [], kategorien: [] }
-  const [appLoading,   setAppLoading]   = useState(true);
-  const [menuLoading,  setMenuLoading]  = useState(false);
+  const [dbThemen,          setDbThemen]          = useState({});
+  const [dbLieferzonen,     setDbLieferzonen]     = useState([]);
+  const [dbPreise,          setDbPreise]          = useState({});
+  const [dbMenuData,        setDbMenuData]        = useState(null);
+  const [dbZusatzwuensche,  setDbZusatzwuensche]  = useState([]);
+  const [appLoading,        setAppLoading]        = useState(true);
+  const [menuLoading,       setMenuLoading]       = useState(false);
 
   /* ── Fonts laden ── */
   useEffect(() => {
@@ -260,9 +262,10 @@ export default function MamaMiaAngebotsgenerator() {
   /* ── Initial load: Themen + Lieferzonen ── */
   useEffect(() => {
     async function init() {
-      const [{ data: themenRows }, { data: lieferRows }] = await Promise.all([
+      const [{ data: themenRows }, { data: lieferRows }, { data: zusatzRows }] = await Promise.all([
         supabase.from("themen").select("*").eq("aktiv", true).order("anlass").order("reihenfolge"),
         supabase.from("lieferzonen").select("*").eq("aktiv", true).order("reihenfolge"),
+        supabase.from("zusatzwuensche").select("*").eq("aktiv", true).order("reihenfolge"),
       ]);
       const byAnlass = {};
       for (const t of (themenRows || [])) {
@@ -271,6 +274,7 @@ export default function MamaMiaAngebotsgenerator() {
       }
       setDbThemen(byAnlass);
       setDbLieferzonen(lieferRows || []);
+      setDbZusatzwuensche(zusatzRows || []);
       setAppLoading(false);
     }
     init();
@@ -307,7 +311,7 @@ export default function MamaMiaAngebotsgenerator() {
       if (!konf?.length) { setDbMenuData(null); setMenuLoading(false); return; }
       const { data: slots } = await supabase
         .from("paket_slots")
-        .select("*, slot_gerichte(reihenfolge, gericht:gerichte(name))")
+        .select("id, label, kategorie, typ, min_auswahl, max_auswahl, reihenfolge, slot_gerichte(reihenfolge, gericht:gerichte(id, name, vegetarisch, unterkategorie))")
         .eq("paket_konfiguration_id", konf[0].id)
         .eq("aktiv", true)
         .order("reihenfolge");
@@ -315,9 +319,19 @@ export default function MamaMiaAngebotsgenerator() {
         const kategorien = slots.map(slot => {
           const dishes = (slot.slot_gerichte || [])
             .sort((a, b) => a.reihenfolge - b.reihenfolge)
-            .map(sg => sg.gericht.name);
-          if (slot.typ === "fix") return { typ: "fix", label: slot.label, item: dishes[0] || "" };
-          return { typ: "wahl", label: slot.label, options: dishes };
+            .map(sg => ({
+              id: sg.gericht.id,
+              name: sg.gericht.name,
+              vegetarisch: sg.gericht.vegetarisch,
+              unterkategorie: sg.gericht.unterkategorie || "",
+            }));
+          return {
+            typ: slot.typ,
+            label: slot.label,
+            min_auswahl: slot.min_auswahl,
+            max_auswahl: slot.max_auswahl,
+            dishes,
+          };
         });
         const themaImg = (dbThemen[data.anlass] || []).find(t => t.id === data.thema)?.image || "";
         setDbMenuData({ bilder: themaImg ? [themaImg, themaImg, themaImg] : [], kategorien });
@@ -336,7 +350,7 @@ export default function MamaMiaAngebotsgenerator() {
 
   /* ── Helper ── */
   const update = (key, value) => setData(d => ({ ...d, [key]: value }));
-  const next = () => setStep(s => Math.min(s + 1, 6));
+  const next = () => setStep(s => Math.min(s + 1, 7));
   const prev = () => setStep(s => Math.max(s - 1, 1));
 
   const preisProPerson = (data.anlass && data.paket && dbPreise[data.paket]) || 0;
@@ -383,7 +397,10 @@ export default function MamaMiaAngebotsgenerator() {
         plz: data.plz || null,
         lieferung: data.lieferung,
         menue_auswahl: data.menue_auswahl || {},
-        zusatzwuensche: data.zusatzwuensche || null,
+        zusatzwuensche: [
+          ...(data.extras || []),
+          ...(data.zusatzwuensche ? [data.zusatzwuensche] : []),
+        ].join("\n") || null,
         interne_notiz: data.notizen || null,
         preis_pro_person: preisProPerson,
         speisenpreis: speisenPreis,
@@ -575,7 +592,7 @@ export default function MamaMiaAngebotsgenerator() {
       {!submitted && (
         <div style={S.stepperWrap}>
           <div style={S.stepper} className="mm-stepper">
-            {["Anlass", "Thema", "Details", "Paket", "Menü", "Anfrage"].map((label, i) => {
+            {["Anlass", "Thema", "Details", "Paket", "Menü", "Extras", "Anfrage"].map((label, i) => {
               const num = i + 1;
               const active = step === num;
               const done   = step > num;
@@ -593,7 +610,7 @@ export default function MamaMiaAngebotsgenerator() {
                     color: active ? C.burgundy : done ? C.cappuccino : C.cappuccino,
                     fontWeight: active ? 700 : 500,
                   }}>{label}</div>
-                  {i < 5 && (
+                  {i < 6 && (
                     <div style={{
                       ...S.stepLine,
                       background: done ? C.gold : C.border,
@@ -626,7 +643,15 @@ export default function MamaMiaAngebotsgenerator() {
               />
             )}
             {step === 6 && (
-              <Step6Anfrage
+              <Step6Extras
+                data={data}
+                update={update}
+                next={next}
+                zusatzwuensche={dbZusatzwuensche}
+              />
+            )}
+            {step === 7 && (
+              <Step7Anfrage
                 data={data}
                 update={update}
                 onSubmit={handleSubmit}
@@ -660,7 +685,7 @@ function Step1Anlass({ data, update, next }) {
   return (
     <div className="mm-fade">
       <div style={S.heroBlock}>
-        <div style={S.heroEyebrow}>Schritt 1 von 5</div>
+        <div style={S.heroEyebrow}>Schritt 1 von 7</div>
         <h1 style={S.heroTitle} className="mm-hero-title">
           Welcher <em style={S.italic}>Anlass</em> darf es sein?
         </h1>
@@ -708,11 +733,17 @@ function Step1Anlass({ data, update, next }) {
 function Step2Thema({ data, update, next, themen: allThemen }) {
   const themen = (allThemen || {})[data.anlass] || [];
   const anlass = ANLAESSE[data.anlass];
+  const FALLBACK_IMG = "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80";
 
   return (
     <div className="mm-fade">
+      <style>{`
+        .mm-thema-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        @media (max-width: 640px) { .mm-thema-grid { grid-template-columns: 1fr !important; } }
+      `}</style>
+
       <div style={S.heroBlock}>
-        <div style={S.heroEyebrow}>Schritt 2 von 5 · {anlass?.label}</div>
+        <div style={S.heroEyebrow}>Schritt 2 von 7 · {anlass?.label}</div>
         <h1 style={S.heroTitle} className="mm-hero-title">
           Welche <em style={S.italic}>Richtung</em> dürfen wir nehmen?
         </h1>
@@ -721,9 +752,10 @@ function Step2Thema({ data, update, next, themen: allThemen }) {
         </p>
       </div>
 
-      <div style={{ ...S.grid, gridTemplateColumns: "repeat(3, 1fr)" }} className="mm-grid-3">
+      <div className="mm-thema-grid">
         {themen.map((t, i) => {
           const selected = data.thema === t.id;
+          const imgUrl = t.image || FALLBACK_IMG;
           return (
             <button
               key={t.id}
@@ -733,17 +765,26 @@ function Step2Thema({ data, update, next, themen: allThemen }) {
                 ...S.themaCard,
                 ...(selected ? S.themaCardActive : {}),
                 animationDelay: `${i * 80}ms`,
+                minHeight: 240,
+                padding: 0,
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
               }}
             >
               <div style={{
-                ...S.themaImage,
-                backgroundImage: `linear-gradient(180deg, rgba(28,16,8,0) 50%, rgba(28,16,8,.55) 100%), url(${t.image})`,
+                height: 140,
+                backgroundImage: `linear-gradient(180deg, rgba(28,16,8,0) 40%, rgba(28,16,8,.7) 100%), url(${imgUrl})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                flexShrink: 0,
               }} />
-              <div style={S.themaContent}>
-                <div style={S.themaNumberSmall}>0{i + 1}</div>
-                <div style={S.themaName}>{t.name}</div>
-                <div style={S.themaDesc}>{t.desc}</div>
-                <div style={S.themaArrow}>→</div>
+              <div style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
+                <div style={{ fontSize: 22, fontWeight: 700, color: selected ? C.gold : C.burgundy, lineHeight: 1.2 }}>{t.name}</div>
+                <div style={{ fontSize: 13, color: C.cappuccino, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.desc}</div>
+                <div style={{ marginTop: "auto", paddingTop: 8, fontSize: 13, fontWeight: 600, color: selected ? C.gold : C.cappuccino }}>
+                  {selected ? "✓ Ausgewählt" : "Wählen →"}
+                </div>
               </div>
             </button>
           );
@@ -762,7 +803,7 @@ function Step3Details({ data, update, next }) {
   return (
     <div className="mm-fade">
       <div style={S.heroBlock}>
-        <div style={S.heroEyebrow}>Schritt 3 von 5</div>
+        <div style={S.heroEyebrow}>Schritt 3 von 7</div>
         <h1 style={S.heroTitle} className="mm-hero-title">
           Erzählen Sie uns mehr über Ihr <em style={S.italic}>Event</em>
         </h1>
@@ -862,7 +903,7 @@ function Step4Paket({ data, update, next, preise }) {
   return (
     <div className="mm-fade">
       <div style={S.heroBlock}>
-        <div style={S.heroEyebrow}>Schritt 4 von 5</div>
+        <div style={S.heroEyebrow}>Schritt 4 von 7</div>
         <h1 style={S.heroTitle} className="mm-hero-title">
           Welches <em style={S.italic}>Paket</em> passt zu Ihnen?
         </h1>
@@ -943,6 +984,25 @@ function Step4Paket({ data, update, next, preise }) {
    SCHRITT 5 — MENÜ ANPASSEN (NEU!)
    Stimmungsbilder + auswählbare Komponenten + Zusatzwünsche
    ══════════════════════════════════════════════════════════════════ */
+function DietIcon({ dish }) {
+  const sub = (dish.unterkategorie || "").toLowerCase();
+  if (dish.vegetarisch) return <span title="Vegetarisch" style={{ fontSize: 14, marginRight: 4 }}>🟢</span>;
+  if (sub.includes("fisch") || sub.includes("lachs") || sub.includes("meeresfrüchte")) return <span title="Fisch/Meeresfrüchte" style={{ fontSize: 14, marginRight: 4 }}>🐟</span>;
+  return <span title="Fleisch" style={{ fontSize: 14, marginRight: 4 }}>🍖</span>;
+}
+
+function groupByUnterkategorie(dishes) {
+  const groups = [];
+  const seen = {};
+  for (const d of dishes) {
+    const key = d.unterkategorie || "";
+    if (!seen[key]) { seen[key] = true; groups.push({ key, items: [] }); }
+    groups.find(g => g.key === key).items.push(d);
+  }
+  const multiGroup = groups.length > 1;
+  return { groups, multiGroup };
+}
+
 function Step5Menue({ data, update, next, menuData, menuLoading }) {
   if (menuLoading) return (
     <div className="mm-fade" style={{ textAlign: "center", padding: "60px 20px", color: "#A88968", fontFamily: "'DM Sans', sans-serif", fontSize: 18 }}>
@@ -950,7 +1010,6 @@ function Step5Menue({ data, update, next, menuData, menuLoading }) {
     </div>
   );
 
-  // Falls kein Menü-Daten existieren (Fallback)
   if (!menuData) {
     return (
       <div className="mm-fade">
@@ -963,26 +1022,46 @@ function Step5Menue({ data, update, next, menuData, menuLoading }) {
           </p>
         </div>
         <button onClick={next} className="mm-btn-press" style={{ ...S.primaryBtn, maxWidth: 400, margin: "0 auto", display: "block" }}>
-          Weiter zur Anfrage →
+          Weiter zu Extras →
         </button>
       </div>
     );
   }
 
-  // Initialisiere Menü-Auswahl mit ersten Optionen falls noch leer
   const auswahl = data.menue_auswahl || {};
-  const setAuswahl = (label, option) => {
-    update("menue_auswahl", { ...auswahl, [label]: option });
+
+  const getSelected = (label) => auswahl[label] || (auswahl[label] === undefined ? [] : auswahl[label]);
+  const getSelectedArr = (label) => {
+    const v = auswahl[label];
+    if (!v) return [];
+    return Array.isArray(v) ? v : [v];
   };
 
-  // Prüfen ob alle Wahl-Kategorien bedient sind
-  const wahlKategorien = menuData.kategorien.filter(k => k.typ === "wahl");
-  const alleGewaehlt = wahlKategorien.every(k => auswahl[k.label]);
+  const setEinzel = (label, name) => update("menue_auswahl", { ...auswahl, [label]: name });
+  const toggleMehrfach = (label, name, max) => {
+    const cur = getSelectedArr(label);
+    const next = cur.includes(name) ? cur.filter(x => x !== name) : (cur.length < max ? [...cur, name] : cur);
+    update("menue_auswahl", { ...auswahl, [label]: next });
+  };
+
+  const wahlSlots = menuData.kategorien.filter(k => k.typ !== "fix");
+  const alleGewaehlt = wahlSlots.every(k => {
+    const min = k.min_auswahl ?? 1;
+    if (k.max_auswahl > 1) return getSelectedArr(k.label).length >= min;
+    return !!auswahl[k.label];
+  });
 
   return (
     <div className="mm-fade">
+      <style>{`
+        .mm-dish-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+        @media (max-width: 640px) { .mm-dish-grid { grid-template-columns: 1fr !important; } }
+        .mm-sticky-btn { position: sticky; bottom: 16px; z-index: 10; }
+        @media (min-width: 641px) { .mm-sticky-btn { position: static; } }
+      `}</style>
+
       <div style={S.heroBlock}>
-        <div style={S.heroEyebrow}>Schritt 5 von 6 · {data.paket}</div>
+        <div style={S.heroEyebrow}>Schritt 5 von 7 · {data.paket}</div>
         <h1 style={S.heroTitle} className="mm-hero-title">
           Ihr <em style={S.italic}>Menü</em>
         </h1>
@@ -991,101 +1070,188 @@ function Step5Menue({ data, update, next, menuData, menuLoading }) {
         </p>
       </div>
 
-      {/* Stimmungsbilder */}
-      <div style={S.menueBilder}>
-        {menuData.bilder.map((url, i) => (
-          <div
-            key={i}
-            style={{
-              ...S.menueBild,
-              backgroundImage: `url(${url})`,
-              animationDelay: `${i * 100}ms`,
-            }}
-            className="mm-fade"
-          />
-        ))}
-      </div>
+      {menuData.bilder.length > 0 && (
+        <div style={S.menueBilder}>
+          {menuData.bilder.map((url, i) => (
+            <div key={i} style={{ ...S.menueBild, backgroundImage: `url(${url})`, animationDelay: `${i * 100}ms` }} className="mm-fade" />
+          ))}
+        </div>
+      )}
 
-      {/* Komponenten */}
       <div style={S.menueCard}>
         <div style={S.menueCardTitle}>Ihre Komponenten</div>
 
-        {menuData.kategorien.map((kat, i) => (
-          <div key={i} style={S.menueKategorie}>
-            <div style={S.menueKatLabel}>{kat.label}</div>
+        {menuData.kategorien.map((kat, i) => {
+          const min = kat.min_auswahl ?? 1;
+          const max = kat.max_auswahl ?? 1;
+          const isMulti = kat.typ === "wahl_mehrfach" && max > 1;
+          const selectedArr = getSelectedArr(kat.label);
+          const selectedCount = selectedArr.length;
+          const satisfied = isMulti ? selectedCount >= min : !!auswahl[kat.label];
+          const { groups, multiGroup } = groupByUnterkategorie(kat.dishes || []);
 
-            {kat.typ === "fix" ? (
-              <div style={S.menueFixItem}>
-                <span style={S.menueFixCheck}>✓</span>
-                <span>{kat.item}</span>
+          return (
+            <div key={i} style={S.menueKategorie}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", flexWrap: "wrap", gap: 6 }}>
+                <div style={S.menueKatLabel}>{kat.label}</div>
+                {kat.typ !== "fix" && (
+                  <div style={{ fontSize: 12, color: satisfied ? "#4CAF50" : C.cappuccino, fontWeight: 600 }}>
+                    {isMulti
+                      ? `${selectedCount} / ${max} ausgewählt${!satisfied ? ` (mind. ${min})` : ""}`
+                      : (auswahl[kat.label] ? "✓" : `Bitte wählen`)}
+                  </div>
+                )}
               </div>
-            ) : (
-              <div style={S.menueWahlGroup}>
-                {kat.options.map(opt => {
-                  const isSelected = auswahl[kat.label] === opt;
-                  return (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => setAuswahl(kat.label, opt)}
-                      className="mm-btn-press"
-                      style={{
-                        ...S.menueWahlBtn,
-                        ...(isSelected ? S.menueWahlBtnActive : {}),
-                      }}
-                    >
-                      <span style={{
-                        ...S.menueRadio,
-                        ...(isSelected ? S.menueRadioActive : {}),
-                      }}>
-                        {isSelected && <span style={S.menueRadioInner} />}
-                      </span>
-                      <span>{opt}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        ))}
 
-        {/* Zusatzwünsche */}
+              {kat.typ === "fix" ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
+                  {(kat.dishes || []).map((d, di) => (
+                    <div key={di} style={S.menueFixItem}>
+                      <span style={S.menueFixCheck}>✓</span>
+                      <DietIcon dish={d} />
+                      <span>{d.name}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ marginTop: 8 }}>
+                  {groups.map(({ key, items }) => (
+                    <div key={key}>
+                      {multiGroup && key && (
+                        <div style={{ fontSize: 11, fontWeight: 700, color: C.cappuccino, textTransform: "uppercase", letterSpacing: 1, margin: "10px 0 6px" }}>
+                          {key}
+                        </div>
+                      )}
+                      <div className="mm-dish-grid">
+                        {items.map(dish => {
+                          const isSelected = isMulti
+                            ? selectedArr.includes(dish.name)
+                            : auswahl[kat.label] === dish.name;
+                          const isDisabled = isMulti && !isSelected && selectedCount >= max;
+                          return (
+                            <button
+                              key={dish.id}
+                              type="button"
+                              disabled={isDisabled}
+                              onClick={() => isMulti
+                                ? toggleMehrfach(kat.label, dish.name, max)
+                                : setEinzel(kat.label, dish.name)
+                              }
+                              className="mm-btn-press"
+                              style={{
+                                ...S.menueWahlBtn,
+                                ...(isSelected ? S.menueWahlBtnActive : {}),
+                                ...(isDisabled ? { opacity: 0.4, cursor: "not-allowed" } : {}),
+                                textAlign: "left",
+                                alignItems: "center",
+                              }}
+                            >
+                              {isMulti ? (
+                                <span style={{
+                                  width: 18, height: 18, borderRadius: 4, border: `2px solid ${isSelected ? C.gold : C.border}`,
+                                  background: isSelected ? C.gold : "transparent", flexShrink: 0,
+                                  display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: C.burgundy,
+                                }}>
+                                  {isSelected && "✓"}
+                                </span>
+                              ) : (
+                                <span style={{ ...S.menueRadio, ...(isSelected ? S.menueRadioActive : {}) }}>
+                                  {isSelected && <span style={S.menueRadioInner} />}
+                                </span>
+                              )}
+                              <span style={{ display: "flex", alignItems: "center", gap: 2 }}>
+                                <DietIcon dish={dish} />
+                                {dish.name}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+
         <div style={{ ...S.menueKategorie, marginTop: 24, paddingTop: 24, borderTop: `2px dashed ${C.border}` }}>
-          <div style={S.menueKatLabel}>Ihre Zusatzwünsche (optional)</div>
+          <div style={S.menueKatLabel}>Anmerkungen (optional)</div>
           <textarea
             value={data.zusatzwuensche}
             onChange={e => update("zusatzwuensche", e.target.value)}
-            placeholder="Allergien, Vegetarier, besondere Wünsche, eigene Ideen…"
+            placeholder="Allergien, Vegetarier, besondere Wünsche…"
             rows={3}
             style={{ ...S.input, resize: "vertical", fontFamily: "inherit", marginTop: 8 }}
             className="mm-input"
           />
-          <div style={S.menueZusatzHint}>
-            ✨ Zusatzwünsche besprechen wir gern persönlich. Der Endpreis kann sich dadurch leicht ändern.
-          </div>
         </div>
 
-        <button
-          onClick={next}
-          disabled={!alleGewaehlt}
-          className="mm-btn-press"
-          style={{
-            ...S.primaryBtn,
-            ...(alleGewaehlt ? {} : S.btnDisabled),
-            marginTop: 24,
-          }}
-        >
-          {alleGewaehlt ? "Weiter zur Anfrage →" : "Bitte alle Komponenten auswählen"}
-        </button>
+        <div className="mm-sticky-btn" style={{ marginTop: 24 }}>
+          <button
+            onClick={next}
+            disabled={!alleGewaehlt}
+            className="mm-btn-press"
+            style={{ ...S.primaryBtn, ...(alleGewaehlt ? {} : S.btnDisabled), width: "100%" }}
+          >
+            {alleGewaehlt ? "Weiter zu Extras →" : "Bitte alle Pflichtfelder auswählen"}
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
 /* ════════════════════════════════════════════════════════════════
-   SCHRITT 6 — ANFRAGE (vorher Schritt 5)
+   SCHRITT 6 — EXTRAS / ZUSATZWÜNSCHE
    ══════════════════════════════════════════════════════════════════ */
-function Step6Anfrage({ data, update, onSubmit, submitting, preisProPerson, speisenPreis, lieferzuschlag, lieferInfo, gesamtpreis, dbThemen }) {
+function Step6Extras({ data, update, next, zusatzwuensche }) {
+  const selected = data.extras || [];
+  const toggle = (label) => {
+    const updated = selected.includes(label)
+      ? selected.filter(x => x !== label)
+      : [...selected, label];
+    update("extras", updated);
+  };
+  return (
+    <div className="mm-fade">
+      <div style={S.heroBlock}>
+        <div style={S.heroEyebrow}>Schritt 6 von 7 · Optional</div>
+        <h1 style={S.heroTitle} className="mm-hero-title">
+          Noch etwas <em style={S.italic}>Besonderes</em>?
+        </h1>
+        <p style={S.heroSub} className="mm-hero-sub">
+          Diese Extras sind optional — Preise auf Anfrage.
+        </p>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 600, margin: "0 auto" }}>
+        {zusatzwuensche.map(z => {
+          const checked = selected.includes(z.label);
+          return (
+            <label key={z.id} style={{ display: "flex", alignItems: "flex-start", gap: 14, background: checked ? C.creamSoft : C.white, border: `1.5px solid ${checked ? C.gold : C.border}`, borderRadius: 10, padding: "14px 18px", cursor: "pointer", transition: "all .2s" }}>
+              <input type="checkbox" checked={checked} onChange={() => toggle(z.label)} style={{ marginTop: 2, accentColor: C.gold, width: 18, height: 18, flexShrink: 0 }} />
+              <div>
+                <div style={{ fontWeight: 600, color: C.ink, fontSize: 15 }}>{z.label}</div>
+                {z.beschreibung && <div style={{ fontSize: 13, color: C.cappuccino, marginTop: 2 }}>{z.beschreibung}</div>}
+              </div>
+            </label>
+          );
+        })}
+        {zusatzwuensche.length === 0 && (
+          <p style={{ color: C.cappuccino, textAlign: "center", padding: "20px 0" }}>Keine Extras verfügbar.</p>
+        )}
+      </div>
+      <button onClick={next} className="mm-btn-press" style={{ ...S.primaryBtn, maxWidth: 400, margin: "32px auto 0", display: "block" }}>
+        Weiter zur Anfrage →
+      </button>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SCHRITT 7 — ANFRAGE
+   ══════════════════════════════════════════════════════════════════ */
+function Step7Anfrage({ data, update, onSubmit, submitting, preisProPerson, speisenPreis, lieferzuschlag, lieferInfo, gesamtpreis, dbThemen }) {
   const canSubmit = data.kontaktdaten.trim().length > 4;
   const istLieferung = data.lieferung === "lieferung";
   const lieferzoneUnbekannt = istLieferung && !lieferInfo.bekannt;
@@ -1093,7 +1259,7 @@ function Step6Anfrage({ data, update, onSubmit, submitting, preisProPerson, spei
   return (
     <div className="mm-fade">
       <div style={S.heroBlock}>
-        <div style={S.heroEyebrow}>Schritt 6 von 6</div>
+        <div style={S.heroEyebrow}>Schritt 7 von 7</div>
         <h1 style={S.heroTitle} className="mm-hero-title">
           <em style={S.italic}>Fast geschafft!</em>
         </h1>
