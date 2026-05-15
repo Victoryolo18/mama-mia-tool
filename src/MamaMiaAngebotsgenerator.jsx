@@ -940,7 +940,7 @@ function Step3Details({ data, update, next }) {
    SCHRITT 4 — PAKET
    ══════════════════════════════════════════════════════════════════ */
 function slotFeatureText(slot) {
-  if (slot.typ === "fix") return `${slot.label} inklusive`;
+  if (slot.typ === "fix") return `1× ${slot.label}`;
   const max = slot.max_auswahl || 1;
   if (slot.label?.toLowerCase().includes("salat")) return null;
   if (max > 1) return `${max}× ${slot.label}`;
