@@ -942,8 +942,9 @@ function Step3Details({ data, update, next }) {
 function slotFeatureText(slot) {
   if (slot.typ === "fix") return `${slot.label} inklusive`;
   const max = slot.max_auswahl || 1;
-  if (max > 1) return `${max}× ${slot.label} wählbar`;
-  return `${slot.label} wählbar`;
+  if (slot.label?.toLowerCase().includes("salat")) return null;
+  if (max > 1) return `${max}× ${slot.label}`;
+  return slot.label;
 }
 
 function Step4Paket({ data, update, next, preise, paketFeatures }) {
@@ -964,7 +965,7 @@ function Step4Paket({ data, update, next, preise, paketFeatures }) {
           const preis = preise?.[p.id] || 0;
           const selected = data.paket === p.id;
           const isMittelpaket = p.id === "Genuss";
-          const dbFeatures = (paketFeatures?.[p.id] || []).map(slotFeatureText);
+          const dbFeatures = (paketFeatures?.[p.id] || []).map(slotFeatureText).filter(Boolean);
           const featureList = dbFeatures.length > 0 ? dbFeatures : p.features;
           return (
             <button
