@@ -458,6 +458,23 @@ export default function MamaMiaAngebotsgenerator() {
 
   /* ── E-Mail-Helper ── */
   async function sendNotificationEmails(request) {
+    const FN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email`;
+    const AUTH   = `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`;
+    console.log("[email] sendNotificationEmails aufgerufen, URL:", FN_URL);
+
+    async function callEdgeFn(payload) {
+      const res = await fetch(FN_URL, {
+        method: "POST",
+        headers: { "Authorization": AUTH, "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        throw new Error(`Edge Function ${res.status}: ${txt}`);
+      }
+      return res;
+    }
+
     const anlassLabel = ANLAESSE[request.anlass]?.label || request.anlass;
     const datumFormatted = request.event_datum
       ? new Date(request.event_datum).toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" })
@@ -490,20 +507,8 @@ export default function MamaMiaAngebotsgenerator() {
           </div>
         </div>
       `;
-
-      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email`, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          to: request.customer_email,
-          subject: `Ihre Anfrage bei Mama Mia (${request.request_number})`,
-          html: customerHtml,
-          type: "customer_confirmation",
-        }),
-      });
+      console.log("[email] Sende Kundenbestätigung an:", request.customer_email);
+      await callEdgeFn({ to: request.customer_email, subject: `Ihre Anfrage bei Mama Mia (${request.request_number})`, html: customerHtml, type: "customer_confirmation" });
     }
 
     // E-Mail an Jana (Benachrichtigung)
@@ -539,20 +544,8 @@ export default function MamaMiaAngebotsgenerator() {
         </p>
       </div>
     `;
-
-    await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        to: "info@mama-mia-events.de",
-        subject: `🔔 Neue Anfrage: ${request.customer_name || "Anonym"} — ${anlassLabel}`,
-        html: janaHtml,
-        type: "jana_notification",
-      }),
-    });
+    console.log("[email] Sende Benachrichtigung an info@mama-mia-events.de");
+    await callEdgeFn({ to: "info@mama-mia-events.de", subject: `🔔 Neue Anfrage: ${request.customer_name || "Anonym"} — ${anlassLabel}`, html: janaHtml, type: "jana_notification" });
   }
 
   /* ════════════════════════════════════════════════════════════
