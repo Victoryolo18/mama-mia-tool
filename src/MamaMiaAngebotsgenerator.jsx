@@ -271,7 +271,7 @@ export default function MamaMiaAngebotsgenerator() {
       const byAnlass = {};
       for (const t of (themenRows || [])) {
         if (!byAnlass[t.anlass]) byAnlass[t.anlass] = [];
-        byAnlass[t.anlass].push({ id: t.slug, name: t.label, desc: t.beschreibung, image: t.bild_url });
+        byAnlass[t.anlass].push({ id: t.slug, name: t.label, desc: t.beschreibung, image: t.bild_url, images: [t.bild_url_1, t.bild_url_2, t.bild_url_3].filter(Boolean) });
       }
       setDbThemen(byAnlass);
       setDbLieferzonen(lieferRows || []);
@@ -355,8 +355,8 @@ export default function MamaMiaAngebotsgenerator() {
             dishes,
           };
         });
-        const themaImg = (dbThemen[data.anlass] || []).find(t => t.id === data.thema)?.image || "";
-        setDbMenuData({ bilder: themaImg ? [themaImg, themaImg, themaImg] : [], kategorien });
+        const thema = (dbThemen[data.anlass] || []).find(t => t.id === data.thema);
+        setDbMenuData({ bilder: thema?.images || [], kategorien });
       }
       setMenuLoading(false);
     }
