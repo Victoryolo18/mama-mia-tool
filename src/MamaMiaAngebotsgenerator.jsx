@@ -939,6 +939,15 @@ function Step3Details({ data, update, next }) {
 /* ════════════════════════════════════════════════════════════════
    SCHRITT 4 — PAKET
    ══════════════════════════════════════════════════════════════════ */
+const SLOT_SORT_ORDER = ['vorspeise', 'hauptgericht', 'beilage', 'salat', 'dessert'];
+function slotSortKey(slot) {
+  const l = (slot.label || '').toLowerCase();
+  const idx = SLOT_SORT_ORDER.findIndex(k => l.includes(k));
+  if (idx !== -1) return idx;
+  if (slot.typ === 'fix') return SLOT_SORT_ORDER.length;
+  return SLOT_SORT_ORDER.length + 1;
+}
+
 function slotFeatureText(slot) {
   if (slot.typ === "fix") return `1× ${slot.label}`;
   const max = slot.max_auswahl || 1;
@@ -965,7 +974,7 @@ function Step4Paket({ data, update, next, preise, paketFeatures }) {
           const preis = preise?.[p.id] || 0;
           const selected = data.paket === p.id;
           const isMittelpaket = p.id === "Genuss";
-          const dbFeatures = (paketFeatures?.[p.id] || []).map(slotFeatureText).filter(Boolean);
+          const dbFeatures = [...(paketFeatures?.[p.id] || [])].sort((a, b) => slotSortKey(a) - slotSortKey(b)).map(slotFeatureText).filter(Boolean);
           const featureList = dbFeatures.length > 0 ? dbFeatures : p.features;
           return (
             <button
@@ -1129,6 +1138,7 @@ function Step5Menue({ data, update, next, menuData, menuLoading }) {
         <div style={S.menueCardTitle}>Ihre Komponenten</div>
 
         {menuData.kategorien.map((kat, i) => {
+          if (!kat.dishes || kat.dishes.length === 0) return null;
           const min = kat.min_auswahl ?? 1;
           const max = kat.max_auswahl ?? 1;
           const isMulti = kat.typ === "wahl_mehrfach" && max > 1;
