@@ -951,7 +951,6 @@ function slotSortKey(slot) {
 function slotFeatureText(slot) {
   if (slot.typ === "fix") return `1× ${slot.label}`;
   const max = slot.max_auswahl || 1;
-  if (slot.label?.toLowerCase().includes("salat")) return null;
   if (max > 1) return `${max}× ${slot.label}`;
   return slot.label;
 }
@@ -974,7 +973,13 @@ function Step4Paket({ data, update, next, preise, paketFeatures }) {
           const preis = preise?.[p.id] || 0;
           const selected = data.paket === p.id;
           const isMittelpaket = p.id === "Genuss";
-          const dbFeatures = [...(paketFeatures?.[p.id] || [])].sort((a, b) => slotSortKey(a) - slotSortKey(b)).map(slotFeatureText).filter(Boolean);
+          const _slots = paketFeatures?.[p.id] || [];
+          const _hasSalatFix = _slots.some(s => s.typ === 'fix' && s.label?.toLowerCase().includes('salat'));
+          const dbFeatures = [..._slots]
+            .sort((a, b) => slotSortKey(a) - slotSortKey(b))
+            .filter(s => !(_hasSalatFix && s.typ !== 'fix' && s.label?.toLowerCase().includes('salat')))
+            .map(slotFeatureText)
+            .filter(Boolean);
           const featureList = dbFeatures.length > 0 ? dbFeatures : p.features;
           return (
             <button
