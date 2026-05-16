@@ -43,7 +43,7 @@ const ANLAESSE = {
     icon: "💍",
     subtitle: "Ihr schönster Tag",
     description: "Vom Sektempfang bis zum Mitternachtssnack",
-    image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=800&q=80",
+    image: "https://jypugzjdoluvmawkwewl.supabase.co/storage/v1/object/public/Themenbilder/Hochzeit-Thema.jpg",
   },
   geburtstag: {
     label: "Geburtstag",
@@ -57,21 +57,21 @@ const ANLAESSE = {
     icon: "🎒",
     subtitle: "Großer Tag, kleine Helden",
     description: "Festliches Buffet für die ganze Familie",
-    image: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&q=80",
+    image: "https://jypugzjdoluvmawkwewl.supabase.co/storage/v1/object/public/Themenbilder/Einschulung-Thema.jpg",
   },
   individuell: {
     label: "Private Feier",
     icon: "✨",
     subtitle: "Ihr besonderer Anlass",
     description: "Taufe, Konfirmation, Jugendweihe, Jubiläum & mehr",
-    image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80",
+    image: "https://jypugzjdoluvmawkwewl.supabase.co/storage/v1/object/public/Themenbilder/Private_Feier-Thema.jpg",
   },
   firmenfeier: {
     label: "Firmenfeier",
     icon: "🏢",
     subtitle: "Geschäftlich genießen",
     description: "Vom Business-Lunch bis zum Sommerfest",
-    image: "https://images.unsplash.com/photo-1555244162-803834f70033?w=800&q=80",
+    image: "https://jypugzjdoluvmawkwewl.supabase.co/storage/v1/object/public/Themenbilder/Firmenfeier-Thema.jpg",
   },
   fruehstueck: {
     label: "Frühstück & Brunch",
@@ -727,7 +727,6 @@ function Step1Anlass({ data, update, next }) {
                 ...S.anlassImage,
                 backgroundImage: `linear-gradient(180deg, rgba(28,16,8,0) 40%, rgba(28,16,8,.65) 100%), url(${anl.image})`,
               }}>
-                <div style={S.anlassIconBig}>{anl.icon}</div>
               </div>
               <div style={S.anlassContent}>
                 <div style={S.anlassLabel}>{anl.label}</div>
