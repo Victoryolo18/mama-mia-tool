@@ -1040,7 +1040,7 @@ function Step4Paket({ data, update, next, preise, paketFeatures }) {
    ══════════════════════════════════════════════════════════════════ */
 function DietIcon({ dish }) {
   const sub = (dish.unterkategorie || "").toLowerCase().trim();
-  if (dish.vegetarisch) return <span title="Vegetarisch" style={{ fontSize: 16, lineHeight: 1, marginRight: 5, flexShrink: 0 }}>🟢</span>;
+  if (dish.vegetarisch) return <span title="Vegetarisch" style={{ fontSize: 16, lineHeight: 1, marginRight: 5, flexShrink: 0 }}>🌱</span>;
   if (sub === "fisch") return <span title="Fisch" style={{ fontSize: 16, lineHeight: 1, marginRight: 5, flexShrink: 0 }}>🐟</span>;
   return <span title="Fleisch" style={{ fontSize: 16, lineHeight: 1, marginRight: 5, flexShrink: 0 }}>🍖</span>;
 }
