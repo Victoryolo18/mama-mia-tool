@@ -972,10 +972,9 @@ function Step4Paket({ data, update, next, preise, paketFeatures }) {
           const selected = data.paket === p.id;
           const isMittelpaket = p.id === "Genuss";
           const _slots = paketFeatures?.[p.id] || [];
-          const _hasSalatFix = _slots.some(s => s.typ === 'fix' && s.label?.toLowerCase().includes('salat'));
           const dbFeatures = [..._slots]
             .sort((a, b) => slotSortKey(a) - slotSortKey(b))
-            .filter(s => !(_hasSalatFix && s.typ !== 'fix' && s.label?.toLowerCase().includes('salat')))
+            .filter(s => !s.label?.toLowerCase().includes('salat'))
             .map(slotFeatureText)
             .filter(Boolean);
           const featureList = dbFeatures.length > 0 ? dbFeatures : p.features;
