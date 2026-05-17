@@ -1184,7 +1184,7 @@ function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, 
           const min = kat.min_auswahl ?? 1;
           const max = kat.max_auswahl ?? 1;
           const effectiveMax = max + (upgrades[kat.label] ? 1 : 0);
-          const isMulti = kat.typ === "wahl_mehrfach" && effectiveMax > 1;
+          const isMulti = effectiveMax > 1;
           const selectedArr = getSelectedArr(kat.label);
           const selectedCount = selectedArr.length;
           const satisfied = isMulti ? selectedCount >= min : !!auswahl[kat.label];
