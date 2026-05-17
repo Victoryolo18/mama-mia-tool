@@ -315,7 +315,11 @@ export default function MamaMiaAngebotsgenerator() {
         for (const s of (slots || [])) {
           const key = s.kategorie || s.label;
           if (!merged[key]) { merged[key] = { ...s }; mergedOrder.push(key); }
-          else { merged[key].max_auswahl = (merged[key].max_auswahl || 1) + (s.max_auswahl || 1); }
+          else {
+            merged[key].max_auswahl = (merged[key].max_auswahl || 1) + (s.max_auswahl || 1);
+            if (!s.label?.toLowerCase().includes('salat') && merged[key].label?.toLowerCase().includes('salat'))
+              merged[key].label = s.label;
+          }
         }
         return [paket, mergedOrder.map(k => merged[k])];
       }));
@@ -351,12 +355,15 @@ export default function MamaMiaAngebotsgenerator() {
           const key = slot.kategorie || slot.label;
           const dishes = (slot.slot_gerichte || [])
             .sort((a, b) => a.reihenfolge - b.reihenfolge)
-            .map(sg => ({
-              id: sg.gericht.id,
-              name: sg.gericht.name,
-              vegetarisch: sg.gericht.vegetarisch,
-              unterkategorie: sg.gericht.unterkategorie || "",
-            }));
+            .map(sg => {
+              const u = sg.gericht.unterkategorie;
+              return {
+                id: sg.gericht.id,
+                name: sg.gericht.name,
+                vegetarisch: sg.gericht.vegetarisch,
+                unterkategorie: Array.isArray(u) ? (u[0] || "") : (u || ""),
+              };
+            });
           if (!katMap[key]) {
             katMap[key] = { typ: slot.typ, label: slot.label, min_auswahl: slot.min_auswahl, max_auswahl: slot.max_auswahl, dishes };
             katOrder.push(key);
@@ -985,6 +992,7 @@ function Step4Paket({ data, update, next, preise, paketFeatures }) {
           const _slots = paketFeatures?.[p.id] || [];
           const dbFeatures = [..._slots]
             .sort((a, b) => slotSortKey(a) - slotSortKey(b))
+            .filter(s => !s.label?.toLowerCase().includes('salat'))
             .map(slotFeatureText)
             .filter(Boolean);
           const featureList = dbFeatures.length > 0 ? dbFeatures : p.features;
@@ -1059,11 +1067,13 @@ function DietIcon({ dish }) {
   return <span title="Fleisch" style={{ fontSize: 16, lineHeight: 1, marginRight: 5, flexShrink: 0 }}>🍖</span>;
 }
 
+const UNTERKATEGORIE_LABELS = { salat: 'Salate', salate: 'Salate', suppe: 'Suppen', suppen: 'Suppen', häppchen: 'Häppchen' };
+
 function groupByUnterkategorie(dishes) {
   const groups = [];
   const seen = {};
   for (const d of dishes) {
-    const key = d.unterkategorie || "";
+    const key = (d.unterkategorie || "").toLowerCase().trim();
     if (!seen[key]) { seen[key] = true; groups.push({ key, items: [] }); }
     groups.find(g => g.key === key).items.push(d);
   }
@@ -1195,7 +1205,7 @@ function Step5Menue({ data, update, next, menuData, menuLoading }) {
                     <div key={key}>
                       {multiGroup && key && (
                         <div style={{ fontSize: 11, fontWeight: 700, color: C.cappuccino, textTransform: "uppercase", letterSpacing: 1, margin: "10px 0 6px" }}>
-                          {key}
+                          {UNTERKATEGORIE_LABELS[key] || key}
                         </div>
                       )}
                       <div className="mm-dish-grid">
