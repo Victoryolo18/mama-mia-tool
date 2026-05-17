@@ -158,6 +158,7 @@ const LIEFERUNG = [
 const UPGRADE_PREISE = {
   vorspeise:    { preis: 3.50, singular: 'Vorspeise' },
   hauptgericht: { preis: 9.50, singular: 'Hauptgericht' },
+  hauptspeise:  { preis: 9.50, singular: 'Hauptgericht' },
   beilage:      { preis: 3.50, singular: 'Beilage' },
   dessert:      { preis: 4.20, singular: 'Dessert' },
 };
