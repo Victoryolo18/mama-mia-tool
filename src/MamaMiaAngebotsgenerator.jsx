@@ -308,9 +308,16 @@ export default function MamaMiaAngebotsgenerator() {
           .eq("anlass", data.anlass).eq("theme_slug", data.thema).eq("paket", paket).limit(1);
         if (!konf?.length) return [paket, []];
         const { data: slots } = await supabase
-          .from("paket_slots").select("label, min_auswahl, max_auswahl, typ")
+          .from("paket_slots").select("label, kategorie, min_auswahl, max_auswahl, typ")
           .eq("paket_konfiguration_id", konf[0].id).eq("aktiv", true).order("reihenfolge");
-        return [paket, slots || []];
+        const merged = {};
+        const mergedOrder = [];
+        for (const s of (slots || [])) {
+          const key = s.kategorie || s.label;
+          if (!merged[key]) { merged[key] = { ...s }; mergedOrder.push(key); }
+          else { merged[key].max_auswahl = (merged[key].max_auswahl || 1) + (s.max_auswahl || 1); }
+        }
+        return [paket, mergedOrder.map(k => merged[k])];
       }));
       setDbPaketFeatures(Object.fromEntries(results));
     }
@@ -338,7 +345,10 @@ export default function MamaMiaAngebotsgenerator() {
         .eq("aktiv", true)
         .order("reihenfolge");
       if (slots) {
-        const kategorien = slots.map(slot => {
+        const katMap = {};
+        const katOrder = [];
+        for (const slot of slots) {
+          const key = slot.kategorie || slot.label;
           const dishes = (slot.slot_gerichte || [])
             .sort((a, b) => a.reihenfolge - b.reihenfolge)
             .map(sg => ({
@@ -347,14 +357,17 @@ export default function MamaMiaAngebotsgenerator() {
               vegetarisch: sg.gericht.vegetarisch,
               unterkategorie: sg.gericht.unterkategorie || "",
             }));
-          return {
-            typ: slot.typ,
-            label: slot.label,
-            min_auswahl: slot.min_auswahl,
-            max_auswahl: slot.max_auswahl,
-            dishes,
-          };
-        });
+          if (!katMap[key]) {
+            katMap[key] = { typ: slot.typ, label: slot.label, min_auswahl: slot.min_auswahl, max_auswahl: slot.max_auswahl, dishes };
+            katOrder.push(key);
+          } else {
+            katMap[key].max_auswahl = (katMap[key].max_auswahl || 1) + (slot.max_auswahl || 1);
+            if (katMap[key].max_auswahl > 1) katMap[key].typ = 'wahl_mehrfach';
+            const existingIds = new Set(katMap[key].dishes.map(d => d.id));
+            katMap[key].dishes.push(...dishes.filter(d => !existingIds.has(d.id)));
+          }
+        }
+        const kategorien = katOrder.map(k => katMap[k]);
         const thema = (dbThemen[data.anlass] || []).find(t => t.id === data.thema);
         setDbMenuData({ bilder: thema?.images || [], kategorien });
       }
@@ -947,10 +960,8 @@ function slotSortKey(slot) {
 }
 
 function slotFeatureText(slot) {
-  if (slot.typ === "fix") return `1× ${slot.label}`;
   const max = slot.max_auswahl || 1;
-  if (max > 1) return `${max}× ${slot.label}`;
-  return slot.label;
+  return `${max}× ${slot.label}`;
 }
 
 function Step4Paket({ data, update, next, preise, paketFeatures }) {
@@ -974,7 +985,6 @@ function Step4Paket({ data, update, next, preise, paketFeatures }) {
           const _slots = paketFeatures?.[p.id] || [];
           const dbFeatures = [..._slots]
             .sort((a, b) => slotSortKey(a) - slotSortKey(b))
-            .filter(s => !s.label?.toLowerCase().includes('salat'))
             .map(slotFeatureText)
             .filter(Boolean);
           const featureList = dbFeatures.length > 0 ? dbFeatures : p.features;
