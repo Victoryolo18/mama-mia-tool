@@ -370,6 +370,7 @@ export default function MamaMiaAngebotsgenerator() {
             katMap[key] = { typ: slot.typ, label: slot.label, min_auswahl: slot.min_auswahl, max_auswahl: slot.max_auswahl, dishes };
             katOrder.push(key);
           } else {
+            katMap[key].min_auswahl = (katMap[key].min_auswahl || 1) + (slot.min_auswahl || 1);
             katMap[key].max_auswahl = (katMap[key].max_auswahl || 1) + (slot.max_auswahl || 1);
             if (katMap[key].max_auswahl > 1) katMap[key].typ = 'wahl_mehrfach';
             const existingIds = new Set(katMap[key].dishes.map(d => d.id));
@@ -1075,7 +1076,7 @@ function groupByUnterkategorie(dishes) {
   const groups = [];
   const seen = {};
   for (const d of dishes) {
-    const key = (d.gruppe || d.unterkategorie || "").toLowerCase().trim();
+    const key = (d.unterkategorie || d.gruppe || "").toLowerCase().trim();
     if (!seen[key]) { seen[key] = true; groups.push({ key, items: [] }); }
     groups.find(g => g.key === key).items.push(d);
   }
