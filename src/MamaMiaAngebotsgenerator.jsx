@@ -43,7 +43,7 @@ const ANLAESSE = {
     icon: "💍",
     subtitle: "Ihr schönster Tag",
     description: "Vom Sektempfang bis zum Mitternachtssnack",
-    image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=800&q=80",
+    image: "https://jypugzjdoluvmawkwewl.supabase.co/storage/v1/object/public/Themenbilder/Hochzeit-Thema.jpg",
   },
   geburtstag: {
     label: "Geburtstag",
@@ -57,21 +57,21 @@ const ANLAESSE = {
     icon: "🎒",
     subtitle: "Großer Tag, kleine Helden",
     description: "Festliches Buffet für die ganze Familie",
-    image: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&q=80",
+    image: "https://jypugzjdoluvmawkwewl.supabase.co/storage/v1/object/public/Themenbilder/Einschulung-Thema.jpg",
   },
   individuell: {
     label: "Private Feier",
     icon: "✨",
     subtitle: "Ihr besonderer Anlass",
     description: "Taufe, Konfirmation, Jugendweihe, Jubiläum & mehr",
-    image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80",
+    image: "https://jypugzjdoluvmawkwewl.supabase.co/storage/v1/object/public/Themenbilder/Private_Feier-Thema.jpg",
   },
   firmenfeier: {
     label: "Firmenfeier",
     icon: "🏢",
     subtitle: "Geschäftlich genießen",
     description: "Vom Business-Lunch bis zum Sommerfest",
-    image: "https://images.unsplash.com/photo-1555244162-803834f70033?w=800&q=80",
+    image: "https://jypugzjdoluvmawkwewl.supabase.co/storage/v1/object/public/Themenbilder/Firmenfeier-Thema.jpg",
   },
   fruehstueck: {
     label: "Frühstück & Brunch",
@@ -687,6 +687,12 @@ export default function MamaMiaAngebotsgenerator() {
       <footer style={S.footer}>
         <div style={S.footerText}>
           © {new Date().getFullYear()} Mama Mia Events &amp; Catering · Jana Ketelhohn · Leegebruch
+          {' · '}
+          <a href="https://mama-mia-events.de/impressum" target="_blank" rel="noopener noreferrer" style={S.footerLink}>Impressum</a>
+          {' · '}
+          <a href="https://mama-mia-events.de/agb" target="_blank" rel="noopener noreferrer" style={S.footerLink}>AGB</a>
+          {' · '}
+          <a href="https://mama-mia-events.de/datenschutz" target="_blank" rel="noopener noreferrer" style={S.footerLink}>Datenschutz</a>
         </div>
       </footer>
     </div>
@@ -727,7 +733,6 @@ function Step1Anlass({ data, update, next }) {
                 ...S.anlassImage,
                 backgroundImage: `linear-gradient(180deg, rgba(28,16,8,0) 40%, rgba(28,16,8,.65) 100%), url(${anl.image})`,
               }}>
-                <div style={S.anlassIconBig}>{anl.icon}</div>
               </div>
               <div style={S.anlassContent}>
                 <div style={S.anlassLabel}>{anl.label}</div>
@@ -967,10 +972,9 @@ function Step4Paket({ data, update, next, preise, paketFeatures }) {
           const selected = data.paket === p.id;
           const isMittelpaket = p.id === "Genuss";
           const _slots = paketFeatures?.[p.id] || [];
-          const _hasSalatFix = _slots.some(s => s.typ === 'fix' && s.label?.toLowerCase().includes('salat'));
           const dbFeatures = [..._slots]
             .sort((a, b) => slotSortKey(a) - slotSortKey(b))
-            .filter(s => !(_hasSalatFix && s.typ !== 'fix' && s.label?.toLowerCase().includes('salat')))
+            .filter(s => !s.label?.toLowerCase().includes('salat'))
             .map(slotFeatureText)
             .filter(Boolean);
           const featureList = dbFeatures.length > 0 ? dbFeatures : p.features;
@@ -1040,7 +1044,7 @@ function Step4Paket({ data, update, next, preise, paketFeatures }) {
    ══════════════════════════════════════════════════════════════════ */
 function DietIcon({ dish }) {
   const sub = (dish.unterkategorie || "").toLowerCase().trim();
-  if (dish.vegetarisch) return <span title="Vegetarisch" style={{ fontSize: 16, lineHeight: 1, marginRight: 5, flexShrink: 0 }}>🟢</span>;
+  if (dish.vegetarisch) return <span title="Vegetarisch" style={{ fontSize: 16, lineHeight: 1, marginRight: 5, flexShrink: 0 }}>🌱</span>;
   if (sub === "fisch") return <span title="Fisch" style={{ fontSize: 16, lineHeight: 1, marginRight: 5, flexShrink: 0 }}>🐟</span>;
   return <span title="Fleisch" style={{ fontSize: 16, lineHeight: 1, marginRight: 5, flexShrink: 0 }}>🍖</span>;
 }
@@ -2418,5 +2422,10 @@ const S = {
     fontSize: 12,
     opacity: .7,
     fontFamily: "'DM Sans', sans-serif",
+  },
+  footerLink: {
+    color: 'inherit',
+    textDecoration: 'none',
+    opacity: 1,
   },
 };
