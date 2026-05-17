@@ -344,7 +344,7 @@ export default function MamaMiaAngebotsgenerator() {
       if (!konf?.length) { setDbMenuData(null); setMenuLoading(false); return; }
       const { data: slots } = await supabase
         .from("paket_slots")
-        .select("id, label, kategorie, typ, min_auswahl, max_auswahl, reihenfolge, slot_gerichte(reihenfolge, gericht:gerichte(id, name, vegetarisch, unterkategorie, kategorien))")
+        .select("id, label, kategorie, typ, min_auswahl, max_auswahl, reihenfolge, slot_gerichte(reihenfolge, gericht:gerichte(id, name, vegetarisch, unterkategorie))")
         .eq("paket_konfiguration_id", konf[0].id)
         .eq("aktiv", true)
         .order("reihenfolge");
@@ -357,13 +357,11 @@ export default function MamaMiaAngebotsgenerator() {
             .sort((a, b) => a.reihenfolge - b.reihenfolge)
             .map(sg => {
               const u = sg.gericht.unterkategorie;
-              const kats = sg.gericht.kategorien;
               return {
                 id: sg.gericht.id,
                 name: sg.gericht.name,
                 vegetarisch: sg.gericht.vegetarisch,
                 unterkategorie: Array.isArray(u) ? (u[0] || "") : (u || ""),
-                gruppe: Array.isArray(kats) ? (kats[0] || "") : (kats || ""),
               };
             });
           if (!katMap[key]) {
@@ -1075,7 +1073,7 @@ function groupByUnterkategorie(dishes) {
   const groups = [];
   const seen = {};
   for (const d of dishes) {
-    const key = (d.gruppe || d.unterkategorie || "").toLowerCase().trim();
+    const key = (d.unterkategorie || "").toLowerCase().trim();
     if (!seen[key]) { seen[key] = true; groups.push({ key, items: [] }); }
     groups.find(g => g.key === key).items.push(d);
   }
