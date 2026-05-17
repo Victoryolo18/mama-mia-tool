@@ -155,14 +155,6 @@ const LIEFERUNG = [
   { id: "lieferung", label: "Lieferung",     desc: "Bitte zu meiner Adresse liefern" },
 ];
 
-/* ── 💎 UPGRADE-PREISE pro Kategorie ── */
-const UPGRADE_PREISE = {
-  vorspeise:    { preis: 3.50, singular: 'Vorspeise' },
-  hauptgericht: { preis: 9.50, singular: 'Hauptgericht' },
-  beilage:      { preis: 3.50, singular: 'Beilage' },
-  dessert:      { preis: 4.20, singular: 'Dessert' },
-};
-
 /* ── ⚙️ AIRTABLE-KONFIGURATION ── */
 // TODO: Hier später eintragen sobald Airtable eingerichtet:
 const AIRTABLE_CONFIG = {
@@ -258,7 +250,6 @@ export default function MamaMiaAngebotsgenerator() {
   const [dbPaketFeatures,   setDbPaketFeatures]   = useState({});
   const [appLoading,        setAppLoading]        = useState(true);
   const [menuLoading,       setMenuLoading]       = useState(false);
-  const [upgrades,          setUpgrades]          = useState({});
 
   /* ── Fonts laden ── */
   useEffect(() => {
@@ -376,7 +367,7 @@ export default function MamaMiaAngebotsgenerator() {
               };
             });
           if (!katMap[key]) {
-            katMap[key] = { typ: slot.typ, label: slot.label, kategorie: slot.kategorie, min_auswahl: slot.min_auswahl, max_auswahl: slot.max_auswahl, dishes };
+            katMap[key] = { typ: slot.typ, label: slot.label, min_auswahl: slot.min_auswahl, max_auswahl: slot.max_auswahl, dishes };
             katOrder.push(key);
           } else {
             katMap[key].min_auswahl = (katMap[key].min_auswahl || 1) + (slot.min_auswahl || 1);
@@ -394,9 +385,6 @@ export default function MamaMiaAngebotsgenerator() {
     }
     loadMenu();
   }, [data.anlass, data.thema, data.paket, dbThemen]);
-
-  /* ── Upgrades zurücksetzen wenn Paket oder Thema wechselt ── */
-  useEffect(() => { setUpgrades({}); }, [data.paket, data.thema]);
 
   /* ── Wenn Anlass aus URL kommt, springe zu Schritt 2 ── */
   useEffect(() => {
@@ -416,8 +404,7 @@ export default function MamaMiaAngebotsgenerator() {
     ? getLieferzuschlag(data.plz, dbLieferzonen)
     : { zuschlag: 0, bekannt: true };
   const lieferzuschlag = lieferInfo.zuschlag ?? 0;
-  const upgradeSummeProPerson = Object.values(upgrades).reduce((s, p) => s + p, 0);
-  const gesamtpreis = speisenPreis + lieferzuschlag + upgradeSummeProPerson * (data.gaeste || 0);
+  const gesamtpreis = speisenPreis + lieferzuschlag;
 
   /* ── Submit (Supabase + E-Mail) ── */
   async function handleSubmit() {
@@ -454,7 +441,7 @@ export default function MamaMiaAngebotsgenerator() {
         event_datum: data.datum || null,
         plz: data.plz || null,
         lieferung: data.lieferung,
-        menue_auswahl: { ...(data.menue_auswahl || {}), ...(Object.keys(upgrades).length ? { _upgrades: upgrades } : {}) },
+        menue_auswahl: data.menue_auswahl || {},
         zusatzwuensche: [
           ...(data.extras || []),
           ...(data.zusatzwuensche ? [data.zusatzwuensche] : []),
@@ -570,7 +557,6 @@ export default function MamaMiaAngebotsgenerator() {
           <p style="margin: 4px 0;"><strong>Datum:</strong> ${datumFormatted}</p>
           <p style="margin: 4px 0;"><strong>Ort:</strong> ${request.plz || "—"} (${request.lieferung})</p>
           <p style="margin: 4px 0;"><strong>Geschätzter Preis:</strong> ${request.gesamtpreis} €</p>
-          ${request.menue_auswahl?._upgrades && Object.keys(request.menue_auswahl._upgrades).length ? `<p style="margin: 4px 0;"><strong>Upgrades:</strong> ${Object.entries(request.menue_auswahl._upgrades).map(([k,v]) => `+1 ${k} (${v.toFixed(2).replace('.',',')} € p.P.)`).join(', ')}</p>` : ""}
         </div>
         ${request.zusatzwuensche ? `
         <div style="background: #FFF3E0; border-left: 4px solid #E07B00; padding: 12px 16px; margin: 16px 0; border-radius: 6px;">
@@ -692,8 +678,6 @@ export default function MamaMiaAngebotsgenerator() {
                 next={next}
                 menuData={dbMenuData}
                 menuLoading={menuLoading}
-                upgrades={upgrades}
-                setUpgrades={setUpgrades}
               />
             )}
             {step === 6 && (
@@ -716,8 +700,6 @@ export default function MamaMiaAngebotsgenerator() {
                 lieferInfo={lieferInfo}
                 gesamtpreis={gesamtpreis}
                 dbThemen={dbThemen}
-                upgrades={upgrades}
-                upgradeSummeProPerson={upgradeSummeProPerson}
               />
             )}
           </>
@@ -1102,7 +1084,7 @@ function groupByUnterkategorie(dishes) {
   return { groups, multiGroup };
 }
 
-function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, setUpgrades }) {
+function Step5Menue({ data, update, next, menuData, menuLoading }) {
   if (menuLoading) return (
     <div className="mm-fade" style={{ textAlign: "center", padding: "60px 20px", color: "#A88968", fontFamily: "'DM Sans', sans-serif", fontSize: 18 }}>
       Lade Menü …
@@ -1146,8 +1128,7 @@ function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, 
   const wahlSlots = menuData.kategorien.filter(k => k.typ !== "fix");
   const alleGewaehlt = wahlSlots.every(k => {
     const min = k.min_auswahl ?? 1;
-    const effectiveMax = (k.max_auswahl || 1) + (upgrades[k.label] ? 1 : 0);
-    if (effectiveMax > 1) return getSelectedArr(k.label).length >= min;
+    if (k.max_auswahl > 1) return getSelectedArr(k.label).length >= min;
     return !!auswahl[k.label];
   });
 
@@ -1184,14 +1165,11 @@ function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, 
         {menuData.kategorien.map((kat, i) => {
           if (!kat.dishes || kat.dishes.length === 0) return null;
           const min = kat.min_auswahl ?? 1;
-          const baseMax = kat.max_auswahl ?? 1;
-          const effectiveMax = baseMax + (upgrades[kat.label] ? 1 : 0);
-          const isMulti = kat.typ === "wahl_mehrfach" && effectiveMax > 1;
+          const max = kat.max_auswahl ?? 1;
+          const isMulti = kat.typ === "wahl_mehrfach" && max > 1;
           const selectedArr = getSelectedArr(kat.label);
           const selectedCount = selectedArr.length;
           const satisfied = isMulti ? selectedCount >= min : !!auswahl[kat.label];
-          const upgradeInfo = UPGRADE_PREISE[(kat.kategorie || '').toLowerCase()];
-          const alreadyUpgraded = !!upgrades[kat.label];
           const { groups, multiGroup } = groupByUnterkategorie(kat.dishes || []);
 
           return (
@@ -1201,7 +1179,7 @@ function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, 
                 {kat.typ !== "fix" && (
                   <div style={{ fontSize: 12, color: satisfied ? "#4CAF50" : C.gold, fontWeight: 700 }}>
                     {isMulti
-                      ? `${selectedCount} von ${effectiveMax} ausgewählt`
+                      ? `${selectedCount} von ${max} ausgewählt`
                       : (auswahl[kat.label] ? "✓ Ausgewählt" : "Bitte wählen")}
                   </div>
                 )}
@@ -1238,14 +1216,14 @@ function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, 
                           const isSelected = isMulti
                             ? selectedArr.includes(dish.name)
                             : auswahl[kat.label] === dish.name;
-                          const isDisabled = isMulti && !isSelected && selectedCount >= effectiveMax;
+                          const isDisabled = isMulti && !isSelected && selectedCount >= max;
                           return (
                             <button
                               key={dish.id}
                               type="button"
                               disabled={isDisabled}
                               onClick={() => isMulti
-                                ? toggleMehrfach(kat.label, dish.name, effectiveMax)
+                                ? toggleMehrfach(kat.label, dish.name, max)
                                 : setEinzel(kat.label, dish.name)
                               }
                               className="mm-btn-press"
@@ -1280,24 +1258,6 @@ function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, 
                       </div>
                     </div>
                   ))}
-                </div>
-              )}
-              {kat.typ !== "fix" && upgradeInfo && !alreadyUpgraded && (
-                <div style={{ marginTop: 12 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: C.gold, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 4 }}>Optional</div>
-                  <button
-                    type="button"
-                    onClick={() => setUpgrades(prev => ({ ...prev, [kat.label]: upgradeInfo.preis }))}
-                    className="mm-btn-press"
-                    style={{ background: 'transparent', border: `1.5px solid ${C.gold}`, color: C.gold, borderRadius: 10, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
-                  >
-                    + 1 {upgradeInfo.singular} · {upgradeInfo.preis.toFixed(2).replace('.', ',')} € p.P.
-                  </button>
-                </div>
-              )}
-              {kat.typ !== "fix" && alreadyUpgraded && upgradeInfo && (
-                <div style={{ marginTop: 10, fontSize: 12, color: C.gold, fontStyle: 'italic' }}>
-                  ✓ +1 {upgradeInfo.singular} ({upgradeInfo.preis.toFixed(2).replace('.', ',')} € p.P.) hinzugefügt
                 </div>
               )}
             </div>
@@ -1380,7 +1340,7 @@ function Step6Extras({ data, update, next, zusatzwuensche }) {
 /* ════════════════════════════════════════════════════════════════
    SCHRITT 7 — ANFRAGE
    ══════════════════════════════════════════════════════════════════ */
-function Step7Anfrage({ data, update, onSubmit, submitting, preisProPerson, speisenPreis, lieferzuschlag, lieferInfo, gesamtpreis, dbThemen, upgrades = {}, upgradeSummeProPerson = 0 }) {
+function Step7Anfrage({ data, update, onSubmit, submitting, preisProPerson, speisenPreis, lieferzuschlag, lieferInfo, gesamtpreis, dbThemen }) {
   const canSubmit = data.name.trim().length >= 2 && data.kontaktdaten.trim().length >= 5;
   const istLieferung = data.lieferung === "lieferung";
   const lieferzoneUnbekannt = istLieferung && !lieferInfo.bekannt;
@@ -1455,14 +1415,6 @@ function Step7Anfrage({ data, update, onSubmit, submitting, preisProPerson, spei
               </span>
               <span style={S.summaryBreakdownValue}>{formatEUR(speisenPreis)}</span>
             </div>
-            {upgradeSummeProPerson > 0 && (
-              <div style={S.summaryBreakdownRow}>
-                <span style={S.summaryBreakdownLabel}>
-                  Upgrades ({Object.keys(upgrades).join(', ')})
-                </span>
-                <span style={S.summaryBreakdownValue}>{formatEUR(upgradeSummeProPerson * (data.gaeste || 0))}</span>
-              </div>
-            )}
             {istLieferung && (
               <div style={S.summaryBreakdownRow}>
                 <span style={S.summaryBreakdownLabel}>Lieferung</span>
