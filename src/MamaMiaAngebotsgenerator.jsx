@@ -687,6 +687,12 @@ export default function MamaMiaAngebotsgenerator() {
       <footer style={S.footer}>
         <div style={S.footerText}>
           © {new Date().getFullYear()} Mama Mia Events &amp; Catering · Jana Ketelhohn · Leegebruch
+          {' · '}
+          <a href="https://mama-mia-events.de/impressum" target="_blank" rel="noopener noreferrer" style={S.footerLink}>Impressum</a>
+          {' · '}
+          <a href="https://mama-mia-events.de/agb" target="_blank" rel="noopener noreferrer" style={S.footerLink}>AGB</a>
+          {' · '}
+          <a href="https://mama-mia-events.de/datenschutz" target="_blank" rel="noopener noreferrer" style={S.footerLink}>Datenschutz</a>
         </div>
       </footer>
     </div>
@@ -2417,5 +2423,10 @@ const S = {
     fontSize: 12,
     opacity: .7,
     fontFamily: "'DM Sans', sans-serif",
+  },
+  footerLink: {
+    color: 'inherit',
+    textDecoration: 'none',
+    opacity: 1,
   },
 };
