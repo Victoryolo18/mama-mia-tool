@@ -619,8 +619,8 @@ export default function MamaMiaAngebotsgenerator() {
           .mm-hero-title { font-size: 36px !important; }
           .mm-hero-sub   { font-size: 16px !important; }
           .mm-stepper    { font-size: 11px !important; }
-          .mm-summary-card { order: 2; }
-          .mm-form-card    { order: 1; }
+          .mm-summary-card { order: 1; }
+          .mm-form-card    { order: 2; }
         }
       `}</style>
 
