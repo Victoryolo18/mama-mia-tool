@@ -810,7 +810,7 @@ function Step2Thema({ data, update, next, themen: allThemen }) {
       <div style={S.heroBlock}>
         <div style={S.heroEyebrow}>Schritt 2 von 7 · {anlass?.label}</div>
         <h1 style={S.heroTitle} className="mm-hero-title">
-          Welche <em style={S.italic}>Richtung</em> dürfen wir nehmen?
+          Welches <em style={S.italic}>Thema</em> passt zu Ihrem Anlass?
         </h1>
         <p style={S.heroSub} className="mm-hero-sub">
           Jedes Thema lässt sich auf Ihre Wünsche anpassen.
