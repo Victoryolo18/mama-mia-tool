@@ -1091,7 +1091,7 @@ function DietIcon({ dish }) {
   return <span title="Fleisch" style={{ fontSize: 16, lineHeight: 1, marginRight: 5, flexShrink: 0 }}>🍖</span>;
 }
 
-const UNTERKATEGORIE_LABELS = { salat: 'Salate', salate: 'Salate', suppe: 'Suppen', suppen: 'Suppen', häppchen: 'Häppchen' };
+const UNTERKATEGORIE_LABELS = { salat: 'Salate', salate: 'Salate', suppe: 'Suppen', suppen: 'Suppen', häppchen: 'Häppchen', auflauf: 'Aufläufe', aufläufe: 'Aufläufe' };
 
 function groupByUnterkategorie(dishes) {
   const groups = [];
