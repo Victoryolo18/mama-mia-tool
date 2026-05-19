@@ -643,7 +643,7 @@ export default function MamaMiaAngebotsgenerator() {
       {!submitted && (
         <div style={S.stepperWrap}>
           <div style={S.stepper} className="mm-stepper">
-            {["Anlass", "Thema", "Details", "Paket", "Menü", "Extras", "Anfrage"].map((label, i) => {
+            {["Anlass", "Thema", "Paket", "Menü", "Details", "Extras", "Anfrage"].map((label, i) => {
               const num = i + 1;
               const active = step === num;
               const done   = step > num;
@@ -682,9 +682,8 @@ export default function MamaMiaAngebotsgenerator() {
           <>
             {step === 1 && <Step1Anlass data={data} update={update} next={next} />}
             {step === 2 && <Step2Thema  data={data} update={update} next={next} themen={dbThemen} />}
-            {step === 3 && <Step3Details data={data} update={update} next={next} />}
-            {step === 4 && <Step4Paket  data={data} update={update} next={next} preise={dbPreise} paketFeatures={dbPaketFeatures} />}
-            {step === 5 && (
+            {step === 3 && <Step4Paket  data={data} update={update} next={next} preise={dbPreise} paketFeatures={dbPaketFeatures} />}
+            {step === 4 && (
               <Step5Menue
                 data={data}
                 update={update}
@@ -695,6 +694,7 @@ export default function MamaMiaAngebotsgenerator() {
                 setUpgrades={setUpgrades}
               />
             )}
+            {step === 5 && <Step3Details data={data} update={update} next={next} />}
             {step === 6 && (
               <Step6Extras
                 data={data}
@@ -877,7 +877,7 @@ function Step3Details({ data, update, next }) {
   return (
     <div className="mm-fade">
       <div style={S.heroBlock}>
-        <div style={S.heroEyebrow}>Schritt 3 von 7</div>
+        <div style={S.heroEyebrow}>Schritt 5 von 7</div>
         <h1 style={S.heroTitle} className="mm-hero-title">
           Erzählen Sie uns mehr über Ihr <em style={S.italic}>Event</em>
         </h1>
@@ -995,7 +995,7 @@ function Step4Paket({ data, update, next, preise, paketFeatures }) {
   return (
     <div className="mm-fade">
       <div style={S.heroBlock}>
-        <div style={S.heroEyebrow}>Schritt 4 von 7</div>
+        <div style={S.heroEyebrow}>Schritt 3 von 7</div>
         <h1 style={S.heroTitle} className="mm-hero-title">
           Welches <em style={S.italic}>Paket</em> passt zu Ihnen?
         </h1>
@@ -1160,7 +1160,7 @@ function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, 
       `}</style>
 
       <div style={S.heroBlock}>
-        <div style={S.heroEyebrow}>Schritt 5 von 7 · {data.paket}</div>
+        <div style={S.heroEyebrow}>Schritt 4 von 7 · {data.paket}</div>
         <h1 style={S.heroTitle} className="mm-hero-title">
           Ihr <em style={S.italic}>Menü</em>
         </h1>
