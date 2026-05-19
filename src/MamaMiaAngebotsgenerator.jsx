@@ -547,6 +547,9 @@ export default function MamaMiaAngebotsgenerator() {
     }
 
     // E-Mail an Jana (Benachrichtigung)
+    const alleExtras = (request.zusatzwuensche || '').split('\n').filter(Boolean);
+    const hatGetraenkeservice = alleExtras.includes('Getränkeservice');
+    const sonstigeZusatzwuensche = alleExtras.filter(e => e !== 'Getränkeservice').join('\n');
     const kontaktInfo = request.customer_email
       ? `E-Mail: <a href="mailto:${request.customer_email}">${request.customer_email}</a>`
       : `Telefon: <a href="tel:${request.customer_phone}">${request.customer_phone}</a>`;
@@ -570,10 +573,11 @@ export default function MamaMiaAngebotsgenerator() {
           <p style="margin: 4px 0;"><strong>Ort:</strong> ${request.plz || "—"} (${request.lieferung})</p>
           <p style="margin: 4px 0;"><strong>Geschätzter Preis:</strong> ${request.gesamtpreis} €</p>
           ${request.menue_auswahl?._upgrades && Object.keys(request.menue_auswahl._upgrades).length ? `<p style="margin: 4px 0;"><strong>Upgrades:</strong> ${Object.entries(request.menue_auswahl._upgrades).map(([k,v]) => `+1 ${k} (${Number(v).toFixed(2).replace('.',',')} € p.P.)`).join(', ')}</p>` : ''}
+          ${hatGetraenkeservice ? '<p style="margin: 4px 0;"><strong>Getränkeservice:</strong> Ja</p>' : ''}
         </div>
-        ${request.zusatzwuensche ? `
+        ${sonstigeZusatzwuensche ? `
         <div style="background: #FFF3E0; border-left: 4px solid #E07B00; padding: 12px 16px; margin: 16px 0; border-radius: 6px;">
-          <strong>Zusatzwünsche:</strong> ${request.zusatzwuensche}
+          <strong>Zusatzwünsche:</strong> ${sonstigeZusatzwuensche}
         </div>` : ""}
         <p style="margin-top: 32px; font-size: 13px; color: #A88968;">
           Direkt im CRM ansehen: <a href="https://mama-mia-crm.vercel.app/anfragen/${request.id}" style="color: #5C2818;">CRM öffnen</a>
@@ -1353,6 +1357,20 @@ function Step6Extras({ data, update, next, zusatzwuensche }) {
         </p>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 600, margin: "0 auto" }}>
+        {/* Statische Option: Getränkeservice */}
+        {(() => {
+          const checked = selected.includes('Getränkeservice');
+          return (
+            <label style={{ display: "flex", alignItems: "flex-start", gap: 14, background: checked ? C.burgundy : C.cream, border: `2px solid ${checked ? C.gold : C.border}`, borderRadius: 10, padding: "14px 18px", cursor: "pointer", transition: "all .2s" }}>
+              <input type="checkbox" checked={checked} onChange={() => toggle('Getränkeservice')} style={{ marginTop: 3, accentColor: C.gold, width: 18, height: 18, flexShrink: 0 }} />
+              <div>
+                <div style={{ fontWeight: 600, color: checked ? C.cream : C.ink, fontSize: 15 }}>Getränkeservice</div>
+                <div style={{ fontSize: 13, color: checked ? C.gold : C.cappuccino, marginTop: 2 }}>Auf Anfrage — wir besprechen gemeinsam das passende Getränkeangebot für Ihren Anlass.</div>
+                <div style={{ fontSize: 12, color: checked ? C.gold : C.cappuccino, marginTop: 4, fontStyle: 'italic' }}>Preis auf Anfrage</div>
+              </div>
+            </label>
+          );
+        })()}
         {zusatzwuensche.map(z => {
           const checked = selected.includes(z.label);
           return (
