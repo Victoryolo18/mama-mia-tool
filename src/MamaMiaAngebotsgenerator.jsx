@@ -1156,7 +1156,8 @@ function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, 
 
   const wahlSlots = menuData.kategorien.filter(k => k.typ !== "fix");
   const alleGewaehlt = wahlSlots.every(k => {
-    const min = k.min_auswahl ?? (k.max_auswahl || 1);
+    const kMax = k.max_auswahl || 1;
+    const min = (k.min_auswahl > 1) ? k.min_auswahl : kMax;
     const effectiveMax = (k.max_auswahl || 1) + (upgrades[k.label] ? 1 : 0);
     if (effectiveMax > 1) return getSelectedArr(k.label).length >= min;
     return !!auswahl[k.label];
@@ -1196,7 +1197,7 @@ function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, 
           if (!kat.dishes || kat.dishes.length === 0) return null;
           if (data.anlass === 'fruehstueck' && kat.typ === 'fix') return null;
           const max = kat.max_auswahl ?? 1;
-          const min = kat.min_auswahl ?? max;
+          const min = (kat.min_auswahl > 1) ? kat.min_auswahl : max;
           const effectiveMax = max + (upgrades[kat.label] ? 1 : 0);
           const isMulti = effectiveMax > 1;
           const selectedArr = getSelectedArr(kat.label);
