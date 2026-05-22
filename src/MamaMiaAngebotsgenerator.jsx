@@ -1209,7 +1209,14 @@ function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, 
                     borderRadius: 10, padding: '10px 14px', opacity: 0.8,
                   }}>
                     <span style={{ color: '#4CAF50', fontSize: 16, flexShrink: 0, fontWeight: 700 }}>✓</span>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: C.cappuccino, flex: 1 }}>{kat.label}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: C.cappuccino }}>{kat.label}</div>
+                      {kat.dishes.map(d => d.name).filter(n => n !== kat.label).join(', ') && (
+                        <div style={{ fontSize: 12, color: C.cappuccino, opacity: 0.8, marginTop: 2 }}>
+                          {kat.dishes.map(d => d.name).filter(n => n !== kat.label).join(', ')}
+                        </div>
+                      )}
+                    </div>
                     <span style={{ fontSize: 11, fontWeight: 700, color: '#4CAF50', background: '#E8F5E9', padding: '2px 8px', borderRadius: 20, letterSpacing: '0.5px', flexShrink: 0 }}>
                       Inklusive
                     </span>
