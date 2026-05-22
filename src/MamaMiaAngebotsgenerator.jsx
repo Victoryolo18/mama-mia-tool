@@ -1156,7 +1156,7 @@ function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, 
 
   const wahlSlots = menuData.kategorien.filter(k => k.typ !== "fix");
   const alleGewaehlt = wahlSlots.every(k => {
-    const min = k.min_auswahl ?? 1;
+    const min = k.min_auswahl ?? (k.max_auswahl || 1);
     const effectiveMax = (k.max_auswahl || 1) + (upgrades[k.label] ? 1 : 0);
     if (effectiveMax > 1) return getSelectedArr(k.label).length >= min;
     return !!auswahl[k.label];
@@ -1195,8 +1195,8 @@ function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, 
         {menuData.kategorien.map((kat, i) => {
           if (!kat.dishes || kat.dishes.length === 0) return null;
           if (data.anlass === 'fruehstueck' && kat.typ === 'fix') return null;
-          const min = kat.min_auswahl ?? 1;
           const max = kat.max_auswahl ?? 1;
+          const min = kat.min_auswahl ?? max;
           const effectiveMax = max + (upgrades[kat.label] ? 1 : 0);
           const isMulti = effectiveMax > 1;
           const selectedArr = getSelectedArr(kat.label);
@@ -1326,9 +1326,10 @@ function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, 
                   type="button"
                   onClick={() => setUpgrades(prev => ({ ...prev, 'Lachs-Upgrade': 3.50 }))}
                   className="mm-btn-press"
-                  style={{ background: 'transparent', border: `1.5px solid ${C.gold}`, color: C.gold, borderRadius: 10, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
+                  style={{ background: 'transparent', border: `1.5px solid ${C.gold}`, color: C.gold, borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', lineHeight: 1.5 }}
                 >
-                  + Lachs-Upgrade · 3,50 € p.P.
+                  <div>+ Lachs-Upgrade · 3,50 € p.P.</div>
+                  <div style={{ fontSize: 11, fontWeight: 400, marginTop: 3, opacity: 0.85 }}>Räucherlachs auf die Platten &amp; hausgemachte Eierkuchenlachsröllchen</div>
                 </button>
               </div>
             ) : (
