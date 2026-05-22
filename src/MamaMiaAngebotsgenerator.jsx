@@ -1013,11 +1013,19 @@ function Step4Paket({ data, update, next, preise, paketFeatures }) {
           const preis = preise?.[p.id] || 0;
           const selected = data.paket === p.id;
           const isMittelpaket = p.id === "Genuss";
+          const isFruehstueck = data.anlass === 'fruehstueck';
           const _slots = paketFeatures?.[p.id] || [];
           const dbFeatures = [..._slots]
             .sort((a, b) => slotSortKey(a) - slotSortKey(b))
             .filter(s => !s.label?.toLowerCase().includes('salat'))
-            .map(slotFeatureText)
+            .map(slot => {
+              if (isFruehstueck) {
+                if (slot.typ === 'fix') return `${slot.label} inklusive`;
+                const max = slot.max_auswahl || 1;
+                return `${max}× ${slot.label} nach Wahl`;
+              }
+              return slotFeatureText(slot);
+            })
             .filter(Boolean);
           const featureList = dbFeatures.length > 0 ? dbFeatures : p.features;
           return (
@@ -1091,7 +1099,7 @@ function DietIcon({ dish }) {
   return <span title="Fleisch" style={{ fontSize: 16, lineHeight: 1, marginRight: 5, flexShrink: 0 }}>🍖</span>;
 }
 
-const UNTERKATEGORIE_LABELS = { salat: 'Salate', salate: 'Salate', suppe: 'Suppen', suppen: 'Suppen', häppchen: 'Häppchen', auflauf: 'Aufläufe', aufläufe: 'Aufläufe' };
+const UNTERKATEGORIE_LABELS = { salat: 'Salate', salate: 'Salate', suppe: 'Suppen', suppen: 'Suppen', häppchen: 'Häppchen', auflauf: 'Aufläufe', aufläufe: 'Aufläufe', fruehstueck_suess: 'Süßes & Gebäck', fruehstueck_glas: 'Im Glas' };
 
 function groupByUnterkategorie(dishes) {
   const groups = [];
@@ -1186,6 +1194,7 @@ function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, 
 
         {menuData.kategorien.map((kat, i) => {
           if (!kat.dishes || kat.dishes.length === 0) return null;
+          if (data.anlass === 'fruehstueck' && kat.typ === 'fix') return null;
           const min = kat.min_auswahl ?? 1;
           const max = kat.max_auswahl ?? 1;
           const effectiveMax = max + (upgrades[kat.label] ? 1 : 0);
@@ -1285,7 +1294,7 @@ function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, 
                   ))}
                 </div>
               )}
-              {kat.typ !== "fix" && upgradeInfo && !alreadyUpgraded && (
+              {kat.typ !== "fix" && upgradeInfo && !alreadyUpgraded && data.anlass !== 'fruehstueck' && (
                 <div style={{ marginTop: 12 }}>
                   <div style={{ fontSize: 10, fontWeight: 700, color: C.gold, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 4 }}>Optional</div>
                   <button
@@ -1298,7 +1307,7 @@ function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, 
                   </button>
                 </div>
               )}
-              {kat.typ !== "fix" && alreadyUpgraded && upgradeInfo && (
+              {kat.typ !== "fix" && alreadyUpgraded && upgradeInfo && data.anlass !== 'fruehstueck' && (
                 <div style={{ marginTop: 10, fontSize: 12, color: C.gold, fontStyle: 'italic' }}>
                   ✓ +1 {upgradeInfo.singular} ({upgradeInfo.preis.toFixed(2).replace('.', ',')} € p.P.) hinzugefügt
                 </div>
@@ -1306,6 +1315,36 @@ function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, 
             </div>
           );
         })}
+
+        {data.anlass === 'fruehstueck' && ['Genuss', 'Premium'].includes(data.paket) && (
+          <div style={{ ...S.menueKategorie, borderTop: `2px dashed ${C.border}`, paddingTop: 16, marginTop: 4 }}>
+            <div style={S.menueKatLabel}>Lachs-Upgrade</div>
+            {!upgrades['Lachs-Upgrade'] ? (
+              <div style={{ marginTop: 8 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: C.gold, letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 4 }}>Optional</div>
+                <button
+                  type="button"
+                  onClick={() => setUpgrades(prev => ({ ...prev, 'Lachs-Upgrade': 3.50 }))}
+                  className="mm-btn-press"
+                  style={{ background: 'transparent', border: `1.5px solid ${C.gold}`, color: C.gold, borderRadius: 10, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  + Lachs-Upgrade · 3,50 € p.P.
+                </button>
+              </div>
+            ) : (
+              <div style={{ marginTop: 10, fontSize: 12, color: C.gold, fontStyle: 'italic' }}>
+                ✓ Lachs-Upgrade (3,50 € p.P.) hinzugefügt
+                <button
+                  type="button"
+                  onClick={() => setUpgrades(prev => { const n = { ...prev }; delete n['Lachs-Upgrade']; return n; })}
+                  style={{ marginLeft: 8, fontSize: 11, color: C.cappuccino, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontFamily: 'inherit' }}
+                >
+                  entfernen
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         <div style={{ ...S.menueKategorie, marginTop: 24, paddingTop: 24, borderTop: `2px dashed ${C.border}` }}>
           <div style={S.menueKatLabel}>Anmerkungen (optional)</div>
