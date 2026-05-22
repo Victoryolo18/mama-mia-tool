@@ -322,7 +322,7 @@ export default function MamaMiaAngebotsgenerator() {
         const merged = {};
         const mergedOrder = [];
         for (const s of (slots || [])) {
-          const key = s.kategorie || s.label;
+          const key = s.typ === 'fix' ? `_fix_${mergedOrder.length}` : (s.kategorie || s.label);
           if (!merged[key]) { merged[key] = { ...s }; mergedOrder.push(key); }
           else {
             merged[key].max_auswahl = (merged[key].max_auswahl || 1) + (s.max_auswahl || 1);
