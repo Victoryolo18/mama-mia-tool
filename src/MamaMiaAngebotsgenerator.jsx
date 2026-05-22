@@ -1193,6 +1193,33 @@ function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, 
       <div style={S.menueCard}>
         <div style={S.menueCardTitle}>Ihre Komponenten</div>
 
+        {/* INKLUSIVE-Sektion: fix-Slots bei Frühstück */}
+        {data.anlass === 'fruehstueck' && menuData.kategorien.some(k => k.typ === 'fix' && k.dishes?.length > 0) && (
+          <div style={{ ...S.menueKategorie, borderBottom: `1px solid ${C.border}`, paddingBottom: 16, marginBottom: 4 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#4CAF50', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: 10 }}>
+              Inklusive
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {menuData.kategorien
+                .filter(k => k.typ === 'fix' && k.dishes?.length > 0)
+                .map((kat, i) => (
+                  <div key={i} style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    background: C.creamSoft, border: `1.5px solid ${C.border}`,
+                    borderRadius: 10, padding: '10px 14px', opacity: 0.8,
+                  }}>
+                    <span style={{ color: '#4CAF50', fontSize: 16, flexShrink: 0, fontWeight: 700 }}>✓</span>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: C.cappuccino, flex: 1 }}>{kat.label}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: '#4CAF50', background: '#E8F5E9', padding: '2px 8px', borderRadius: 20, letterSpacing: '0.5px', flexShrink: 0 }}>
+                      Inklusive
+                    </span>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+        )}
+
         {menuData.kategorien.map((kat, i) => {
           if (!kat.dishes || kat.dishes.length === 0) return null;
           if (data.anlass === 'fruehstueck' && kat.typ === 'fix') return null;
