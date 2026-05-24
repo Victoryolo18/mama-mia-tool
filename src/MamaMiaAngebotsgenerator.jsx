@@ -361,7 +361,7 @@ export default function MamaMiaAngebotsgenerator() {
         const katMap = {};
         const katOrder = [];
         for (const slot of slots) {
-          const key = slot.kategorie || slot.label;
+          const key = slot.typ === 'fix' ? `_fix_${katOrder.length}` : (slot.kategorie || slot.label);
           const dishes = (slot.slot_gerichte || [])
             .sort((a, b) => a.reihenfolge - b.reihenfolge)
             .map(sg => {
