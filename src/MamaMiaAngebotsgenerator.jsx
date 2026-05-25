@@ -1345,6 +1345,13 @@ function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, 
               {kat.typ !== "fix" && alreadyUpgraded && upgradeInfo && data.anlass !== 'fruehstueck' && (
                 <div style={{ marginTop: 10, fontSize: 12, color: C.gold, fontStyle: 'italic' }}>
                   ✓ +1 {upgradeInfo.singular} ({upgradeInfo.preis.toFixed(2).replace('.', ',')} € p.P.) hinzugefügt
+                  <button
+                    type="button"
+                    onClick={() => setUpgrades(prev => { const n = { ...prev }; delete n[kat.label]; return n; })}
+                    style={{ marginLeft: 8, fontSize: 11, color: C.cappuccino, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontFamily: 'inherit' }}
+                  >
+                    entfernen
+                  </button>
                 </div>
               )}
             </div>
