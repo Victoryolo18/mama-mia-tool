@@ -1371,7 +1371,7 @@ function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, 
                   style={{ background: 'transparent', border: `1.5px solid ${C.gold}`, color: C.gold, borderRadius: 10, padding: '10px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left', lineHeight: 1.5 }}
                 >
                   <div>+ Lachs-Upgrade · 3,50 € p.P.</div>
-                  <div style={{ fontSize: 11, fontWeight: 400, marginTop: 3, opacity: 0.85 }}>Räucherlachs auf die Platten &amp; hausgemachte Eierkuchenlachsröllchen</div>
+                  <div style={{ fontSize: 11, fontWeight: 400, marginTop: 3, opacity: 0.85 }}>Räucherlachs auf den Platten &amp; hausgemachte Eierkuchenlachsröllchen</div>
                 </button>
               </div>
             ) : (
