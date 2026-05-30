@@ -277,13 +277,10 @@ export default function MamaMiaAngebotsgenerator() {
         supabase.from("lieferzonen").select("*").eq("aktiv", true).order("reihenfolge"),
         supabase.from("zusatzwuensche").select("*").eq("aktiv", true).order("reihenfolge"),
       ]);
-      // Normalize DB anlass keys to match ANLAESSE keys in code
-      const ANLASS_KEY_MAP = { private_feier: 'individuell' };
       const byAnlass = {};
       for (const t of (themenRows || [])) {
-        const anlassKey = ANLASS_KEY_MAP[t.anlass] || t.anlass;
-        if (!byAnlass[anlassKey]) byAnlass[anlassKey] = [];
-        byAnlass[anlassKey].push({ id: t.slug, name: t.label, desc: t.beschreibung, image: t.bild_url, images: [t.bild_url_1, t.bild_url_2, t.bild_url_3].filter(Boolean) });
+        if (!byAnlass[t.anlass]) byAnlass[t.anlass] = [];
+        byAnlass[t.anlass].push({ id: t.slug, name: t.label, desc: t.beschreibung, image: t.bild_url, images: [t.bild_url_1, t.bild_url_2, t.bild_url_3].filter(Boolean) });
       }
       setDbThemen(byAnlass);
       setDbLieferzonen(lieferRows || []);
@@ -687,7 +684,7 @@ export default function MamaMiaAngebotsgenerator() {
           <SuccessScreen angebotsId={angebotsId} kontaktart={data.kontaktart} />
         ) : (
           <>
-            {step === 1 && <Step1Anlass data={data} update={update} next={next} themen={dbThemen} />}
+            {step === 1 && <Step1Anlass data={data} update={update} next={next} />}
             {step === 2 && <Step2Thema  data={data} update={update} next={next} themen={dbThemen} />}
             {step === 3 && <Step4Paket  data={data} update={update} next={next} preise={dbPreise} paketFeatures={dbPaketFeatures} />}
             {step === 4 && (
@@ -749,7 +746,7 @@ export default function MamaMiaAngebotsgenerator() {
 /* ════════════════════════════════════════════════════════════════
    SCHRITT 1 — ANLASS
    ══════════════════════════════════════════════════════════════════ */
-function Step1Anlass({ data, update, next, themen = {} }) {
+function Step1Anlass({ data, update, next }) {
   return (
     <div className="mm-fade">
       <div style={S.heroBlock}>
@@ -778,7 +775,7 @@ function Step1Anlass({ data, update, next, themen = {} }) {
             >
               <div style={{
                 ...S.anlassImage,
-                backgroundImage: `linear-gradient(180deg, rgba(28,16,8,0) 40%, rgba(28,16,8,.65) 100%), url(${themen[key]?.[0]?.image || anl.image})`,
+                backgroundImage: `linear-gradient(180deg, rgba(28,16,8,0) 40%, rgba(28,16,8,.65) 100%), url(${anl.image})`,
               }}>
               </div>
               <div style={S.anlassContent}>
