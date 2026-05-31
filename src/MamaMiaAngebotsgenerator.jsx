@@ -874,6 +874,27 @@ function Step2Thema({ data, update, next, themen: allThemen }) {
    SCHRITT 3 — DETAILS (Gäste, Datum, PLZ, Lieferung)
    ══════════════════════════════════════════════════════════════════ */
 function Step3Details({ data, update, next, dbLieferzonen = [] }) {
+  const [datumText, setDatumText] = useState(
+    data.datum ? data.datum.split('-').reverse().join('.') : ''
+  );
+
+  function handleDatumInput(e) {
+    let raw = e.target.value.replace(/[^0-9]/g, '');
+    if (raw.length > 8) raw = raw.slice(0, 8);
+    let formatted = raw;
+    if (raw.length > 4) formatted = raw.slice(0,2) + '.' + raw.slice(2,4) + '.' + raw.slice(4);
+    else if (raw.length > 2) formatted = raw.slice(0,2) + '.' + raw.slice(2);
+    setDatumText(formatted);
+    const m = formatted.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+    if (m) {
+      const iso = `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+      const d = new Date(iso);
+      if (!isNaN(d) && d >= new Date(new Date().toDateString())) update("datum", iso);
+    } else if (formatted === '') {
+      update("datum", '');
+    }
+  }
+
   const gaesteNum = Number(data.gaeste);
   const gaesteError = data.gaeste !== '' && data.gaeste !== null
     ? gaesteNum < 8 ? "Mindestbestellung ab 8 Personen"
@@ -919,11 +940,12 @@ function Step3Details({ data, update, next, dbLieferzonen = [] }) {
         <div style={S.field}>
           <label style={S.label}>📅 Wunschdatum</label>
           <input
-            type="date"
-            lang="de"
-            value={data.datum}
-            onChange={e => update("datum", e.target.value)}
-            min={new Date().toISOString().split("T")[0]}
+            type="text"
+            inputMode="numeric"
+            value={datumText}
+            onChange={handleDatumInput}
+            placeholder="TT.MM.JJJJ"
+            maxLength={10}
             style={S.input}
             className="mm-input"
           />
