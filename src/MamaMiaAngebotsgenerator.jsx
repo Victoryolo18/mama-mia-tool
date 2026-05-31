@@ -84,16 +84,18 @@ const ANLAESSE = {
 
 /* ── 🚚 LIEFERZONEN — aus Supabase geladen, Matching per plz_liste + plz_pattern ── */
 function getLieferzuschlag(plz, lieferzonen) {
-  if (!plz || plz.length !== 5 || !lieferzonen?.length) return { zuschlag: null, bekannt: false };
+  if (!plz || plz.length !== 5 || !lieferzonen?.length) return { zuschlag: null, rueckholungPreis: null, bekannt: false };
   const sorted = [...lieferzonen].filter(z => z.aktiv).sort((a, b) => a.reihenfolge - b.reihenfolge);
   for (const zone of sorted) {
-    if (zone.plz_liste?.includes(plz)) return { zuschlag: Number(zone.zuschlag), bekannt: true };
-    if (zone.plz_pattern) {
-      const patterns = zone.plz_pattern.split(",").map(p => p.trim());
-      if (patterns.some(p => plz.startsWith(p))) return { zuschlag: Number(zone.zuschlag), bekannt: true };
-    }
+    const match = zone.plz_liste?.includes(plz) ||
+      (zone.plz_pattern && zone.plz_pattern.split(",").map(p => p.trim()).some(p => plz.startsWith(p)));
+    if (match) return {
+      zuschlag: Number(zone.zuschlag),
+      rueckholungPreis: zone.rueckholung_preis != null ? Number(zone.rueckholung_preis) : null,
+      bekannt: true,
+    };
   }
-  return { zuschlag: null, bekannt: false };
+  return { zuschlag: null, rueckholungPreis: null, bekannt: false };
 }
 
 /* ── 📦 PAKETE ── */
@@ -235,7 +237,7 @@ export default function MamaMiaAngebotsgenerator() {
     gaeste: '',
     datum: "",
     plz: "",
-    lieferung: "lieferung",
+    lieferung: "nur_anlieferung",
     paket: null,
     menue_auswahl: {},
     extras: [],
@@ -411,10 +413,13 @@ export default function MamaMiaAngebotsgenerator() {
 
   const preisProPerson = (data.anlass && data.paket && dbPreise[data.paket]) || 0;
   const speisenPreis = preisProPerson * data.gaeste;
-  const lieferInfo = data.lieferung === "lieferung"
+  const isDelivery = ["nur_anlieferung", "anlieferung_rueckholung", "lieferung"].includes(data.lieferung);
+  const lieferInfo = isDelivery
     ? getLieferzuschlag(data.plz, dbLieferzonen)
-    : { zuschlag: 0, bekannt: true };
-  const lieferzuschlag = lieferInfo.zuschlag ?? 0;
+    : { zuschlag: 0, rueckholungPreis: 0, bekannt: true };
+  const lieferzuschlag = data.lieferung === "anlieferung_rueckholung"
+    ? (lieferInfo.rueckholungPreis ?? lieferInfo.zuschlag ?? 0)
+    : (lieferInfo.zuschlag ?? 0);
   const upgradeSummeProPerson = Object.values(upgrades).reduce((s, p) => s + p, 0);
   const gesamtpreis = speisenPreis + lieferzuschlag + upgradeSummeProPerson * (data.gaeste || 0);
 
@@ -570,7 +575,7 @@ export default function MamaMiaAngebotsgenerator() {
           <p style="margin: 4px 0;"><strong>Paket:</strong> ${request.paket}</p>
           <p style="margin: 4px 0;"><strong>Gäste:</strong> ${request.gaeste}</p>
           <p style="margin: 4px 0;"><strong>Datum:</strong> ${datumFormatted}</p>
-          <p style="margin: 4px 0;"><strong>Ort:</strong> ${request.plz || "—"} (${request.lieferung})</p>
+          <p style="margin: 4px 0;"><strong>Ort:</strong> ${request.plz || "—"} (${({ selbstabholung: "Selbstabholung", abholung: "Selbstabholung", nur_anlieferung: "Nur Anlieferung", anlieferung_rueckholung: "Anlieferung + Rückholung", lieferung: "Lieferung" })[request.lieferung] || request.lieferung})</p>
           <p style="margin: 4px 0;"><strong>Geschätzter Preis:</strong> ${request.gesamtpreis} €</p>
           ${request.menue_auswahl?._upgrades && Object.keys(request.menue_auswahl._upgrades).length ? `<p style="margin: 4px 0;"><strong>Upgrades:</strong> ${Object.entries(request.menue_auswahl._upgrades).map(([k,v]) => `+1 ${k} (${Number(v).toFixed(2).replace('.',',')} € p.P.)`).join(', ')}</p>` : ''}
           ${hatGetraenkeservice ? '<p style="margin: 4px 0;"><strong>Getränkeservice:</strong> Ja</p>' : ''}
@@ -698,7 +703,7 @@ export default function MamaMiaAngebotsgenerator() {
                 setUpgrades={setUpgrades}
               />
             )}
-            {step === 5 && <Step3Details data={data} update={update} next={next} />}
+            {step === 5 && <Step3Details data={data} update={update} next={next} dbLieferzonen={dbLieferzonen} />}
             {step === 6 && (
               <Step6Extras
                 data={data}
@@ -868,7 +873,7 @@ function Step2Thema({ data, update, next, themen: allThemen }) {
 /* ════════════════════════════════════════════════════════════════
    SCHRITT 3 — DETAILS (Gäste, Datum, PLZ, Lieferung)
    ══════════════════════════════════════════════════════════════════ */
-function Step3Details({ data, update, next }) {
+function Step3Details({ data, update, next, dbLieferzonen = [] }) {
   const gaesteNum = Number(data.gaeste);
   const gaesteError = data.gaeste !== '' && data.gaeste !== null
     ? gaesteNum < 8 ? "Mindestbestellung ab 8 Personen"
@@ -926,29 +931,57 @@ function Step3Details({ data, update, next }) {
         {/* Lieferung / Abholung */}
         <div style={S.field}>
           <label style={S.label}>🚚 Wie möchten Sie das Catering erhalten?</label>
-          <div style={S.toggleGroup}>
-            {LIEFERUNG.map(opt => {
-              const active = data.lieferung === opt.id;
+          {(() => {
+            const isDelivMode = ["nur_anlieferung", "anlieferung_rueckholung", "lieferung"].includes(data.lieferung);
+            const zoneInfo = isDelivMode && data.plz?.length === 5
+              ? getLieferzuschlag(data.plz, dbLieferzonen)
+              : { zuschlag: null, rueckholungPreis: null, bekannt: false };
+            const fmtPreis = (p) => p != null ? (p === 0 ? "kostenlos" : `+${p} €`) : "Preis auf Anfrage";
+            if (!isDelivMode) {
               return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => update("lieferung", opt.id)}
-                  className="mm-btn-press"
-                  style={{ ...S.toggleBtn, ...(active ? S.toggleBtnActive : {}) }}
-                >
-                  <div style={S.toggleLabel}>{opt.label}</div>
-                  <div style={S.toggleDesc}>{opt.desc}</div>
-                </button>
+                <div style={S.toggleGroup}>
+                  <button type="button" onClick={() => update("lieferung", "selbstabholung")} className="mm-btn-press"
+                    style={{ ...S.toggleBtn, ...(data.lieferung === "selbstabholung" ? S.toggleBtnActive : {}) }}>
+                    <div style={S.toggleLabel}>Selbstabholung</div>
+                    <div style={S.toggleDesc}>Ich hole das Catering selbst ab</div>
+                  </button>
+                  <button type="button" onClick={() => update("lieferung", "nur_anlieferung")} className="mm-btn-press"
+                    style={S.toggleBtn}>
+                    <div style={S.toggleLabel}>Lieferung</div>
+                    <div style={S.toggleDesc}>Bitte zu meiner Adresse liefern</div>
+                  </button>
+                </div>
               );
-            })}
-          </div>
+            }
+            return (
+              <div>
+                <button type="button" onClick={() => update("lieferung", "selbstabholung")}
+                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: C.cappuccino, fontFamily: "inherit", padding: "0 0 10px", display: "flex", alignItems: "center", gap: 4 }}>
+                  ← Zurück zur Auswahl
+                </button>
+                <div style={S.toggleGroup}>
+                  <button type="button"
+                    onClick={() => update("lieferung", "nur_anlieferung")} className="mm-btn-press"
+                    style={{ ...S.toggleBtn, ...(["nur_anlieferung", "lieferung"].includes(data.lieferung) ? S.toggleBtnActive : {}) }}>
+                    <div style={S.toggleLabel}>📦 Nur Anlieferung</div>
+                    <div style={S.toggleDesc}>{zoneInfo.bekannt ? fmtPreis(zoneInfo.zuschlag) : "PLZ eingeben für Preis"}</div>
+                  </button>
+                  <button type="button"
+                    onClick={() => update("lieferung", "anlieferung_rueckholung")} className="mm-btn-press"
+                    style={{ ...S.toggleBtn, ...(data.lieferung === "anlieferung_rueckholung" ? S.toggleBtnActive : {}) }}>
+                    <div style={S.toggleLabel}>🔄 Anlieferung + Rückholung</div>
+                    <div style={S.toggleDesc}>{zoneInfo.bekannt ? fmtPreis(zoneInfo.rueckholungPreis) : "PLZ eingeben für Preis"}</div>
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* PLZ */}
         <div style={S.field}>
           <label style={S.label}>
-            📍 Postleitzahl {data.lieferung === "lieferung" ? "des Veranstaltungsorts" : "(zur Orientierung)"}
+            📍 Postleitzahl {["nur_anlieferung", "anlieferung_rueckholung", "lieferung"].includes(data.lieferung) ? "des Veranstaltungsorts" : "(zur Orientierung)"}
           </label>
           <input
             type="text"
@@ -1481,8 +1514,9 @@ function Step6Extras({ data, update, next, zusatzwuensche }) {
    ══════════════════════════════════════════════════════════════════ */
 function Step7Anfrage({ data, update, onSubmit, submitting, preisProPerson, speisenPreis, lieferzuschlag, lieferInfo, gesamtpreis, dbThemen, upgrades = {}, upgradeSummeProPerson = 0 }) {
   const canSubmit = data.name.trim().length >= 2 && data.kontaktdaten.trim().length >= 5;
-  const istLieferung = data.lieferung === "lieferung";
+  const istLieferung = ["lieferung", "nur_anlieferung", "anlieferung_rueckholung"].includes(data.lieferung);
   const lieferzoneUnbekannt = istLieferung && !lieferInfo.bekannt;
+  const LIEFER_LABELS = { selbstabholung: "Selbstabholung", abholung: "Selbstabholung", nur_anlieferung: "Nur Anlieferung", anlieferung_rueckholung: "Anlieferung + Rückholung", lieferung: "Lieferung" };
 
   return (
     <div className="mm-fade">
@@ -1505,7 +1539,7 @@ function Step7Anfrage({ data, update, onSubmit, submitting, preisProPerson, spei
           <SummaryRow label="Thema"    value={(dbThemen[data.anlass] || []).find(t => t.id === data.thema)?.name} />
           <SummaryRow label="Gäste"    value={`${data.gaeste} Personen`} />
           <SummaryRow label="Datum"    value={data.datum ? new Date(data.datum).toLocaleDateString("de-DE", { day:"2-digit", month:"long", year:"numeric" }) : "—"} />
-          <SummaryRow label="Ort"      value={`${data.plz} (${istLieferung ? "Lieferung" : "Selbstabholung"})`} />
+          <SummaryRow label="Ort"      value={`${data.plz} (${LIEFER_LABELS[data.lieferung] || data.lieferung})`} />
           <SummaryRow label="Paket"    value={data.paket} />
 
           {/* Menü-Auswahl */}
@@ -1562,7 +1596,7 @@ function Step7Anfrage({ data, update, onSubmit, submitting, preisProPerson, spei
             )}
             {istLieferung && (
               <div style={S.summaryBreakdownRow}>
-                <span style={S.summaryBreakdownLabel}>Lieferung</span>
+                <span style={S.summaryBreakdownLabel}>{LIEFER_LABELS[data.lieferung] || "Lieferung"}</span>
                 <span style={S.summaryBreakdownValue}>
                   {lieferzoneUnbekannt
                     ? "auf Anfrage"
