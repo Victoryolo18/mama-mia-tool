@@ -237,7 +237,7 @@ export default function MamaMiaAngebotsgenerator() {
     gaeste: '',
     datum: "",
     plz: "",
-    lieferung: "nur_anlieferung",
+    lieferung: "",
     paket: null,
     menue_auswahl: {},
     extras: [],
@@ -920,6 +920,7 @@ function Step3Details({ data, update, next, dbLieferzonen = [] }) {
           <label style={S.label}>📅 Wunschdatum</label>
           <input
             type="date"
+            lang="de"
             value={data.datum}
             onChange={e => update("datum", e.target.value)}
             min={new Date().toISOString().split("T")[0]}
