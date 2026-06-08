@@ -478,7 +478,16 @@ export default function MamaMiaAngebotsgenerator() {
         .select()
         .single();
 
-      if (insertErr) throw insertErr;
+      if (insertErr) {
+        console.error("❌ Supabase INSERT Fehler:", {
+          message: insertErr.message,
+          details: insertErr.details,
+          hint: insertErr.hint,
+          code: insertErr.code,
+          insertData,
+        });
+        throw insertErr;
+      }
 
       // 4) E-Mails versenden (Fehler hier blockieren das Submit nicht)
       try {
@@ -489,8 +498,8 @@ export default function MamaMiaAngebotsgenerator() {
 
       setSubmitted(true);
     } catch (err) {
-      console.error("Submit-Fehler:", err);
-      alert("Es gab ein Problem beim Senden Ihrer Anfrage. Bitte versuchen Sie es erneut oder kontaktieren Sie uns direkt unter info@mama-mia-events.de");
+      console.error("❌ Submit-Fehler:", err);
+      alert(`Fehler beim Senden (bitte Screenshot machen):\n${err.message || err}\n\nDetails: ${err.details || "—"}\nHint: ${err.hint || "—"}\nCode: ${err.code || "—"}`);
     } finally {
       setSubmitting(false);
     }
