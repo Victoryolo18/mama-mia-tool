@@ -236,6 +236,7 @@ export default function MamaMiaAngebotsgenerator() {
     thema: null,
     gaeste: '',
     datum: "",
+    uhrzeit: "",
     plz: "",
     lieferung: "",
     paket: null,
@@ -456,6 +457,7 @@ export default function MamaMiaAngebotsgenerator() {
         paket: data.paket,
         gaeste: data.gaeste,
         event_datum: data.datum || null,
+        event_uhrzeit: data.uhrzeit || null,
         plz: data.plz || null,
         lieferung: data.lieferung,
         menue_auswahl: { ...(data.menue_auswahl || {}), ...(Object.keys(upgrades).length ? { _upgrades: upgrades } : {}) },
@@ -939,6 +941,23 @@ function Step3Details({ data, update, next, dbLieferzonen = [] }) {
               value={data.datum}
               onChange={e => update("datum", e.target.value)}
               min={new Date().toISOString().split("T")[0]}
+              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%' }}
+            />
+          </div>
+        </div>
+
+        {/* Uhrzeit */}
+        <div style={S.field}>
+          <label style={S.label}>🕐 Gewünschte Lieferzeit (ca.) <span style={{ fontWeight: 400, color: C.cappuccino, fontSize: 13 }}>— optional</span></label>
+          <div style={{ position: 'relative' }}>
+            <div style={{ ...S.input, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: data.uhrzeit ? C.ink : C.cappuccino, pointerEvents: 'none' }}>
+              <span>{data.uhrzeit ? `${data.uhrzeit} Uhr` : 'HH:MM'}</span>
+              <span style={{ fontSize: 16 }}>🕐</span>
+            </div>
+            <input
+              type="time"
+              value={data.uhrzeit}
+              onChange={e => update("uhrzeit", e.target.value)}
               style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%' }}
             />
           </div>
@@ -1555,6 +1574,7 @@ function Step7Anfrage({ data, update, onSubmit, submitting, preisProPerson, spei
           <SummaryRow label="Thema"    value={(dbThemen[data.anlass] || []).find(t => t.id === data.thema)?.name} />
           <SummaryRow label="Gäste"    value={`${data.gaeste} Personen`} />
           <SummaryRow label="Datum"    value={data.datum ? new Date(data.datum).toLocaleDateString("de-DE", { day:"2-digit", month:"long", year:"numeric" }) : "—"} />
+          {data.uhrzeit && <SummaryRow label="Lieferzeit" value={`${data.uhrzeit} Uhr`} />}
           <SummaryRow label="Ort"      value={`${data.plz} (${LIEFER_LABELS[data.lieferung] || data.lieferung})`} />
           <SummaryRow label="Paket"    value={data.paket} />
 
