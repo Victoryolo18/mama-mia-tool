@@ -887,6 +887,20 @@ function Step3Details({ data, update, next }) {
           />
         </div>
 
+        {/* PLZ — steht vor den Lieferungsbuttons damit Preis sofort sichtbar ist */}
+        <div style={S.field}>
+          <label style={S.label}>📍 Postleitzahl des Veranstaltungsorts</label>
+          <input
+            type="text"
+            value={data.plz}
+            onChange={e => update("plz", e.target.value)}
+            placeholder="z.B. 16767"
+            maxLength={5}
+            style={S.input}
+            className="mm-input"
+          />
+        </div>
+
         {/* Lieferung / Abholung */}
         <div style={S.field}>
           <label style={S.label}>🚚 Wie möchten Sie das Catering erhalten?</label>
@@ -920,22 +934,6 @@ function Step3Details({ data, update, next }) {
               });
             })()}
           </div>
-        </div>
-
-        {/* PLZ */}
-        <div style={S.field}>
-          <label style={S.label}>
-            📍 Postleitzahl {['nur_anlieferung', 'anlieferung_rueckholung'].includes(data.lieferung) ? "des Lieferorts" : "(zur Orientierung)"}
-          </label>
-          <input
-            type="text"
-            value={data.plz}
-            onChange={e => update("plz", e.target.value)}
-            placeholder="z.B. 16767"
-            maxLength={5}
-            style={S.input}
-            className="mm-input"
-          />
         </div>
 
         <button
