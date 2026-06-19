@@ -82,22 +82,20 @@ const ANLAESSE = {
   },
 };
 
-/* ── 🚚 LIEFERZONEN — aus Supabase geladen, Matching per plz_liste + plz_pattern ── */
+/* ── 🚚 LIEFERZONEN — aus Supabase geladen, Matching nur per plz_liste ── */
 function getLieferzuschlag(plz, lieferzonen) {
-  if (!plz || plz.length !== 5 || !lieferzonen?.length) return { zuschlag: null, bekannt: false };
+  if (!plz || plz.length !== 5 || !lieferzonen?.length) return { zuschlag: null, rueckholungPreis: null, bekannt: false };
   const sorted = [...lieferzonen].filter(z => z.aktiv).sort((a, b) => a.reihenfolge - b.reihenfolge);
-  // Pass 1: explizite plz_liste-Einträge haben immer Vorrang vor Patterns
   for (const zone of sorted) {
-    if (zone.plz_liste?.includes(plz)) return { zuschlag: Number(zone.zuschlag), bekannt: true };
-  }
-  // Pass 2: Pattern-Matching nur wenn keine explizite Zone greift
-  for (const zone of sorted) {
-    if (zone.plz_pattern) {
-      const patterns = zone.plz_pattern.split(",").map(p => p.trim());
-      if (patterns.some(p => plz.startsWith(p))) return { zuschlag: Number(zone.zuschlag), bekannt: true };
+    if (zone.plz_liste?.includes(plz)) {
+      return {
+        zuschlag: Number(zone.zuschlag),
+        rueckholungPreis: zone.rueckholung_preis != null ? Number(zone.rueckholung_preis) : null,
+        bekannt: true,
+      };
     }
   }
-  return { zuschlag: null, bekannt: false };
+  return { zuschlag: null, rueckholungPreis: null, bekannt: false };
 }
 
 /* ── 📦 PAKETE ── */
@@ -155,8 +153,9 @@ const KONTAKT_OPTIONEN = [
 
 /* ── 🚚 LIEFERUNG ── */
 const LIEFERUNG = [
-  { id: "abholung", label: "Selbstabholung", desc: "Ich hole das Catering selbst ab" },
-  { id: "lieferung", label: "Lieferung",     desc: "Bitte zu meiner Adresse liefern" },
+  { id: "selbstabholung",          label: "📦 Selbstabholung" },
+  { id: "nur_anlieferung",         label: "🚚 Nur Anlieferung" },
+  { id: "anlieferung_rueckholung", label: "🔄 Anlieferung + Rückholung" },
 ];
 
 /* ── ⚙️ AIRTABLE-KONFIGURATION ── */
@@ -231,7 +230,7 @@ export default function MamaMiaAngebotsgenerator() {
     gaeste: '',
     datum: "",
     plz: "",
-    lieferung: "lieferung",
+    lieferung: "selbstabholung",
     paket: null,
     menue_auswahl: {},
     extras: [],
@@ -381,10 +380,15 @@ export default function MamaMiaAngebotsgenerator() {
 
   const preisProPerson = (data.anlass && data.paket && dbPreise[data.paket]) || 0;
   const speisenPreis = preisProPerson * data.gaeste;
-  const lieferInfo = data.lieferung === "lieferung"
+  const isDelivery = ['nur_anlieferung', 'anlieferung_rueckholung'].includes(data.lieferung);
+  const lieferInfo = isDelivery
     ? getLieferzuschlag(data.plz, dbLieferzonen)
-    : { zuschlag: 0, bekannt: true };
-  const lieferzuschlag = lieferInfo.zuschlag ?? 0;
+    : { zuschlag: 0, rueckholungPreis: null, bekannt: true };
+  const lieferzuschlag = isDelivery
+    ? (data.lieferung === 'anlieferung_rueckholung'
+        ? (lieferInfo.rueckholungPreis ?? lieferInfo.zuschlag ?? 0)
+        : (lieferInfo.zuschlag ?? 0))
+    : 0;
   const gesamtpreis = speisenPreis + lieferzuschlag;
 
   /* ── Submit (Supabase + E-Mail) ── */
@@ -887,28 +891,41 @@ function Step3Details({ data, update, next }) {
         <div style={S.field}>
           <label style={S.label}>🚚 Wie möchten Sie das Catering erhalten?</label>
           <div style={S.toggleGroup}>
-            {LIEFERUNG.map(opt => {
-              const active = data.lieferung === opt.id;
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => update("lieferung", opt.id)}
-                  className="mm-btn-press"
-                  style={{ ...S.toggleBtn, ...(active ? S.toggleBtnActive : {}) }}
-                >
-                  <div style={S.toggleLabel}>{opt.label}</div>
-                  <div style={S.toggleDesc}>{opt.desc}</div>
-                </button>
-              );
-            })}
+            {(() => {
+              const plzValid = data.plz?.length === 5;
+              const info = plzValid ? getLieferzuschlag(data.plz, dbLieferzonen) : null;
+              const preisDesc = (preis) => preis === 0 ? 'kostenlos' : `zzgl. ${formatEUR(preis)}`;
+              const getLieferDesc = (optId) => {
+                if (optId === 'selbstabholung') return 'Ich hole das Catering selbst ab';
+                if (!plzValid) return 'PLZ eingeben für Preis';
+                if (!info?.bekannt) return 'Auf Anfrage';
+                if (optId === 'nur_anlieferung') return preisDesc(info.zuschlag);
+                if (optId === 'anlieferung_rueckholung') return preisDesc(info.rueckholungPreis ?? info.zuschlag);
+                return '';
+              };
+              return LIEFERUNG.map(opt => {
+                const active = data.lieferung === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => update("lieferung", opt.id)}
+                    className="mm-btn-press"
+                    style={{ ...S.toggleBtn, ...(active ? S.toggleBtnActive : {}) }}
+                  >
+                    <div style={S.toggleLabel}>{opt.label}</div>
+                    <div style={S.toggleDesc}>{getLieferDesc(opt.id)}</div>
+                  </button>
+                );
+              });
+            })()}
           </div>
         </div>
 
         {/* PLZ */}
         <div style={S.field}>
           <label style={S.label}>
-            📍 Postleitzahl {data.lieferung === "lieferung" ? "des Veranstaltungsorts" : "(zur Orientierung)"}
+            📍 Postleitzahl {['nur_anlieferung', 'anlieferung_rueckholung'].includes(data.lieferung) ? "des Lieferorts" : "(zur Orientierung)"}
           </label>
           <input
             type="text"
@@ -1323,7 +1340,7 @@ function Step6Extras({ data, update, next, zusatzwuensche }) {
    ══════════════════════════════════════════════════════════════════ */
 function Step7Anfrage({ data, update, onSubmit, submitting, preisProPerson, speisenPreis, lieferzuschlag, lieferInfo, gesamtpreis, dbThemen }) {
   const canSubmit = data.name.trim().length >= 2 && data.kontaktdaten.trim().length >= 5;
-  const istLieferung = data.lieferung === "lieferung";
+  const istLieferung = ['nur_anlieferung', 'anlieferung_rueckholung'].includes(data.lieferung);
   const lieferzoneUnbekannt = istLieferung && !lieferInfo.bekannt;
 
   return (
