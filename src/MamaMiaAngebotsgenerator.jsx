@@ -86,8 +86,12 @@ const ANLAESSE = {
 function getLieferzuschlag(plz, lieferzonen) {
   if (!plz || plz.length !== 5 || !lieferzonen?.length) return { zuschlag: null, bekannt: false };
   const sorted = [...lieferzonen].filter(z => z.aktiv).sort((a, b) => a.reihenfolge - b.reihenfolge);
+  // Pass 1: explizite plz_liste-Einträge haben immer Vorrang vor Patterns
   for (const zone of sorted) {
     if (zone.plz_liste?.includes(plz)) return { zuschlag: Number(zone.zuschlag), bekannt: true };
+  }
+  // Pass 2: Pattern-Matching nur wenn keine explizite Zone greift
+  for (const zone of sorted) {
     if (zone.plz_pattern) {
       const patterns = zone.plz_pattern.split(",").map(p => p.trim());
       if (patterns.some(p => plz.startsWith(p))) return { zuschlag: Number(zone.zuschlag), bekannt: true };
@@ -1411,7 +1415,7 @@ function Step7Anfrage({ data, update, onSubmit, submitting, preisProPerson, spei
             <div>
               <div style={S.summaryPriceLabel}>Geschätzter Gesamtpreis</div>
               {lieferzoneUnbekannt && (
-                <div style={S.summaryPriceSmall}>zzgl. Liefergebühr</div>
+                <div style={S.summaryPriceSmall}>zzgl. Lieferzuschlag (wird nach Eingang der Anfrage mitgeteilt)</div>
               )}
             </div>
             <div style={S.summaryPriceBig}>{formatEUR(gesamtpreis)}</div>
