@@ -941,7 +941,7 @@ function Step3Details({ data, update, next, dbLieferzonen = [] }) {
               value={data.datum}
               onChange={e => update("datum", e.target.value)}
               min={new Date().toISOString().split("T")[0]}
-              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%' }}
+              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%' }}
             />
           </div>
         </div>
@@ -958,7 +958,7 @@ function Step3Details({ data, update, next, dbLieferzonen = [] }) {
               type="time"
               value={data.uhrzeit}
               onChange={e => update("uhrzeit", e.target.value)}
-              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%' }}
+              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%' }}
             />
           </div>
         </div>
