@@ -929,28 +929,26 @@ function Step3Details({ data, update, next, dbLieferzonen = [] }) {
         {/* Datum */}
         <div style={S.field}>
           <label style={S.label}>📅 Wunschdatum</label>
-          <div style={{ position: 'relative' }}>
-            {/* Sichtbare Anzeige im deutschen Format */}
-            <div style={{ ...S.input, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: data.datum ? C.ink : C.cappuccino, pointerEvents: 'none' }}>
+          <label style={{ display: 'block', position: 'relative', cursor: 'pointer' }}>
+            <div style={{ ...S.input, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: data.datum ? C.ink : C.cappuccino, userSelect: 'none' }}>
               <span>{data.datum ? data.datum.split('-').reverse().join('.') : 'TT.MM.JJJJ'}</span>
               <span style={{ fontSize: 16 }}>📅</span>
             </div>
-            {/* Unsichtbares natives date-Input (öffnet den Kalender-Picker) */}
             <input
               type="date"
               value={data.datum}
               onChange={e => update("datum", e.target.value)}
               min={new Date().toISOString().split("T")[0]}
-              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%' }}
+              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%', boxSizing: 'border-box' }}
             />
-          </div>
+          </label>
         </div>
 
         {/* Uhrzeit */}
         <div style={S.field}>
           <label style={S.label}>🕐 Gewünschte Lieferzeit (ca.) <span style={{ fontWeight: 400, color: C.cappuccino, fontSize: 13 }}>— optional</span></label>
-          <div style={{ position: 'relative' }}>
-            <div style={{ ...S.input, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: data.uhrzeit ? C.ink : C.cappuccino, pointerEvents: 'none' }}>
+          <label style={{ display: 'block', position: 'relative', cursor: 'pointer' }}>
+            <div style={{ ...S.input, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: data.uhrzeit ? C.ink : C.cappuccino, userSelect: 'none' }}>
               <span>{data.uhrzeit ? `${data.uhrzeit} Uhr` : 'HH:MM'}</span>
               <span style={{ fontSize: 16 }}>🕐</span>
             </div>
@@ -958,9 +956,9 @@ function Step3Details({ data, update, next, dbLieferzonen = [] }) {
               type="time"
               value={data.uhrzeit}
               onChange={e => update("uhrzeit", e.target.value)}
-              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%' }}
+              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%', boxSizing: 'border-box' }}
             />
-          </div>
+          </label>
         </div>
 
         {/* Lieferung / Abholung */}
