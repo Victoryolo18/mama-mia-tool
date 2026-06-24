@@ -927,39 +927,53 @@ function Step3Details({ data, update, next, dbLieferzonen = [] }) {
         </div>
 
         {/* Datum */}
-        <div style={S.field}>
-          <label style={S.label}>📅 Wunschdatum</label>
-          <label style={{ display: 'block', position: 'relative', cursor: 'pointer' }}>
-            <div style={{ ...S.input, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: data.datum ? C.ink : C.cappuccino, userSelect: 'none' }}>
-              <span>{data.datum ? data.datum.split('-').reverse().join('.') : 'TT.MM.JJJJ'}</span>
-              <span style={{ fontSize: 16 }}>📅</span>
+        {(() => {
+          const datumRef = React.useRef(null);
+          return (
+            <div style={S.field}>
+              <label style={S.label}>📅 Wunschdatum</label>
+              <div
+                onClick={() => datumRef.current && datumRef.current.showPicker ? datumRef.current.showPicker() : datumRef.current && datumRef.current.click()}
+                style={{ ...S.input, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: data.datum ? C.ink : C.cappuccino, cursor: 'pointer', position: 'relative', userSelect: 'none' }}
+              >
+                <span>{data.datum ? data.datum.split('-').reverse().join('.') : 'TT.MM.JJJJ'}</span>
+                <span style={{ fontSize: 16 }}>📅</span>
+                <input
+                  ref={datumRef}
+                  type="date"
+                  value={data.datum}
+                  onChange={e => update("datum", e.target.value)}
+                  min={new Date().toISOString().split("T")[0]}
+                  style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%', boxSizing: 'border-box', zIndex: 1 }}
+                />
+              </div>
             </div>
-            <input
-              type="date"
-              value={data.datum}
-              onChange={e => update("datum", e.target.value)}
-              min={new Date().toISOString().split("T")[0]}
-              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%', boxSizing: 'border-box' }}
-            />
-          </label>
-        </div>
+          );
+        })()}
 
         {/* Uhrzeit */}
-        <div style={S.field}>
-          <label style={S.label}>🕐 Gewünschte Lieferzeit (ca.) <span style={{ fontWeight: 400, color: C.cappuccino, fontSize: 13 }}>— optional</span></label>
-          <label style={{ display: 'block', position: 'relative', cursor: 'pointer' }}>
-            <div style={{ ...S.input, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: data.uhrzeit ? C.ink : C.cappuccino, userSelect: 'none' }}>
-              <span>{data.uhrzeit ? `${data.uhrzeit} Uhr` : 'HH:MM'}</span>
-              <span style={{ fontSize: 16 }}>🕐</span>
+        {(() => {
+          const uhrzeitRef = React.useRef(null);
+          return (
+            <div style={S.field}>
+              <label style={S.label}>🕐 Gewünschte Lieferzeit (ca.) <span style={{ fontWeight: 400, color: C.cappuccino, fontSize: 13 }}>— optional</span></label>
+              <div
+                onClick={() => uhrzeitRef.current && uhrzeitRef.current.showPicker ? uhrzeitRef.current.showPicker() : uhrzeitRef.current && uhrzeitRef.current.click()}
+                style={{ ...S.input, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: data.uhrzeit ? C.ink : C.cappuccino, cursor: 'pointer', position: 'relative', userSelect: 'none' }}
+              >
+                <span>{data.uhrzeit ? `${data.uhrzeit} Uhr` : 'HH:MM'}</span>
+                <span style={{ fontSize: 16 }}>🕐</span>
+                <input
+                  ref={uhrzeitRef}
+                  type="time"
+                  value={data.uhrzeit}
+                  onChange={e => update("uhrzeit", e.target.value)}
+                  style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%', boxSizing: 'border-box', zIndex: 1 }}
+                />
+              </div>
             </div>
-            <input
-              type="time"
-              value={data.uhrzeit}
-              onChange={e => update("uhrzeit", e.target.value)}
-              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%', boxSizing: 'border-box' }}
-            />
-          </label>
-        </div>
+          );
+        })()}
 
         {/* Lieferung / Abholung */}
         <div style={S.field}>
