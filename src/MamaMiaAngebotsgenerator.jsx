@@ -260,7 +260,9 @@ export default function MamaMiaAngebotsgenerator() {
   const [dbZusatzwuensche,  setDbZusatzwuensche]  = useState([]);
   const [dbPaketFeatures,   setDbPaketFeatures]   = useState({});
   const [appLoading,        setAppLoading]        = useState(true);
+  const [appLoadError,      setAppLoadError]      = useState(false);
   const [menuLoading,       setMenuLoading]       = useState(false);
+  const [menuLoadError,     setMenuLoadError]     = useState(false);
   const [upgrades,          setUpgrades]          = useState({});
 
   /* ── Fonts laden ── */
@@ -275,20 +277,26 @@ export default function MamaMiaAngebotsgenerator() {
   /* ── Initial load: Themen + Lieferzonen ── */
   useEffect(() => {
     async function init() {
-      const [{ data: themenRows }, { data: lieferRows }, { data: zusatzRows }] = await Promise.all([
-        supabase.from("themen").select("*").eq("aktiv", true).order("anlass").order("reihenfolge"),
-        supabase.from("lieferzonen").select("*").eq("aktiv", true).order("reihenfolge"),
-        supabase.from("zusatzwuensche").select("*").eq("aktiv", true).order("reihenfolge"),
-      ]);
-      const byAnlass = {};
-      for (const t of (themenRows || [])) {
-        if (!byAnlass[t.anlass]) byAnlass[t.anlass] = [];
-        byAnlass[t.anlass].push({ id: t.slug, name: t.label, desc: t.beschreibung, image: t.bild_url, images: [t.bild_url_1, t.bild_url_2, t.bild_url_3].filter(Boolean) });
+      try {
+        const [{ data: themenRows }, { data: lieferRows }, { data: zusatzRows }] = await Promise.all([
+          supabase.from("themen").select("*").eq("aktiv", true).order("anlass").order("reihenfolge"),
+          supabase.from("lieferzonen").select("*").eq("aktiv", true).order("reihenfolge"),
+          supabase.from("zusatzwuensche").select("*").eq("aktiv", true).order("reihenfolge"),
+        ]);
+        const byAnlass = {};
+        for (const t of (themenRows || [])) {
+          if (!byAnlass[t.anlass]) byAnlass[t.anlass] = [];
+          byAnlass[t.anlass].push({ id: t.slug, name: t.label, desc: t.beschreibung, image: t.bild_url, images: [t.bild_url_1, t.bild_url_2, t.bild_url_3].filter(Boolean) });
+        }
+        setDbThemen(byAnlass);
+        setDbLieferzonen(lieferRows || []);
+        setDbZusatzwuensche(zusatzRows || []);
+      } catch (e) {
+        console.error("Fehler beim Laden der Grunddaten:", e);
+        setAppLoadError(true);
+      } finally {
+        setAppLoading(false);
       }
-      setDbThemen(byAnlass);
-      setDbLieferzonen(lieferRows || []);
-      setDbZusatzwuensche(zusatzRows || []);
-      setAppLoading(false);
     }
     init();
   }, []);
@@ -314,28 +322,33 @@ export default function MamaMiaAngebotsgenerator() {
     if (!data.anlass || !data.thema) { setDbPaketFeatures({}); return; }
     async function loadFeatures() {
       const paketNames = ["Klassisch", "Genuss", "Premium"];
-      const results = await Promise.all(paketNames.map(async paket => {
-        const { data: konf } = await supabase
-          .from("paket_konfiguration").select("id")
-          .eq("anlass", data.anlass).eq("theme_slug", data.thema).eq("paket", paket).limit(1);
-        if (!konf?.length) return [paket, []];
-        const { data: slots } = await supabase
-          .from("paket_slots").select("label, kategorie, min_auswahl, max_auswahl, typ")
-          .eq("paket_konfiguration_id", konf[0].id).eq("aktiv", true).order("reihenfolge");
-        const merged = {};
-        const mergedOrder = [];
-        for (const s of (slots || [])) {
-          const key = s.typ === 'fix' ? `_fix_${mergedOrder.length}` : (s.kategorie || s.label);
-          if (!merged[key]) { merged[key] = { ...s }; mergedOrder.push(key); }
-          else {
-            merged[key].max_auswahl = (merged[key].max_auswahl || 1) + (s.max_auswahl || 1);
-            if (!s.label?.toLowerCase().includes('salat') && merged[key].label?.toLowerCase().includes('salat'))
-              merged[key].label = s.label;
+      try {
+        const results = await Promise.all(paketNames.map(async paket => {
+          const { data: konf } = await supabase
+            .from("paket_konfiguration").select("id")
+            .eq("anlass", data.anlass).eq("theme_slug", data.thema).eq("paket", paket).limit(1);
+          if (!konf?.length) return [paket, []];
+          const { data: slots } = await supabase
+            .from("paket_slots").select("label, kategorie, min_auswahl, max_auswahl, typ")
+            .eq("paket_konfiguration_id", konf[0].id).eq("aktiv", true).order("reihenfolge");
+          const merged = {};
+          const mergedOrder = [];
+          for (const s of (slots || [])) {
+            const key = s.typ === 'fix' ? `_fix_${mergedOrder.length}` : (s.kategorie || s.label);
+            if (!merged[key]) { merged[key] = { ...s }; mergedOrder.push(key); }
+            else {
+              merged[key].max_auswahl = (merged[key].max_auswahl || 1) + (s.max_auswahl || 1);
+              if (!s.label?.toLowerCase().includes('salat') && merged[key].label?.toLowerCase().includes('salat'))
+                merged[key].label = s.label;
+            }
           }
-        }
-        return [paket, mergedOrder.map(k => merged[k])];
-      }));
-      setDbPaketFeatures(Object.fromEntries(results));
+          return [paket, mergedOrder.map(k => merged[k])];
+        }));
+        setDbPaketFeatures(Object.fromEntries(results));
+      } catch (e) {
+        console.error("Fehler beim Laden der Paket-Features:", e);
+        setDbPaketFeatures({});
+      }
     }
     loadFeatures();
   }, [data.anlass, data.thema]);
@@ -346,55 +359,63 @@ export default function MamaMiaAngebotsgenerator() {
     if (!data.anlass || !data.thema || !data.paket) { setDbMenuData(null); return; }
     async function loadMenu() {
       setMenuLoading(true);
-      const { data: konf } = await supabase
-        .from("paket_konfiguration")
-        .select("id")
-        .eq("anlass", data.anlass)
-        .eq("theme_slug", data.thema)
-        .eq("paket", data.paket)
-        .limit(1);
-      if (!konf?.length) { setDbMenuData(null); setMenuLoading(false); return; }
-      const { data: slots } = await supabase
-        .from("paket_slots")
-        .select("id, label, kategorie, typ, min_auswahl, max_auswahl, reihenfolge, slot_gerichte(reihenfolge, gericht:gerichte(id, name, vegetarisch, unterkategorie, kategorie))")
-        .eq("paket_konfiguration_id", konf[0].id)
-        .eq("aktiv", true)
-        .order("reihenfolge");
-      if (slots) {
-        const katMap = {};
-        const katOrder = [];
-        for (const slot of slots) {
-          const key = slot.typ === 'fix' ? `_fix_${katOrder.length}` : (slot.kategorie || slot.label);
-          const dishes = (slot.slot_gerichte || [])
-            .sort((a, b) => a.reihenfolge - b.reihenfolge)
-            .map(sg => {
-              const u = sg.gericht.unterkategorie;
-              const k = sg.gericht.kategorie;
-              return {
-                id: sg.gericht.id,
-                name: sg.gericht.name,
-                vegetarisch: sg.gericht.vegetarisch,
-                unterkategorie: Array.isArray(u) ? (u[0] || "") : (u || ""),
-                gruppe: Array.isArray(k) ? (k[0] || "") : (k || ""),
-              };
-            });
-          if (!katMap[key]) {
-            katMap[key] = { typ: slot.typ, label: slot.label, kategorie: slot.kategorie, min_auswahl: slot.min_auswahl, max_auswahl: slot.max_auswahl, dishes };
-            katOrder.push(key);
-          } else {
-            katMap[key].min_auswahl = (katMap[key].min_auswahl || 1) + (slot.min_auswahl || 1);
-            katMap[key].max_auswahl = (katMap[key].max_auswahl || 1) + (slot.max_auswahl || 1);
-            if (katMap[key].max_auswahl > 1) katMap[key].typ = 'wahl_mehrfach';
-            const existingIds = new Set(katMap[key].dishes.map(d => d.id));
-            katMap[key].dishes.push(...dishes.filter(d => !existingIds.has(d.id)));
+      try {
+        const { data: konf } = await supabase
+          .from("paket_konfiguration")
+          .select("id")
+          .eq("anlass", data.anlass)
+          .eq("theme_slug", data.thema)
+          .eq("paket", data.paket)
+          .limit(1);
+        if (!konf?.length) { setDbMenuData(null); return; }
+        const { data: slots } = await supabase
+          .from("paket_slots")
+          .select("id, label, kategorie, typ, min_auswahl, max_auswahl, reihenfolge, slot_gerichte(reihenfolge, gericht:gerichte(id, name, vegetarisch, unterkategorie, kategorie))")
+          .eq("paket_konfiguration_id", konf[0].id)
+          .eq("aktiv", true)
+          .order("reihenfolge");
+        if (slots) {
+          const katMap = {};
+          const katOrder = [];
+          for (const slot of slots) {
+            const key = slot.typ === 'fix' ? `_fix_${katOrder.length}` : (slot.kategorie || slot.label);
+            const dishes = (slot.slot_gerichte || [])
+              .sort((a, b) => a.reihenfolge - b.reihenfolge)
+              .map(sg => {
+                const u = sg.gericht.unterkategorie;
+                const k = sg.gericht.kategorie;
+                return {
+                  id: sg.gericht.id,
+                  name: sg.gericht.name,
+                  vegetarisch: sg.gericht.vegetarisch,
+                  unterkategorie: Array.isArray(u) ? (u[0] || "") : (u || ""),
+                  gruppe: Array.isArray(k) ? (k[0] || "") : (k || ""),
+                };
+              });
+            if (!katMap[key]) {
+              katMap[key] = { typ: slot.typ, label: slot.label, kategorie: slot.kategorie, min_auswahl: slot.min_auswahl, max_auswahl: slot.max_auswahl, dishes };
+              katOrder.push(key);
+            } else {
+              katMap[key].min_auswahl = (katMap[key].min_auswahl || 1) + (slot.min_auswahl || 1);
+              katMap[key].max_auswahl = (katMap[key].max_auswahl || 1) + (slot.max_auswahl || 1);
+              if (katMap[key].max_auswahl > 1) katMap[key].typ = 'wahl_mehrfach';
+              const existingIds = new Set(katMap[key].dishes.map(d => d.id));
+              katMap[key].dishes.push(...dishes.filter(d => !existingIds.has(d.id)));
+            }
           }
+          const kategorien = katOrder.map(k => katMap[k]);
+          const thema = (dbThemen[data.anlass] || []).find(t => t.id === data.thema);
+          setDbMenuData({ bilder: thema?.images || [], kategorien });
         }
-        const kategorien = katOrder.map(k => katMap[k]);
-        const thema = (dbThemen[data.anlass] || []).find(t => t.id === data.thema);
-        setDbMenuData({ bilder: thema?.images || [], kategorien });
+      } catch (e) {
+        console.error("Fehler beim Laden des Menüs:", e);
+        setDbMenuData(null);
+        setMenuLoadError(true);
+      } finally {
+        setMenuLoading(false);
       }
-      setMenuLoading(false);
     }
+    setMenuLoadError(false);
     loadMenu();
   }, [data.anlass, data.thema, data.paket, dbThemen]);
 
@@ -614,6 +635,17 @@ export default function MamaMiaAngebotsgenerator() {
     </div>
   );
 
+  if (appLoadError) return (
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, background: "#FAF7F2", fontFamily: "'DM Sans', sans-serif", color: C.ink, fontSize: 16, padding: 24, textAlign: "center" }}>
+      <div>⚠️ Die Seite konnte nicht geladen werden.<br />Bitte überprüfen Sie Ihre Internetverbindung.</div>
+      <button
+        onClick={() => window.location.reload()}
+        style={{ background: C.burgundy, color: C.gold, border: "none", padding: "12px 24px", borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+        Erneut versuchen
+      </button>
+    </div>
+  );
+
   return (
     <div style={S.root}>
       <style>{`
@@ -710,6 +742,7 @@ export default function MamaMiaAngebotsgenerator() {
                 next={next}
                 menuData={dbMenuData}
                 menuLoading={menuLoading}
+                menuLoadError={menuLoadError}
                 upgrades={upgrades}
                 setUpgrades={setUpgrades}
               />
@@ -927,53 +960,39 @@ function Step3Details({ data, update, next, dbLieferzonen = [] }) {
         </div>
 
         {/* Datum */}
-        {(() => {
-          const datumRef = React.useRef(null);
-          return (
-            <div style={S.field}>
-              <label style={S.label}>📅 Wunschdatum</label>
-              <div
-                onClick={() => datumRef.current && datumRef.current.showPicker ? datumRef.current.showPicker() : datumRef.current && datumRef.current.click()}
-                style={{ ...S.input, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: data.datum ? C.ink : C.cappuccino, cursor: 'pointer', position: 'relative', userSelect: 'none' }}
-              >
-                <span>{data.datum ? data.datum.split('-').reverse().join('.') : 'TT.MM.JJJJ'}</span>
-                <span style={{ fontSize: 16 }}>📅</span>
-                <input
-                  ref={datumRef}
-                  type="date"
-                  value={data.datum}
-                  onChange={e => update("datum", e.target.value)}
-                  min={new Date().toISOString().split("T")[0]}
-                  style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%', boxSizing: 'border-box', zIndex: 1 }}
-                />
-              </div>
+        <div style={S.field}>
+          <label style={S.label}>📅 Wunschdatum</label>
+          <label style={{ display: 'block', position: 'relative', cursor: 'pointer' }}>
+            <div style={{ ...S.input, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: data.datum ? C.ink : C.cappuccino, userSelect: 'none' }}>
+              <span>{data.datum ? data.datum.split('-').reverse().join('.') : 'TT.MM.JJJJ'}</span>
+              <span style={{ fontSize: 16 }}>📅</span>
             </div>
-          );
-        })()}
+            <input
+              type="date"
+              value={data.datum}
+              onChange={e => update("datum", e.target.value)}
+              min={new Date().toISOString().split("T")[0]}
+              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%', boxSizing: 'border-box' }}
+            />
+          </label>
+        </div>
 
         {/* Uhrzeit */}
-        {(() => {
-          const uhrzeitRef = React.useRef(null);
-          return (
-            <div style={S.field}>
-              <label style={S.label}>🕐 Gewünschte Lieferzeit (ca.) <span style={{ fontWeight: 400, color: C.cappuccino, fontSize: 13 }}>— optional</span></label>
-              <div
-                onClick={() => uhrzeitRef.current && uhrzeitRef.current.showPicker ? uhrzeitRef.current.showPicker() : uhrzeitRef.current && uhrzeitRef.current.click()}
-                style={{ ...S.input, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: data.uhrzeit ? C.ink : C.cappuccino, cursor: 'pointer', position: 'relative', userSelect: 'none' }}
-              >
-                <span>{data.uhrzeit ? `${data.uhrzeit} Uhr` : 'HH:MM'}</span>
-                <span style={{ fontSize: 16 }}>🕐</span>
-                <input
-                  ref={uhrzeitRef}
-                  type="time"
-                  value={data.uhrzeit}
-                  onChange={e => update("uhrzeit", e.target.value)}
-                  style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%', boxSizing: 'border-box', zIndex: 1 }}
-                />
-              </div>
+        <div style={S.field}>
+          <label style={S.label}>🕐 Gewünschte Lieferzeit (ca.) <span style={{ fontWeight: 400, color: C.cappuccino, fontSize: 13 }}>— optional</span></label>
+          <label style={{ display: 'block', position: 'relative', cursor: 'pointer' }}>
+            <div style={{ ...S.input, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: data.uhrzeit ? C.ink : C.cappuccino, userSelect: 'none' }}>
+              <span>{data.uhrzeit ? `${data.uhrzeit} Uhr` : 'HH:MM'}</span>
+              <span style={{ fontSize: 16 }}>🕐</span>
             </div>
-          );
-        })()}
+            <input
+              type="time"
+              value={data.uhrzeit}
+              onChange={e => update("uhrzeit", e.target.value)}
+              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%', boxSizing: 'border-box' }}
+            />
+          </label>
+        </div>
 
         {/* Lieferung / Abholung */}
         <div style={S.field}>
@@ -1193,10 +1212,24 @@ function groupByUnterkategorie(dishes) {
   return { groups, multiGroup };
 }
 
-function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, setUpgrades }) {
+function Step5Menue({ data, update, next, menuData, menuLoading, menuLoadError, upgrades = {}, setUpgrades }) {
   if (menuLoading) return (
     <div className="mm-fade" style={{ textAlign: "center", padding: "60px 20px", color: "#A88968", fontFamily: "'DM Sans', sans-serif", fontSize: 18 }}>
       Lade Menü …
+    </div>
+  );
+
+  if (menuLoadError) return (
+    <div className="mm-fade" style={{ textAlign: "center", padding: "60px 20px", fontFamily: "'DM Sans', sans-serif" }}>
+      <div style={{ color: "#1C1008", fontSize: 17, marginBottom: 20 }}>
+        ⚠️ Das Menü konnte nicht geladen werden.<br />Bitte überprüfen Sie Ihre Internetverbindung.
+      </div>
+      <button
+        onClick={() => window.location.reload()}
+        className="mm-btn-press"
+        style={{ ...S.primaryBtn, maxWidth: 300, margin: "0 auto", display: "block" }}>
+        Erneut versuchen
+      </button>
     </div>
   );
 
