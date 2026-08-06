@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import MamaMiaAngebotsgenerator from "./MamaMiaAngebotsgenerator.jsx";
+import ErrorBoundary from "./ErrorBoundary.jsx";
 
 const style = document.createElement("style");
 style.textContent = `
@@ -12,6 +13,8 @@ document.head.appendChild(style);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <MamaMiaAngebotsgenerator />
+    <ErrorBoundary>
+      <MamaMiaAngebotsgenerator />
+    </ErrorBoundary>
   </React.StrictMode>
 );

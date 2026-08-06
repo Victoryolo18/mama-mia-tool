@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { reportError } from "./errorLog.js";
 
 /* ════════════════════════════════════════════════════════════════
    MAMA MIA EVENTS & CATERING — ANGEBOTSGENERATOR
@@ -475,11 +476,9 @@ export default function MamaMiaAngebotsgenerator() {
         pakete_snapshot: paketeVersion?.pakete_data || null,
       };
 
-      const { data: savedRequest, error: insertErr } = await supabase
+      const { error: insertErr } = await supabase
         .from("requests")
-        .insert(insertData)
-        .select()
-        .single();
+        .insert(insertData);
 
       if (insertErr) {
         console.error("❌ Supabase INSERT Fehler:", {
@@ -494,14 +493,14 @@ export default function MamaMiaAngebotsgenerator() {
 
       // 4) E-Mails versenden (Fehler hier blockieren das Submit nicht)
       try {
-        await sendNotificationEmails(savedRequest);
+        await sendNotificationEmails(insertData);
       } catch (emailErr) {
-        console.error("E-Mail-Versand fehlgeschlagen:", emailErr);
+        reportError("send_email", emailErr, { request_number: requestNumber });
       }
 
       setSubmitted(true);
     } catch (err) {
-      console.error("❌ Submit-Fehler:", err);
+      reportError("submit_request", err, { code: err.code, hint: err.hint });
       alert(`Fehler beim Senden (bitte Screenshot machen):\n${err.message || err}\n\nDetails: ${err.details || "—"}\nHint: ${err.hint || "—"}\nCode: ${err.code || "—"}`);
     } finally {
       setSubmitting(false);
