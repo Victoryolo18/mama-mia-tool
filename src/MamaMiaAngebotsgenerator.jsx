@@ -356,7 +356,7 @@ export default function MamaMiaAngebotsgenerator() {
       if (!konf?.length) { setDbMenuData(null); setMenuLoading(false); return; }
       const { data: slots } = await supabase
         .from("paket_slots")
-        .select("id, label, kategorie, typ, min_auswahl, max_auswahl, reihenfolge, slot_gerichte(reihenfolge, gericht:gerichte(id, name, vegetarisch, unterkategorie, kategorie))")
+        .select("id, label, kategorie, typ, min_auswahl, max_auswahl, reihenfolge, slot_gerichte(reihenfolge, gericht:gerichte(id, name, vegetarisch, unterkategorie, kategorie, aktiv))")
         .eq("paket_konfiguration_id", konf[0].id)
         .eq("aktiv", true)
         .order("reihenfolge");
@@ -366,6 +366,7 @@ export default function MamaMiaAngebotsgenerator() {
         for (const slot of slots) {
           const key = slot.typ === 'fix' ? `_fix_${katOrder.length}` : (slot.kategorie || slot.label);
           const dishes = (slot.slot_gerichte || [])
+            .filter(sg => sg.gericht.aktiv)
             .sort((a, b) => a.reihenfolge - b.reihenfolge)
             .map(sg => {
               const u = sg.gericht.unterkategorie;
