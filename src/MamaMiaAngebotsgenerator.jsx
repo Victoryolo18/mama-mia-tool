@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 /* ════════════════════════════════════════════════════════════════
@@ -882,6 +882,39 @@ function Step2Thema({ data, update, next, themen: allThemen }) {
   );
 }
 
+/* Ganzes Feld klickbar statt nur des winzigen nativen Kalender-/Uhr-Icons:
+   Klick öffnet den Picker programmatisch über showPicker() (Fallback: .click()). */
+function DateTimeField({ value, onChange, display, icon, type, min, hasValue }) {
+  const inputRef = useRef(null);
+  const openPicker = () => {
+    if (!inputRef.current) return;
+    if (inputRef.current.showPicker) {
+      try { inputRef.current.showPicker(); } catch { inputRef.current.click(); }
+    } else {
+      inputRef.current.click();
+    }
+  };
+  return (
+    <div
+      onClick={openPicker}
+      style={{ ...S.input, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        color: hasValue ? C.ink : C.cappuccino, cursor: 'pointer', position: 'relative', userSelect: 'none' }}
+    >
+      <span>{display}</span>
+      <span style={{ fontSize: 16 }}>{icon}</span>
+      <input
+        ref={inputRef}
+        type={type}
+        value={value}
+        onChange={onChange}
+        min={min}
+        style={{ position: 'absolute', inset: 0, opacity: 0, width: '100%', height: '100%',
+          boxSizing: 'border-box', cursor: 'pointer', zIndex: 1 }}
+      />
+    </div>
+  );
+}
+
 /* ════════════════════════════════════════════════════════════════
    SCHRITT 3 — DETAILS (Gäste, Datum, PLZ, Lieferung)
    ══════════════════════════════════════════════════════════════════ */
@@ -930,38 +963,28 @@ function Step3Details({ data, update, next, dbLieferzonen = [] }) {
         {/* Datum */}
         <div style={S.field}>
           <label style={S.label}>📅 Wunschdatum</label>
-          <div style={{ position: 'relative' }}>
-            {/* Sichtbare Anzeige im deutschen Format */}
-            <div style={{ ...S.input, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: data.datum ? C.ink : C.cappuccino, pointerEvents: 'none' }}>
-              <span>{data.datum ? data.datum.split('-').reverse().join('.') : 'TT.MM.JJJJ'}</span>
-              <span style={{ fontSize: 16 }}>📅</span>
-            </div>
-            {/* Unsichtbares natives date-Input (öffnet den Kalender-Picker) */}
-            <input
-              type="date"
-              value={data.datum}
-              onChange={e => update("datum", e.target.value)}
-              min={new Date().toISOString().split("T")[0]}
-              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%' }}
-            />
-          </div>
+          <DateTimeField
+            value={data.datum}
+            onChange={e => update("datum", e.target.value)}
+            display={data.datum ? data.datum.split('-').reverse().join('.') : 'TT.MM.JJJJ'}
+            icon="📅"
+            type="date"
+            min={new Date().toISOString().split("T")[0]}
+            hasValue={!!data.datum}
+          />
         </div>
 
         {/* Uhrzeit */}
         <div style={S.field}>
           <label style={S.label}>🕐 Gewünschte Lieferzeit (ca.) <span style={{ fontWeight: 400, color: C.cappuccino, fontSize: 13 }}>— optional</span></label>
-          <div style={{ position: 'relative' }}>
-            <div style={{ ...S.input, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: data.uhrzeit ? C.ink : C.cappuccino, pointerEvents: 'none' }}>
-              <span>{data.uhrzeit ? `${data.uhrzeit} Uhr` : 'HH:MM'}</span>
-              <span style={{ fontSize: 16 }}>🕐</span>
-            </div>
-            <input
-              type="time"
-              value={data.uhrzeit}
-              onChange={e => update("uhrzeit", e.target.value)}
-              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%' }}
-            />
-          </div>
+          <DateTimeField
+            value={data.uhrzeit}
+            onChange={e => update("uhrzeit", e.target.value)}
+            display={data.uhrzeit ? `${data.uhrzeit} Uhr` : 'HH:MM'}
+            icon="🕐"
+            type="time"
+            hasValue={!!data.uhrzeit}
+          />
         </div>
 
         {/* Lieferung / Abholung */}
