@@ -508,6 +508,18 @@ export default function MamaMiaAngebotsgenerator() {
   }
 
   /* ── E-Mail-Helper ── */
+  // Kundeneingaben (Name, Kontakt, Freitext) landen in HTML-Mails. Ohne
+  // Maskierung koennte jemand ueber das Formular fremdes Markup in die
+  // Benachrichtigungs-Mail schmuggeln (z.B. gefaelschte Links).
+  function esc(v) {
+    return String(v ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   async function sendNotificationEmails(request) {
     const FN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email`;
     const AUTH   = `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`;
@@ -540,7 +552,7 @@ export default function MamaMiaAngebotsgenerator() {
             <p style="color: #A88968; margin: 4px 0 0; letter-spacing: 2px; text-transform: uppercase; font-size: 11px;">Events &amp; Catering</p>
           </div>
           <h2 style="color: #5C2818; font-family: Georgia, serif;">Vielen Dank für Ihre Anfrage!</h2>
-          <p>Liebe/r ${request.customer_name || "Gast"},</p>
+          <p>Liebe/r ${esc(request.customer_name) || "Gast"},</p>
           <p>Ihre Anfrage <strong>${request.request_number}</strong> ist bei mir eingegangen. Ich melde mich innerhalb von <strong>24 Stunden</strong> persönlich bei Ihnen.</p>
           <div style="background: #FEF8E0; border-left: 4px solid #C9A84C; padding: 16px 20px; margin: 24px 0; border-radius: 6px;">
             <h3 style="margin: 0 0 12px; color: #5C2818;">Ihre Anfrage</h3>
@@ -567,8 +579,8 @@ export default function MamaMiaAngebotsgenerator() {
     const hatGetraenkeservice = alleExtras.includes('Getränkeservice');
     const sonstigeZusatzwuensche = alleExtras.filter(e => e !== 'Getränkeservice').join('\n');
     const kontaktInfo = request.customer_email
-      ? `E-Mail: <a href="mailto:${request.customer_email}">${request.customer_email}</a>`
-      : `Telefon: <a href="tel:${request.customer_phone}">${request.customer_phone}</a>`;
+      ? `E-Mail: <a href="mailto:${encodeURIComponent(request.customer_email)}">${esc(request.customer_email)}</a>`
+      : `Telefon: <a href="tel:${encodeURIComponent(request.customer_phone)}">${esc(request.customer_phone)}</a>`;
 
     const janaHtml = `
       <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; color: #1C1008;">
@@ -576,8 +588,8 @@ export default function MamaMiaAngebotsgenerator() {
         <p><strong>${request.request_number}</strong> · ${new Date().toLocaleString("de-DE")}</p>
         <div style="background: #FEF8E0; padding: 16px 20px; margin: 16px 0; border-radius: 8px;">
           <h3 style="margin: 0 0 12px; color: #5C2818;">Kunde</h3>
-          <p style="margin: 4px 0;"><strong>Name:</strong> ${request.customer_name || "—"}</p>
-          <p style="margin: 4px 0;"><strong>Bevorzugt:</strong> ${request.customer_contact_preference}</p>
+          <p style="margin: 4px 0;"><strong>Name:</strong> ${esc(request.customer_name) || "—"}</p>
+          <p style="margin: 4px 0;"><strong>Bevorzugt:</strong> ${esc(request.customer_contact_preference)}</p>
           <p style="margin: 4px 0;">${kontaktInfo}</p>
         </div>
         <div style="background: #FEF8E0; padding: 16px 20px; margin: 16px 0; border-radius: 8px;">
@@ -593,15 +605,15 @@ export default function MamaMiaAngebotsgenerator() {
         </div>
         ${sonstigeZusatzwuensche ? `
         <div style="background: #FFF3E0; border-left: 4px solid #E07B00; padding: 12px 16px; margin: 16px 0; border-radius: 6px;">
-          <strong>Zusatzwünsche:</strong> ${sonstigeZusatzwuensche}
+          <strong>Zusatzwünsche:</strong> ${esc(sonstigeZusatzwuensche)}
         </div>` : ""}
         <p style="margin-top: 32px; font-size: 13px; color: #A88968;">
-          Direkt im CRM ansehen: <a href="https://mama-mia-crm.vercel.app/anfragen/${request.id}" style="color: #5C2818;">CRM öffnen</a>
+          Direkt im CRM ansehen: <a href="https://mama-mia-crm.vercel.app/anfragen" style="color: #5C2818;">CRM öffnen</a> (neueste Anfrage steht oben)
         </p>
       </div>
     `;
     console.log("[email] Sende Benachrichtigung an info@mama-mia-events.de");
-    await callEdgeFn({ to: "info@mama-mia-events.de", subject: `🔔 Neue Anfrage: ${request.customer_name || "Anonym"} — ${anlassLabel}`, html: janaHtml, type: "jana_notification" });
+    await callEdgeFn({ to: "info@mama-mia-events.de", subject: `🔔 Neue Anfrage: ${String(request.customer_name || "Anonym").slice(0, 60)} — ${anlassLabel}`, html: janaHtml, type: "jana_notification" });
   }
 
   /* ════════════════════════════════════════════════════════════
@@ -1487,6 +1499,7 @@ function Step5Menue({ data, update, next, menuData, menuLoading, upgrades = {}, 
             onChange={e => update("zusatzwuensche", e.target.value)}
             placeholder="Allergien, Vegetarier, besondere Wünsche…"
             rows={3}
+            maxLength={2000}
             style={{ ...S.input, resize: "vertical", fontFamily: "inherit", marginTop: 8 }}
             className="mm-input"
           />
@@ -1694,6 +1707,7 @@ function Step7Anfrage({ data, update, onSubmit, submitting, preisProPerson, spei
               value={data.name}
               onChange={e => update("name", e.target.value)}
               placeholder="Vor- und Nachname"
+              maxLength={100}
               style={S.input}
               className="mm-input"
             />
@@ -1731,6 +1745,7 @@ function Step7Anfrage({ data, update, onSubmit, submitting, preisProPerson, spei
               value={data.kontaktdaten}
               onChange={e => update("kontaktdaten", e.target.value)}
               placeholder={KONTAKT_OPTIONEN.find(k => k.id === data.kontaktart)?.placeholder}
+              maxLength={150}
               style={S.input}
               className="mm-input"
             />
@@ -1744,6 +1759,7 @@ function Step7Anfrage({ data, update, onSubmit, submitting, preisProPerson, spei
               onChange={e => update("notizen", e.target.value)}
               placeholder="Wünsche, Allergien, besondere Anlässe…"
               rows={3}
+              maxLength={2000}
               style={{ ...S.input, resize: "vertical", fontFamily: "inherit" }}
               className="mm-input"
             />
