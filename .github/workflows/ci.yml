@@ -12,9 +12,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Node 22+ noetig: der Supabase-Client braucht beim Start natives
+      # WebSocket, das es in Node 20 noch nicht gibt. Die Version muss
+      # ausserdem zur lokalen Entwicklungsversion passen, sonst laufen
+      # Tests lokal durch und scheitern nur hier.
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       - run: npm ci
