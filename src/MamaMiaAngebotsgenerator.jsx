@@ -84,7 +84,19 @@ const ANLAESSE = {
 };
 
 /* ── 🚚 LIEFERZONEN — aus Supabase geladen, Matching per plz_liste + plz_pattern ── */
-function getLieferzuschlag(plz, lieferzonen) {
+// Kundeneingaben (Name, Kontakt, Freitext) landen in HTML-Mails. Ohne
+// Maskierung koennte jemand ueber das Formular fremdes Markup in die
+// Benachrichtigungs-Mail schmuggeln (z.B. gefaelschte Links).
+export function esc(v) {
+  return String(v ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+export function getLieferzuschlag(plz, lieferzonen) {
   if (!plz || plz.length !== 5 || !lieferzonen?.length) return { zuschlag: null, rueckholungPreis: null, bekannt: false };
   const sorted = [...lieferzonen].filter(z => z.aktiv).sort((a, b) => a.reihenfolge - b.reihenfolge);
   for (const zone of sorted) {
@@ -185,7 +197,7 @@ function getUrlParam(name) {
   return params.get(name);
 }
 
-function formatEUR(n) {
+export function formatEUR(n) {
   return n?.toLocaleString("de-DE", {
     style: "currency",
     currency: "EUR",
@@ -508,18 +520,6 @@ export default function MamaMiaAngebotsgenerator() {
   }
 
   /* ── E-Mail-Helper ── */
-  // Kundeneingaben (Name, Kontakt, Freitext) landen in HTML-Mails. Ohne
-  // Maskierung koennte jemand ueber das Formular fremdes Markup in die
-  // Benachrichtigungs-Mail schmuggeln (z.B. gefaelschte Links).
-  function esc(v) {
-    return String(v ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
-  }
-
   async function sendNotificationEmails(request) {
     const FN_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-email`;
     const AUTH   = `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`;
