@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { esc, getLieferzuschlag, formatEUR } from './MamaMiaAngebotsgenerator.jsx';
+import { esc, getLieferzuschlag, getOrtsteile, formatEUR } from './MamaMiaAngebotsgenerator.jsx';
 
 /* Kundeneingaben landen in den Benachrichtigungs-Mails an Jana. Ohne
    Maskierung koennte jemand ueber das oeffentliche Formular fremdes
@@ -78,5 +78,72 @@ describe('formatEUR (Generator)', () => {
 
   it('behandelt 0 als gueltigen Preis', () => {
     expect(formatEUR(0)).toMatch(/0/);
+  });
+});
+
+/* ── Ortsteile ────────────────────────────────────────────────────
+   Unter einer Postleitzahl koennen Orte liegen, die sehr
+   unterschiedlich weit weg sind: Germendorf und Wensickendorf teilen
+   sich 16515, aber die Fahrt dauert 5 gegen 22 Minuten. Wer hier rechnet
+   wie frueher, nennt der Haelfte der Kunden den falschen Preis. */
+const orte = [
+  { id: 1, plz: '16515', ort: 'Germendorf',    zone_nr: 1, aktiv: true },
+  { id: 2, plz: '16515', ort: 'Wensickendorf', zone_nr: 2, aktiv: true },
+  { id: 3, plz: '16727', ort: 'Velten',        zone_nr: 1, aktiv: true },
+  { id: 4, plz: '16727', ort: 'Bärenklau',     zone_nr: 1, aktiv: true },
+  { id: 5, plz: '16866', ort: 'Kyritz',        zone_nr: 3, aktiv: true },
+];
+
+describe('getOrtsteile', () => {
+  it('erkennt eine Postleitzahl mit mehreren Zonen', () => {
+    const r = getOrtsteile('16515', orte);
+    expect(r.mehrdeutig).toBe(true);
+    expect(r.orte.map(o => o.ort)).toEqual(['Germendorf', 'Wensickendorf']);
+  });
+
+  it('erkennt eine eindeutige Postleitzahl', () => {
+    expect(getOrtsteile('16727', orte).mehrdeutig).toBe(false);
+  });
+
+  it('meldet nichts fuer unbekannte oder halbe Postleitzahlen', () => {
+    expect(getOrtsteile('99999', orte).orte).toEqual([]);
+    expect(getOrtsteile('165', orte).orte).toEqual([]);
+    expect(getOrtsteile('16515', []).orte).toEqual([]);
+  });
+});
+
+describe('getLieferzuschlag mit Ortsteilen', () => {
+  it('nimmt den Preis des gewaehlten Ortsteils', () => {
+    expect(getLieferzuschlag('16515', zonen, orte, 'Germendorf').zuschlag).toBe(0);
+    expect(getLieferzuschlag('16515', zonen, orte, 'Wensickendorf').zuschlag).toBe(25);
+  });
+
+  it('raet NICHT, wenn die Postleitzahl mehrdeutig ist und kein Ortsteil gewaehlt wurde', () => {
+    // Lieber kein Preis als der falsche — der Kunde waehlt erst seinen Ortsteil.
+    expect(getLieferzuschlag('16515', zonen, orte).bekannt).toBe(false);
+    expect(getLieferzuschlag('16515', zonen, orte, '').bekannt).toBe(false);
+  });
+
+  it('braucht keinen Ortsteil, wenn alle Orte derselben Zone angehoeren', () => {
+    expect(getLieferzuschlag('16727', zonen, orte).zuschlag).toBe(0);
+  });
+
+  it('faellt auf die alten PLZ-Listen zurueck, wenn der Ort nicht erfasst ist', () => {
+    // 13355 steht in keiner Ortsliste, aber im Muster der zweiten Zone.
+    expect(getLieferzuschlag('13355', zonen, orte).zuschlag).toBe(25);
+  });
+
+  it('rechnet weiter, falls die Ortsliste gar nicht geladen wurde', () => {
+    expect(getLieferzuschlag('16767', zonen, [], undefined).bekannt).toBe(true);
+    expect(getLieferzuschlag('16767', zonen, undefined, undefined).bekannt).toBe(true);
+  });
+
+  it('ignoriert einen Ortsteil, der nicht zur Postleitzahl passt', () => {
+    // Tippfehler oder ein alter Wert im Formular darf keinen Fantasiepreis erzeugen.
+    expect(getLieferzuschlag('16515', zonen, orte, 'Timbuktu').bekannt).toBe(false);
+  });
+
+  it('nennt keinen Preis, wenn die Zone des Orts abgeschaltet ist', () => {
+    expect(getLieferzuschlag('16866', zonen, orte, 'Kyritz').bekannt).toBe(false);
   });
 });

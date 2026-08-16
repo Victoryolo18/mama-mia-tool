@@ -96,8 +96,49 @@ export function esc(v) {
     .replace(/'/g, "&#39;");
 }
 
-export function getLieferzuschlag(plz, lieferzonen) {
-  if (!plz || plz.length !== 5 || !lieferzonen?.length) return { zuschlag: null, rueckholungPreis: null, bekannt: false };
+const UNBEKANNT = { zuschlag: null, rueckholungPreis: null, bekannt: false };
+
+function zonePreis(zoneNr, lieferzonen) {
+  const zone = (lieferzonen || []).find(z => z.reihenfolge === zoneNr && z.aktiv);
+  if (!zone) return UNBEKANNT;
+  return {
+    zuschlag: Number(zone.zuschlag),
+    rueckholungPreis: zone.rueckholung_preis != null ? Number(zone.rueckholung_preis) : null,
+    bekannt: true,
+  };
+}
+
+/* Welche Ortsteile liegen unter dieser Postleitzahl?
+   Verteilen sie sich auf mehrere Zonen, muss der Kunde seinen Ortsteil
+   waehlen — sonst zahlt Germendorf (5 Min) so viel wie Wensickendorf (22 Min). */
+export function getOrtsteile(plz, lieferorte) {
+  if (!plz || plz.length !== 5 || !lieferorte?.length) return { mehrdeutig: false, orte: [] };
+  const treffer = lieferorte
+    .filter(o => o.plz === plz && o.aktiv !== false)
+    .sort((a, b) => a.ort.localeCompare(b.ort, "de"));
+  const zonen = new Set(treffer.map(o => o.zone_nr));
+  return { mehrdeutig: zonen.size > 1, orte: treffer };
+}
+
+/* Reihenfolge: genauer Ortsteil, dann eindeutige Postleitzahl, dann die
+   alten PLZ-Listen. Der letzte Schritt ist Absicht — faellt ein Ort aus
+   der Ortsliste heraus, bekommt der Kunde trotzdem einen Preis statt
+   einer Sackgasse. */
+export function getLieferzuschlag(plz, lieferzonen, lieferorte, ortsteil) {
+  if (!plz || plz.length !== 5 || !lieferzonen?.length) return UNBEKANNT;
+
+  if (ortsteil && lieferorte?.length) {
+    const treffer = lieferorte.find(o => o.plz === plz && o.ort === ortsteil && o.aktiv !== false);
+    if (treffer) return zonePreis(treffer.zone_nr, lieferzonen);
+  }
+
+  const { orte } = getOrtsteile(plz, lieferorte);
+  if (orte.length) {
+    const zonen = [...new Set(orte.map(o => o.zone_nr))];
+    if (zonen.length === 1) return zonePreis(zonen[0], lieferzonen);
+    return UNBEKANNT; // mehrdeutig: erst Ortsteil waehlen
+  }
+
   const sorted = [...lieferzonen].filter(z => z.aktiv).sort((a, b) => a.reihenfolge - b.reihenfolge);
   for (const zone of sorted) {
     const match = zone.plz_liste?.includes(plz) ||
@@ -108,7 +149,7 @@ export function getLieferzuschlag(plz, lieferzonen) {
       bekannt: true,
     };
   }
-  return { zuschlag: null, rueckholungPreis: null, bekannt: false };
+  return UNBEKANNT;
 }
 
 /* ── 📦 PAKETE ── */
@@ -251,6 +292,7 @@ export default function MamaMiaAngebotsgenerator() {
     datum: "",
     uhrzeit: "",
     plz: "",
+    ortsteil: "",
     lieferung: "",
     paket: null,
     menue_auswahl: {},
@@ -268,6 +310,7 @@ export default function MamaMiaAngebotsgenerator() {
   /* ── DB-State ── */
   const [dbThemen,          setDbThemen]          = useState({});
   const [dbLieferzonen,     setDbLieferzonen]     = useState([]);
+  const [dbLieferorte,      setDbLieferorte]      = useState([]);
   const [dbPreise,          setDbPreise]          = useState({});
   const [dbMenuData,        setDbMenuData]        = useState(null);
   const [dbZusatzwuensche,  setDbZusatzwuensche]  = useState([]);
@@ -288,10 +331,11 @@ export default function MamaMiaAngebotsgenerator() {
   /* ── Initial load: Themen + Lieferzonen ── */
   useEffect(() => {
     async function init() {
-      const [{ data: themenRows }, { data: lieferRows }, { data: zusatzRows }] = await Promise.all([
+      const [{ data: themenRows }, { data: lieferRows }, { data: zusatzRows }, { data: orteRows }] = await Promise.all([
         supabase.from("themen").select("*").eq("aktiv", true).order("anlass").order("reihenfolge"),
         supabase.from("lieferzonen").select("*").eq("aktiv", true).order("reihenfolge"),
         supabase.from("zusatzwuensche").select("*").eq("aktiv", true).order("reihenfolge"),
+        supabase.from("lieferorte").select("*").eq("aktiv", true),
       ]);
       const byAnlass = {};
       for (const t of (themenRows || [])) {
@@ -300,6 +344,9 @@ export default function MamaMiaAngebotsgenerator() {
       }
       setDbThemen(byAnlass);
       setDbLieferzonen(lieferRows || []);
+      setDbLieferorte(orteRows || []);
+      /* Faellt die Ortsliste aus, rechnet der Generator ueber die alten
+         PLZ-Listen weiter — lieber ein grober Preis als gar keiner. */
       setDbZusatzwuensche(zusatzRows || []);
       setAppLoading(false);
     }
@@ -430,7 +477,7 @@ export default function MamaMiaAngebotsgenerator() {
   const speisenPreis = preisProPerson * data.gaeste;
   const isDelivery = ["nur_anlieferung", "anlieferung_rueckholung", "lieferung"].includes(data.lieferung);
   const lieferInfo = isDelivery
-    ? getLieferzuschlag(data.plz, dbLieferzonen)
+    ? getLieferzuschlag(data.plz, dbLieferzonen, dbLieferorte, data.ortsteil)
     : { zuschlag: 0, rueckholungPreis: 0, bekannt: true };
   const lieferzuschlag = data.lieferung === "anlieferung_rueckholung"
     ? (lieferInfo.rueckholungPreis ?? lieferInfo.zuschlag ?? 0)
@@ -473,6 +520,7 @@ export default function MamaMiaAngebotsgenerator() {
         event_datum: data.datum || null,
         event_uhrzeit: data.uhrzeit || null,
         plz: data.plz || null,
+        ortsteil: data.ortsteil || null,
         lieferung: data.lieferung,
         menue_auswahl: { ...(data.menue_auswahl || {}), ...(Object.keys(upgrades).length ? { _upgrades: upgrades } : {}) },
         zusatzwuensche: [
@@ -726,7 +774,7 @@ export default function MamaMiaAngebotsgenerator() {
                 setUpgrades={setUpgrades}
               />
             )}
-            {step === 5 && <Step3Details data={data} update={update} next={next} dbLieferzonen={dbLieferzonen} />}
+            {step === 5 && <Step3Details data={data} update={update} next={next} dbLieferzonen={dbLieferzonen} dbLieferorte={dbLieferorte} />}
             {step === 6 && (
               <Step6Extras
                 data={data}
@@ -929,7 +977,14 @@ function DateTimeField({ value, onChange, display, icon, type, min, hasValue }) 
 /* ════════════════════════════════════════════════════════════════
    SCHRITT 3 — DETAILS (Gäste, Datum, PLZ, Lieferung)
    ══════════════════════════════════════════════════════════════════ */
-function Step3Details({ data, update, next, dbLieferzonen = [] }) {
+function Step3Details({ data, update, next, dbLieferzonen = [], dbLieferorte = [] }) {
+  /* Der Ortsteil bestimmt nur den Lieferpreis. Wer selbst abholt, soll
+     nicht danach gefragt werden — und schon gar nicht daran haengenbleiben. */
+  const istLieferungGewaehlt = ["nur_anlieferung", "anlieferung_rueckholung", "lieferung"].includes(data.lieferung);
+  const ortsteilInfo = istLieferungGewaehlt
+    ? getOrtsteile(data.plz, dbLieferorte)
+    : { mehrdeutig: false, orte: [] };
+  const ortsteilNoetig = ortsteilInfo.mehrdeutig && !data.ortsteil;
   const gaesteNum = Number(data.gaeste);
   const gaesteError = data.gaeste !== '' && data.gaeste !== null
     ? gaesteNum < 8 ? "Mindestbestellung ab 8 Personen"
@@ -937,7 +992,7 @@ function Step3Details({ data, update, next, dbLieferzonen = [] }) {
     : null
     : null;
   const gaesteValid = data.gaeste !== '' && data.gaeste !== null && gaesteNum >= 8 && gaesteNum <= 250;
-  const canContinue = gaesteValid && data.datum && data.plz && data.lieferung;
+  const canContinue = gaesteValid && data.datum && data.plz && data.lieferung && !ortsteilNoetig;
 
   return (
     <div className="mm-fade">
@@ -1004,7 +1059,7 @@ function Step3Details({ data, update, next, dbLieferzonen = [] }) {
           {(() => {
             const isDelivMode = ["nur_anlieferung", "anlieferung_rueckholung", "lieferung"].includes(data.lieferung);
             const zoneInfo = isDelivMode && data.plz?.length === 5
-              ? getLieferzuschlag(data.plz, dbLieferzonen)
+              ? getLieferzuschlag(data.plz, dbLieferzonen, dbLieferorte, data.ortsteil)
               : { zuschlag: null, rueckholungPreis: null, bekannt: false };
             const fmtPreis = (p) => p != null ? (p === 0 ? "kostenlos" : `+${p} €`) : "Preis auf Anfrage";
             if (!isDelivMode) {
@@ -1056,13 +1111,37 @@ function Step3Details({ data, update, next, dbLieferzonen = [] }) {
           <input
             type="text"
             value={data.plz}
-            onChange={e => update("plz", e.target.value)}
+            onChange={e => { update("plz", e.target.value); if (data.ortsteil) update("ortsteil", ""); }}
             placeholder="z.B. 16767"
             maxLength={5}
             style={S.input}
             className="mm-input"
           />
         </div>
+
+        {/* Ortsteil — nur wenn die Postleitzahl mehrere Zonen umfasst.
+            Ohne diese Frage wuerde Germendorf so viel zahlen wie
+            Wensickendorf, obwohl die Fahrt viermal so lange dauert. */}
+        {ortsteilInfo.mehrdeutig && (
+          <div style={S.field}>
+            <label style={S.label}>🏘️ Welcher Ortsteil?</label>
+            <div style={{ fontSize: 13, color: "#8B7355", marginBottom: 10, lineHeight: 1.5 }}>
+              Unter {data.plz} liegen mehrere Orte, die unterschiedlich weit entfernt sind.
+              Damit der Lieferpreis stimmt, brauchen wir den genauen Ortsteil.
+            </div>
+            <select
+              value={data.ortsteil || ""}
+              onChange={e => update("ortsteil", e.target.value)}
+              style={{ ...S.input, cursor: "pointer" }}
+              className="mm-input"
+            >
+              <option value="">Bitte auswählen…</option>
+              {ortsteilInfo.orte.map(o => (
+                <option key={o.id || o.ort} value={o.ort}>{o.ort}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <button
           onClick={next}
