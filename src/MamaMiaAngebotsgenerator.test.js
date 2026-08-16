@@ -105,10 +105,25 @@ describe('getOrtsteile', () => {
     expect(getOrtsteile('16727', orte).mehrdeutig).toBe(false);
   });
 
+  /* 16727 umfasst Velten, Schwante, Bötzow und sieben weitere Orte in
+     derselben Zone. Der Preis ist dadurch klar — wohin gefahren wird,
+     aber nicht. Also wird trotzdem gefragt. */
+  it('fragt auch dann nach dem Ortsteil, wenn alle Orte dieselbe Zone haben', () => {
+    const r = getOrtsteile('16727', orte);
+    expect(r.mehrdeutig).toBe(false);
+    expect(r.auswahlNoetig).toBe(true);
+    expect(r.orte.map(o => o.ort)).toEqual(['Bärenklau', 'Velten']);
+  });
+
+  it('fragt nicht, wenn die Postleitzahl nur einen Ort hat', () => {
+    expect(getOrtsteile('16866', orte).auswahlNoetig).toBe(false);
+  });
+
   it('meldet nichts fuer unbekannte oder halbe Postleitzahlen', () => {
     expect(getOrtsteile('99999', orte).orte).toEqual([]);
     expect(getOrtsteile('165', orte).orte).toEqual([]);
     expect(getOrtsteile('16515', []).orte).toEqual([]);
+    expect(getOrtsteile('99999', orte).auswahlNoetig).toBe(false);
   });
 });
 

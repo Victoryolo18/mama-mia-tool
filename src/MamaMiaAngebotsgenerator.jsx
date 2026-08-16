@@ -109,15 +109,20 @@ function zonePreis(zoneNr, lieferzonen) {
 }
 
 /* Welche Ortsteile liegen unter dieser Postleitzahl?
-   Verteilen sie sich auf mehrere Zonen, muss der Kunde seinen Ortsteil
-   waehlen — sonst zahlt Germendorf (5 Min) so viel wie Wensickendorf (22 Min). */
+   `auswahlNoetig`: mehrere Orte — dann wird gefragt, auch wenn alle in
+   derselben Zone liegen. Unter 16727 liegen Velten, Schwante, Bötzow und
+   sieben weitere; Mama muss wissen, wohin sie faehrt.
+   `mehrdeutig`: die Orte liegen in verschiedenen Zonen — dann haengt auch
+   der Preis daran, und ohne Antwort darf keine Zahl genannt werden. */
 export function getOrtsteile(plz, lieferorte) {
-  if (!plz || plz.length !== 5 || !lieferorte?.length) return { mehrdeutig: false, orte: [] };
+  if (!plz || plz.length !== 5 || !lieferorte?.length) {
+    return { mehrdeutig: false, auswahlNoetig: false, orte: [] };
+  }
   const treffer = lieferorte
     .filter(o => o.plz === plz && o.aktiv !== false)
     .sort((a, b) => a.ort.localeCompare(b.ort, "de"));
   const zonen = new Set(treffer.map(o => o.zone_nr));
-  return { mehrdeutig: zonen.size > 1, orte: treffer };
+  return { mehrdeutig: zonen.size > 1, auswahlNoetig: treffer.length > 1, orte: treffer };
 }
 
 /* Reihenfolge: genauer Ortsteil, dann eindeutige Postleitzahl, dann die
@@ -983,8 +988,8 @@ function Step3Details({ data, update, next, dbLieferzonen = [], dbLieferorte = [
   const istLieferungGewaehlt = ["nur_anlieferung", "anlieferung_rueckholung", "lieferung"].includes(data.lieferung);
   const ortsteilInfo = istLieferungGewaehlt
     ? getOrtsteile(data.plz, dbLieferorte)
-    : { mehrdeutig: false, orte: [] };
-  const ortsteilNoetig = ortsteilInfo.mehrdeutig && !data.ortsteil;
+    : { mehrdeutig: false, auswahlNoetig: false, orte: [] };
+  const ortsteilNoetig = ortsteilInfo.auswahlNoetig && !data.ortsteil;
   const gaesteNum = Number(data.gaeste);
   const gaesteError = data.gaeste !== '' && data.gaeste !== null
     ? gaesteNum < 8 ? "Mindestbestellung ab 8 Personen"
@@ -1117,10 +1122,10 @@ function Step3Details({ data, update, next, dbLieferzonen = [], dbLieferorte = [
           />
         </div>
 
-        {/* Ortsteil — nur wenn die Postleitzahl mehrere Zonen umfasst.
+        {/* Ortsteil — sobald unter der Postleitzahl mehrere Orte liegen.
             Ohne diese Frage wuerde Germendorf so viel zahlen wie
             Wensickendorf, obwohl die Fahrt viermal so lange dauert. */}
-        {ortsteilInfo.mehrdeutig && (
+        {ortsteilInfo.auswahlNoetig && (
           <div style={S.field}>
             <label style={S.label}>🏘️ Ortsteil</label>
             <select
