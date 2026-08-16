@@ -1105,9 +1105,7 @@ function Step3Details({ data, update, next, dbLieferzonen = [], dbLieferorte = [
 
         {/* PLZ */}
         <div style={S.field}>
-          <label style={S.label}>
-            📍 Postleitzahl {["nur_anlieferung", "anlieferung_rueckholung", "lieferung"].includes(data.lieferung) ? "des Veranstaltungsorts" : "(zur Orientierung)"}
-          </label>
+          <label style={S.label}>📍 Postleitzahl des Veranstaltungsorts</label>
           <input
             type="text"
             value={data.plz}
@@ -1124,11 +1122,7 @@ function Step3Details({ data, update, next, dbLieferzonen = [], dbLieferorte = [
             Wensickendorf, obwohl die Fahrt viermal so lange dauert. */}
         {ortsteilInfo.mehrdeutig && (
           <div style={S.field}>
-            <label style={S.label}>🏘️ Welcher Ortsteil?</label>
-            <div style={{ fontSize: 13, color: "#8B7355", marginBottom: 10, lineHeight: 1.5 }}>
-              Unter {data.plz} liegen mehrere Orte, die unterschiedlich weit entfernt sind.
-              Damit der Lieferpreis stimmt, brauchen wir den genauen Ortsteil.
-            </div>
+            <label style={S.label}>🏘️ Ortsteil</label>
             <select
               value={data.ortsteil || ""}
               onChange={e => update("ortsteil", e.target.value)}
