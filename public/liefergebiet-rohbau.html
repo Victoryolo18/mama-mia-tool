@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Liefergebiet Oberhavel</title>
+<style>
+  :root {
+    --grund: #FAF7F2;
+    --karte: #FFFFFF;
+    --tinte: #1C1008;
+    --leise: #6E5847;
+    --linie: #E7DCC9;
+    --gold: #A8862F;
+    --gold-tief: #6E5316;
+    --gold-flaeche: rgba(201,168,76,.20);
+    --kastanie: #5C2818;
+    --kastanie-flaeche: rgba(92,40,24,.06);
+    --land: #EFE7D7;
+    --land-berlin: #E7DCC6;
+    --land-hover: #E6DAC3;
+    --landlinie: #D5C7AE;
+    --schatten: 0 1px 2px rgba(28,16,8,.05), 0 8px 24px rgba(28,16,8,.07);
+    --display: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    --text: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --zahl: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  }
+  /* Bewusst nur ein Farbschema: Die Seite sitzt eingebettet in
+     mama-mia-events.de, und die Website ist durchgehend hell (#FAF7F2).
+     Wuerde sich die Karte nach der Einstellung des Besuchers richten,
+     erschiene sie bei jedem mit Dunkelmodus als dunkelbrauner Block
+     mitten in einer hellen Seite. Alle Farben stehen deshalb fest. */
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--grund);
+    color: var(--tinte);
+    font-family: var(--text);
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .huelle {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 40px 20px 56px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .kopf { display: flex; flex-direction: column; gap: 10px; }
+  .kopf h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(28px, 5vw, 40px);
+    line-height: 1.15;
+    letter-spacing: -.01em;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .kopf p { margin: 0; color: var(--leise); max-width: 56ch; }
+
+  .suche { display: flex; flex-direction: column; gap: 0; position: relative; }
+  .suche label {
+    font-size: 12px;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--leise);
+    margin-bottom: 8px;
+  }
+  .suche input {
+    width: 100%;
+    font: inherit;
+    font-size: 18px;
+    padding: 15px 17px;
+    color: var(--tinte);
+    background: var(--karte);
+    border: 1px solid var(--linie);
+    border-radius: 4px;
+    box-shadow: var(--schatten);
+  }
+  .suche input::placeholder { color: var(--leise); opacity: .8; }
+  .suche input:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+    border-color: var(--gold);
+  }
+
+  .treffer { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+  .treffer li { margin: 0; }
+  .treffer button {
+    width: 100%;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    text-align: left;
+    font: inherit;
+    color: var(--tinte);
+    background: var(--karte);
+    border: 1px solid var(--linie);
+    border-radius: 3px;
+    padding: 12px 15px;
+    cursor: pointer;
+  }
+  .treffer button:hover { border-color: var(--gold); }
+  .treffer button:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+  .treffer .name { font-weight: 600; }
+  .treffer .plz { color: var(--leise); font-family: var(--zahl); font-size: 13px; }
+  .treffer .zeit { margin-left: auto; color: var(--leise); font-family: var(--zahl); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  .antwort {
+    border: 1px solid var(--linie);
+    border-left: 3px solid var(--gold);
+    background: var(--karte);
+    border-radius: 4px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    box-shadow: var(--schatten);
+  }
+  .antwort.frage { border-left-color: var(--kastanie); }
+  .antwort .zeile1 { font-family: var(--display); font-size: 21px; line-height: 1.25; }
+  .antwort .zeile2 { color: var(--leise); font-size: 15px; }
+  .antwort .zeile2 b { color: var(--tinte); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .antwort a { color: var(--gold); font-weight: 600; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  .antwort.frage a { color: var(--kastanie); }
+
+  .kartenfeld {
+    background: var(--karte);
+    border: 1px solid var(--linie);
+    border-radius: 4px;
+    padding: 8px 8px 0;
+    box-shadow: var(--schatten);
+    overflow: hidden;
+  }
+  .kartenfeld svg { display: block; width: 100%; height: auto; }
+  .kreis { transition: fill .15s ease; }
+  .kreis:hover { fill: var(--land-hover); }
+  @media (prefers-reduced-motion: reduce) { .kreis { transition: none; } }
+
+  .legende {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    padding: 14px 12px 16px;
+    border-top: 1px solid var(--linie);
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--leise);
+  }
+  .legende span { display: inline-flex; align-items: center; gap: 8px; }
+  .punkt { width: 13px; height: 13px; border-radius: 3px; flex: none; }
+  .punkt.gold { background: var(--gold-flaeche); border: 1.5px solid var(--gold); }
+  .punkt.kastanie { background: var(--kastanie-flaeche); border: 1.5px dashed var(--kastanie); }
+
+  .fussnote { font-size: 13px; color: var(--leise); margin: 0; }
+  .fussnote a { color: inherit; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .pulsiert { animation: pulsieren 1.6s ease-out 2; transform-origin: center; transform-box: fill-box; }
+    @keyframes pulsieren { 0%,100% { r: 2.4; } 50% { r: 5; } }
+  }
+</style>
+</head>
+<body>
+
+<div class="huelle">
+  <header class="kopf">
+    <h1>Wohin Mama Mia liefert</h1>
+    <p>Geben Sie Ihren Ort, Ihren Ortsteil oder die Postleitzahl ein. Wir fahren von Leegebruch aus in den ganzen Landkreis Oberhavel und in den Berliner Norden.</p>
+  </header>
+
+  <div class="suche">
+    <label for="ortsfeld">Ihr Veranstaltungsort</label>
+    <input id="ortsfeld" type="text" autocomplete="off" spellcheck="false"
+           placeholder="z. B. Schwante, Malz, Tegel oder 16515" aria-describedby="antwortfeld" />
+    <ul class="treffer" id="trefferliste" role="listbox" aria-label="Gefundene Orte"></ul>
+  </div>
+
+  <div id="antwortfeld" role="status" aria-live="polite"></div>
+
+  <div class="kartenfeld">
+    <svg id="karte" viewBox="0 0 700 724" role="img"
+         aria-label="Karte von Brandenburg und Berlin mit dem markierten Liefergebiet rund um Leegebruch"></svg>
+    <div class="legende">
+      <span><i class="punkt gold"></i> Wird regulär beliefert</span>
+    </div>
+  </div>
+
+  <p class="fussnote">Die Karte zeigt Brandenburg und Berlin mit den echten Kreisgrenzen; jeder Punkt ist ein Ort, in den wir liefern. Fahren Sie mit der Maus darüber, um die Namen zu sehen. Ihr Ort ist nicht dabei? Fragen Sie trotzdem: <a href="tel:+491739344723">0173 9344723</a>.</p>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  /* Orte aus der CRM-Tabelle "lieferorte": [Name, PLZ, Fahrzeit in Minuten].
+     Wird beim Laden aus Supabase aufgefrischt, damit Aenderungen im CRM
+     hier ankommen, ohne dass jemand die Seite anfasst. */
+  let ORTE = [["Albertinenhof","16818",35],["Alt Ruppin","16827",45],["Altfriesack","16818",40],["Altlüdersdorf","16775",44],["Amalienfelde","16766",15],["Ausbau Wulkow","16835",42],["Bärenklau","16727",4],["Basdorf","16348",30],["Bechlin","16816",36],["Beetz","16766",25],["Berge","14641",40],["Bergfelde","16562",18],["Bergsdorf","16792",39],["Bernöwe","16515",31],["Betzin","16833",34],["Birkenwerder","16547",13],["Borgsdorf","16556",14],["Börnicke","14641",22],["Borsigwalde","13509",23],["Bötzow","16727",14],["Bredow","14656",27],["Brieselang (Ortsmitte)","14656",32],["Brunne","16833",38],["Buchhorst","16567",21],["Bürgerwendemark","16827",51],["Buskow","16816",36],["Bütow","16816",36],["Dabergotz","16818",34],["Dallgow-Döberitz (Ortsmitte)","14624",35],["Dameswalde","16515",23],["Dammkrug","16818",30],["Dannenfeld","16818",47],["Darritz","16818",43],["Dechtow","16833",34],["Dessow","16845",52],["Deutschhof","16818",41],["Duettchens Höh","14621",22],["Ebereschenhof","14641",28],["Eichstädt","16727",13],["Falkenhagen","14612",28],["Falkenhain","14612",31],["Falkenhöh","14612",32],["Falkensee (Ortsmitte)","14612",30],["Falkenthal","16775",32],["Fehrbellin","16833",31],["Feldheim","16567",16],["Fichtengrund","16515",18],["Finkenherd","14612",36],["Finkenkrug","14612",35],["Flatow","16766",23],["Französisch Buchholz","13127",23],["Freienhagen","16559",17],["Friedrichsthal","16515",18],["Frohnau","13465",23],["Ganzer","16845",46],["Garz","16845",43],["Germendorf","16515",5],["Gildenhall","16816",49],["Glambeck","16775",35],["Glienicke/Nordbahn","16548",26],["Gnewikow","16818",47],["Gohlitz","14641",44],["Gorinsee","16348",27],["Gottberg","16818",40],["Gransee (Ortsmitte)","16775",40],["Grieben","16775",34],["Groß Behnitz","14641",45],["Groß-Ziethen","16766",18],["Großmutz","16775",32],["Grüneberg","16775",27],["Grünefeld","14621",26],["Gühlen","16835",49],["Gutengermendorf","16775",32],["Hakenberg","16833",30],["Hammer","16559",35],["Häsen","16775",38],["Heidekrug","16727",10],["Heiligensee","13503",18],["Hennigsdorf (Ortsmitte)","16761",17],["Hermsdorf","13467",26],["Herzberg (Mark)","16835",36],["Hobrechtsfelde","16341",32],["Hohen Neuendorf (Ortsmitte)","16540",16],["Hohenbruch","16766",14],["Höpen","16559",35],["Hoppenrade","16775",30],["Kantow","16845",46],["Karwe","16818",43],["Karwesee","16833",35],["Kerzlin","16845",40],["Kienberg","14641",28],["Klein Ziethen","16727",13],["Klein-Mutz","16792",45],["Klosterfelde","16348",37],["Klosterheide","16835",49],["Königshorst","16833",39],["Konradshöhe","13505",26],["Krangen","16827",52],["Kränzlin","16818",40],["Kremmen (Ortsmitte)","16766",19],["Krewelin","16792",39],["Küdow","16845",41],["Kuhhorst","16818",34],["Kunsterspring","16818",51],["Langen","16818",33],["Lanke","16359",36],["Läsikow","16845",47],["Leegebruch","16767",0],["Lehnitz","16515",14],["Lentzke","16833",38],["Lentzker Mühle","16833",36],["Lentzker Siedlung","16833",34],["Lichtenberg","16818",43],["Liebenberg","16775",32],["Liebenthal","16559",43],["Liebenwalde (Ortsmitte)","16559",30],["Lietzow","14641",36],["Linum","16833",27],["Lögow","16845",49],["Lottschesee","16348",38],["Löwenberg","16775",27],["Lüchfeld","16845",41],["Malz","16515",21],["Manker","16845",38],["Markee","14641",34],["Marwitz","16727",12],["Molchow","16827",51],["Mönchmühle","16567",22],["Mühlenbeck","16567",18],["Mühlenberg","14641",39],["Nackel","16845",48],["Nassenheide","16775",14],["Nauen (Ortsmitte)","14641",33],["Neu Schwanebeck","16341",33],["Neu-Vehlefanz","16727",15],["Neuendorf","16775",22],["Neuholland","16559",24],["Neukammer","14641",36],["Neumühle","16827",47],["Neurohrbeck","14624",38],["Neuruppin (Ortsmitte)","16816",41],["Nieder Neuendorf","16761",21],["Nietwerder","16816",47],["Oranienburg (Ortsmitte)","16515",10],["Paalzow","16818",43],["Paaren im Glien","14621",25],["Pabstthum","16818",40],["Papenberge","16761",23],["Pausin","14621",25],["Perwenitz","14621",19],["Prenden","16348",37],["Protzen","16833",35],["Radensleben","16818",40],["Ravenhorst","16835",46],["Ribbeck","14641",43],["Ribbeckshorst","16818",44],["Rohrlack","16845",44],["Röthehof","14641",39],["Sachsenhausen","16515",11],["Schäferei","16818",48],["Schildow","16552",24],["Schmachtenhagen","16515",18],["Schönberg (Mark)","16835",41],["Schönerlinde","16348",26],["Schönfließ","16567",21],["Schönwalde","16348",26],["Schönwalde-Dorf","14621",20],["Schönwalde-Siedlung","14621",22],["Schwanebeck","16341",26],["Schwante","16727",12],["Seeburg","14624",36],["Seegefeld","14612",32],["Seehof","16818",45],["Siedlung","16818",45],["Siedlung Werbellinsee","16835",45],["Sommerfeld","16766",23],["Staffelde","16766",19],["Steinberge","16818",52],["Stöffin","16833",36],["Stolpe","16540",14],["Stolzenhagen","16348",28],["Storbeck","16818",47],["Summt","16567",17],["Tarmow","16833",27],["Tegel","13507",23],["Teschendorf","16775",19],["Tietzow","14641",27],["Treskow","16816",36],["Ützdorf","16348",38],["Vehlefanz","16727",9],["Velten","16727",8],["Vichel","16845",44],["Wahlendorf","16818",45],["Waidmannslust","13469",25],["Waisenkrug","16818",48],["Walchow","16833",31],["Waldheim","14612",34],["Waldsiedlung","14641",29],["Wall","16818",32],["Walsleben","16818",41],["Wandlitz","16348",31],["Wansdorf","14621",20],["Wensickendorf","16515",22],["Werder","16818",36],["Wildberg","16845",42],["Wittenau","13437",25],["Woltersdorf","16818",45],["Woltersdorf-Baum","16818",47],["Wulkow","16835",42],["Wustrau","16818",41],["Wuthenow","16818",47],["Zeestow","14656",26],["Zehdenick (Ortsmitte)","16792",44],["Zehlendorf","16515",24],["Zepernick","16341",32],["Zerpenschleuse","16348",40],["Zietenhorst","16818",52],["Zippelsförde","16827",52],["Zühlsdorf","16515",23]];
+
+  /* Ankerpunkte fuer die Karte: je Postleitzahl eine ungefaehre Lage.
+     Jeder Ort haengt sich ueber seine PLZ an einen dieser Punkte. */
+  const ANKER = {
+    "16767": ["Leegebruch",        52.749, 13.198, 1],
+    "16515": ["Oranienburg",       52.755, 13.242, 1],
+    "16727": ["Velten & Oberkrämer",52.700, 13.150, 1],
+    "16761": ["Hennigsdorf",       52.635, 13.203, 1],
+    "16766": ["Kremmen",           52.763, 13.028, 1],
+    "16540": ["Hohen Neuendorf",   52.675, 13.278, 1],
+    "16547": ["Birkenwerder",      52.688, 13.283, 0],
+    "16556": ["Borgsdorf",         52.706, 13.259, 0],
+    "16562": ["Bergfelde",         52.663, 13.297, 0],
+    "16548": ["Glienicke",         52.632, 13.319, 0],
+    "16552": ["Schildow",          52.652, 13.359, 0],
+    "16567": ["Mühlenbeck",        52.663, 13.377, 0],
+    "16341": ["Panketal",          52.657, 13.499, 0],
+    "16348": ["Wandlitz",          52.743, 13.457, 1],
+    "16359": ["Lanke",             52.750, 13.545, 0],
+    "16559": ["Liebenwalde",       52.870, 13.396, 1],
+    "16775": ["Löwenberger Land",  52.900, 13.160, 1],
+    "16792": ["Zehdenick",         52.980, 13.330, 1],
+    "16816": ["Neuruppin",         52.923, 12.813, 1],
+    "16818": ["Radensleben",       52.940, 12.752, 0],
+    "16827": ["Alt Ruppin",        52.992, 12.846, 0],
+    "16833": ["Fehrbellin",        52.796, 12.768, 1],
+    "16835": ["Wulkow",            52.956, 12.958, 0],
+    "16845": ["Manker",            52.873, 12.613, 0],
+    "14612": ["Falkensee",         52.560, 13.093, 1],
+    "14621": ["Schönwalde-Glien",  52.632, 13.075, 0],
+    "14624": ["Dallgow-Döberitz",  52.535, 13.072, 0],
+    "14641": ["Nauen",             52.608, 12.874, 1],
+    "14656": ["Brieselang",        52.585, 13.000, 0],
+    "13503": ["Heiligensee",       52.617, 13.238, 0],
+    "13505": ["Konradshöhe",       52.588, 13.230, 0],
+    "13507": ["Berlin-Tegel",      52.585, 13.288, 1],
+    "13509": ["Borsigwalde",       52.587, 13.315, 0],
+    "13465": ["Frohnau",           52.632, 13.288, 0],
+    "13467": ["Hermsdorf",         52.617, 13.310, 0],
+    "13469": ["Waidmannslust",     52.607, 13.318, 0],
+    "13437": ["Wittenau",          52.591, 13.336, 1],
+    "13127": ["Französisch Buchholz",52.594,13.421, 0]
+  };
+  const AUSSERHALB = [
+    ["Berlin-Mitte", 52.520, 13.405],
+    ["Fürstenberg",  53.183, 13.145],
+    ["Potsdam",      52.400, 13.058]
+  ];
+
+  /* ── Karte zeichnen ─────────────────────────────────────────── */
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.getElementById("karte");
+  const dotById = {};
+
+  /* Echte Umrisse: Brandenburg mit seinen Landkreisen und Berlin,
+     aus dem amtlichen Gemeindeverzeichnis. Fest eingebaut, damit
+     kein Kartendienst geladen werden muss. */
+  const PROJ={cos:0.610145,skala:319.0454,vx:-2182.521,vy:17098.886,W:700,H:724};
+  const KREISE=[["Berlin",1,"M379.6 318.9L390.2 322.7L392.6 320.4L389.2 315.6L392.9 308.5L401.2 309.9L400.1 305.2L403.7 305.2L403.9 299.3L408.6 299.5L409.5 308.9L420.2 310.4L426.3 302.2L433.3 306L435.8 301.3L440.6 301.4L437.1 297.8L442 293.2L444.3 295.6L443 299.1L451.2 304L446.2 313.4L448.3 320.5L456.6 321.9L470.3 340L477.3 340.2L471.2 348.3L472.3 351.9L468.5 358.9L479.2 356.8L497.7 369.1L494.2 367.8L491.7 373.6L492.6 380.8L484.3 385.3L486.6 387.7L479.4 392.3L476.8 400.5L473.3 398L474.8 388.6L467.7 389.6L465.5 382.4L443.1 383.1L440.9 374.7L431.4 378L432.3 388.7L425.2 388.5L425.3 385L416 377.7L410 382.3L407.8 376.3L401.8 380.9L397.2 374.9L375.6 385L376.9 382.7L366.4 375.3L373.6 369.6L371.5 360.1L382.5 347.3L371.9 342.4L374.5 331.8L378.1 333L379.4 328.3L374.8 322.3L379.6 318.9Z"],["Barnim",0,"M449.6 194L479.5 190L483.2 186.6L477.4 184L481 181.8L481.2 175.9L487.1 178.3L507.4 175.3L507.6 171.8L512.3 170.7L520.6 172.1L515.7 176.7L514.3 183.8L509.5 182.5L508 193.1L515 198L528.1 194.7L531.4 203.1L538.6 199.7L540.9 201L538.5 202.1L540.6 210.4L546.5 208.2L547.9 203.5L571.9 200.8L573.1 227.9L547.8 237.8L543.2 234.1L535.8 245.8L531.1 244.5L528.4 255.1L516.5 257.1L518.7 260.7L516.2 266.6L491.1 274.3L496.8 280.3L501.1 295.8L514.4 286.7L514 298.5L511.6 299.6L513.9 302L510.1 309L491.1 313.3L487.4 317.9L488.5 321.5L480.2 323.7L482.4 327.3L469.4 329.3L468 335.2L463.3 333.9L456.6 321.9L448.3 320.5L446.2 313.4L451.2 304L443 299.1L444.3 295.6L442 293.2L437.1 297.8L441.8 300.3L433.3 306L426.3 302.2L431.2 296.5L425.4 291.6L428 283.4L431.6 283.4L428.2 277.5L431.8 275.2L427.2 271.5L429.6 269.2L427.5 260.9L432.3 257.4L431.2 252.7L451.6 247.3L441.3 235.2L441.4 229.3L447.3 230.6L439.1 226.8L444 222.2L440.6 216.2L428.6 219.5L428.7 214.8L433.6 211.3L427.1 211.2L437.5 200.8L448.3 198.7L449.6 194Z"],["Brandenburg an der Havel Städte",0,"M238.4 364.4L237.1 371.5L239.4 376.2L242 365.6L246.7 366.9L255.2 357.6L253.9 362.3L256.2 365.9L264.5 367.3L264.7 359L268.3 357.9L266.9 367.3L283.6 364.1L291.8 369L270.3 376.8L273.7 384L271 399.3L259.2 396.7L253.1 407.2L236.4 410.4L237.7 402.2L231.9 395L231.2 371.3L226.4 373.6L225.3 368.9L238.4 364.4Z"],["Cottbus Städte",0,"M609.7 556.9L619 556.6L617.6 564.8L624.3 573.8L631.4 568.5L635.8 574.9L640.5 573L640.3 580.2L642.5 581.6L636.7 582.2L632.8 591.4L621.4 589.1L632.5 599.7L631.1 604.3L623 604.7L619.9 596.1L612.8 600.2L601.4 596.8L598.2 589.3L600.5 588.3L598.4 583.4L600.8 581.2L598.8 571.5L605.9 566.2L602.7 558.7L604 552.9L609.7 556.9Z"],["Dahme-Spreewald",0,"M485.4 386.5L490.2 384.3L493.6 389.1L491.2 391.4L496.9 396.3L492 404.4L494.2 406.8L507.2 406L513 408.5L510.4 416.7L516.3 415.7L517.3 420.5L514.9 422.8L517.2 424L512.5 423.9L512.3 429.8L508.8 429.7L515.6 437L513.2 439.3L516.6 444.1L513 448.7L523.5 449L523.4 453.7L515.1 455.9L520.8 460.8L514.7 468.9L539.4 464.9L546.3 469.8L546.2 473.4L553.2 471.3L553.1 474.8L564.6 478.9L568.9 490.9L572.3 492.3L582.9 488.1L584.3 479.9L586.5 483.6L590.1 481.5L585.3 485.9L586.2 491.9L595.3 498.5L602.4 496.7L603.8 489.6L612 485.5L622.3 492.2L623.2 500.6L632.3 505L616 508.5L621.1 529.2L608.3 529.3L588.2 538.4L586.7 550.2L579.6 553.2L541.8 539.5L518.4 542.2L519.4 547L513.5 549.2L512.2 553.9L516.8 558.7L513.1 562.2L515.4 564.6L513 565.7L513.9 575.2L508.1 576.2L511.3 583.3L517.1 584.7L515.7 591.7L510 589.2L504.1 592.6L502 584.2L492.6 584L486.6 590.9L486.4 595.6L480.7 593.1L479.6 588.4L467.9 590.4L463.3 585.6L457.4 589L449.6 574.6L461.5 569L455.7 564.1L458.2 559.5L456.2 547.6L464.5 543.1L452 531L430.8 531.6L431.2 516.3L448.8 519.1L459.6 508.7L476.2 504.4L474 497.3L477.7 492.7L473.2 485.5L455.8 477.9L458.6 461.5L456.6 447.2L463.7 445L454.7 430.6L445.2 435.1L439.4 432.6L438.3 426.7L449 423.4L449.2 418.7L444.5 417.4L447 411.5L443.6 406.7L447.3 400.9L440.2 400.7L431 392.2L433.5 386.4L431.4 378L440.9 374.7L443.1 383.1L465.5 382.4L467.7 389.6L474.8 388.6L474.4 400.4L485.4 386.5Z"],["Elbe-Elster",0,"M449.6 574.6L457.4 589L463.3 585.6L467.9 590.4L479.6 588.4L480.7 593.1L486.4 595.6L486.6 590.9L492.6 584L502 584.2L504.2 586.7L502.9 591.4L506.4 591.5L509.7 598.6L508.3 604.5L511.8 604.6L513.9 612.9L524.1 620.3L525 629.8L520.1 637.9L523.4 642.7L506.7 655.2L495.1 654.9L489 661.8L478.7 658L479.6 665.1L474.9 666.2L478.3 668.7L476 669.8L487.4 673.7L486.1 679.6L490.7 680.9L490.4 688L492.7 688.1L490.2 694L484.3 695L488.6 704.6L484.9 709.3L468.7 709.9L466.6 703.9L463.2 703.8L457.2 709.6L452.9 698.8L441.4 694.9L442.6 692.5L434.6 690L430.2 682.7L426.6 683.8L425.2 692.1L413.7 687L416 690.6L406.5 696.3L407.5 699.9L401.7 699.7L403.9 704.5L392.4 699.5L391.5 690L385.6 691L390.5 684.1L387.3 671L390.9 669.9L392.3 660.5L387.7 655.7L387.9 649.8L379.7 648.4L381.2 636.7L374.3 630.6L367.2 634L360.5 620.9L383.1 607.2L380.9 601.3L386.8 599.1L381.2 590.7L382.8 571.8L375 553.9L382.1 552.9L382.3 545.8L395.2 547.3L394.9 560.3L401.7 566.4L421.8 562.1L441.4 574.4L449.6 574.6Z"],["Frankfurt am Oder Städte",0,"M645.7 382.1L650.2 388.2L651.8 403.8L656.5 409.3L654 413.7L656.1 419.9L638.4 428.5L634 419.9L619.9 422.6L620.4 408.3L627.6 400.4L622 395.3L625.9 382.3L645.7 382.1Z"],["Havelland",0,"M316.1 287.9L338.9 278.9L344.8 282.6L343.5 286.1L354.2 289.9L351.6 295.8L368.3 293.8L367 298.5L371.6 306.9L379.8 309.4L378.5 317.7L380.8 317.7L374.7 324.7L378.3 323.6L379.4 328.3L378.1 333L374.5 331.8L373 344.7L369.5 345.8L367.9 360L360.8 362.2L349.3 345.4L337.3 349.9L333.5 359.2L327.6 361.5L328.6 366.2L314.6 358.8L300.2 363.3L299.2 357.3L302.7 356.2L298.1 351.4L300.6 346.7L294.7 341.9L294.9 335.9L266.2 342.5L244.9 332.6L234.1 338.3L238.8 345.5L235.1 347.8L237.4 354.9L235 358.4L242.1 357.4L239.6 364.4L219.3 369.9L215.9 362.8L219.5 356.9L215.9 358.1L213.7 352.1L207.7 354.4L205.4 344.9L200.7 342.4L199.4 349.5L191 351.7L187.6 345.8L191.2 339.9L182.9 342.1L190.2 326.9L188.1 310.3L194 312.7L201.3 309.3L200.4 290.4L193.4 279.6L198.3 273.8L194.8 267.8L197.2 266.6L196 263.1L205.7 254.9L228.5 253L234.4 257.8L228.3 264.8L233.1 264.9L233 269.6L250.9 267.6L259.2 271.3L261.6 270.2L261.7 263.1L258.3 257.1L262 251.2L273.8 257.4L281 254L285.6 264.7L295.1 268.5L292.5 277.9L299.5 285.2L317.2 292.6L316.1 287.9Z"],["Märkisch-Oderland",0,"M570.5 231.3L566.6 235.8L568.3 243.9L584.4 246.8L595.9 260.2L609.2 266.3L620.3 278.3L624.8 289.4L631.5 291.8L633.5 298.8L653.1 308.8L660.8 315.3L662.8 322.4L667.2 323.5L659.7 338.5L665.7 349.3L663.8 354L660.6 354.8L658 363.2L648.5 368.9L648.2 377.3L644.5 383.2L635.3 380.4L625.9 382.3L624.6 388.2L614.2 384.1L610.6 388.7L603.7 385.9L606.2 378.9L596.9 377.2L596.3 360.5L587.3 350.5L579.3 347.8L576.6 358.3L557.7 363.6L560.2 358.9L556.9 354.1L547.3 359.7L544.8 365.6L541.4 361.9L542.6 359.6L532.2 354.6L504.8 368.1L497.8 365.5L500.3 359.7L493.3 359.5L493.4 353.6L487.6 351.1L486.6 346.3L479.2 357.9L474.5 355.5L468.5 358.9L472.3 351.9L471.2 348.3L477.3 340.2L470.3 340L468 335.2L469.4 329.3L478.8 329.6L482.4 327.3L480.2 323.7L488.5 321.5L487.4 317.9L491.1 313.3L510.1 309L513.9 302L511.6 299.6L514 298.5L514.4 286.7L501.1 295.8L496.8 280.3L491.1 274.3L516.2 266.6L518.7 260.7L516.5 257.1L528.4 255.1L531.1 244.5L535.8 245.8L543.2 234.1L547.8 237.8L560.8 234.5L561 230.9L570.5 231.3Z"],["Oberhavel",0,"M395.6 115.6L396.6 125.1L409.5 133.7L404.4 146.6L411.3 157.5L419.5 162.4L424 172L429.9 173.3L427.3 182.7L435.7 180.6L437.9 186.6L446.1 191.5L444.8 195L449.6 194L448.3 198.7L437.5 200.8L427.1 211.2L433.6 211.3L428.7 214.8L428.6 219.5L440.6 216.2L444 222.2L439.1 226.8L447.3 230.6L441.4 229.3L441.3 235.2L451.6 247.3L431.2 252.7L432.3 257.4L427.5 260.9L429.6 269.2L427.2 271.5L431.8 275.2L428.2 278.6L431.6 283.4L428 283.4L425.4 292.8L431.2 296.5L420.2 310.4L409.5 308.9L408.6 299.5L403.9 299.3L403.7 305.2L400.1 305.2L401.2 309.9L392.9 308.5L389.2 315.6L392.6 320.4L390.2 322.7L378.5 317.7L379.8 309.4L371.6 306.9L367 298.5L368.3 293.8L351.6 295.8L354.2 289.9L343.5 286.1L344.8 282.6L342.5 280.2L334.2 278.8L316.1 287.9L316.2 283.1L323.3 283.3L325.8 281L323.4 279.7L334.3 271.7L334.7 257.5L346.9 245.9L339.8 243.4L346.9 243.6L344.7 235.2L356.6 236.7L356.8 229.6L354.4 229.5L352.2 221.2L358.3 217.8L359.9 201.2L358.8 194.1L350.5 191.5L355.5 183.4L353.2 180.9L353.5 167.9L343.9 167.7L338.1 162.8L338.3 153.3L354.1 144.2L345.8 138.1L369.1 122L369.2 114.9L383.8 110.6L388.3 120.1L393.1 121.5L395.6 115.6Z"],["Oberspreewald-Lausitz",0,"M562.5 546.3L559.6 562.7L567.6 566.7L569.6 575.1L567.3 574.9L565.7 587.8L573.7 593.1L563.8 611.4L569.5 615.3L571.5 623.8L578.5 623.2L586.3 629.9L574.3 643.1L578.4 653L571.5 654.8L572.3 660.8L566.7 660.2L565.2 667.3L560.6 669.2L563.7 674.4L552.5 674.3L558.4 684.7L548.7 697.3L550.7 700L546.3 699.6L545.7 708.2L540.3 706.5L540.7 700.5L537.2 700.3L528.9 706L514 704.3L511.5 709L499.8 712.1L500 708.6L496.4 712L486.1 708.1L488.6 704.6L484.3 695L490.2 694L492.7 688.1L490.4 688L490.7 680.9L486.1 679.6L487.4 673.7L476 669.8L478.3 668.7L474.9 666.2L479.6 665.1L478.7 658L489 661.8L495.1 654.9L506.7 655.2L523.4 642.7L520.1 637.9L525 629.8L524.1 620.3L513.9 612.9L511.8 604.6L508.3 604.5L509.7 598.6L506.4 591.5L515.7 591.7L518.2 587.1L511.3 583.3L508.1 576.2L513.9 575.2L513 565.7L515.4 564.6L513.1 562.2L516.8 558.7L512.2 555L513.5 549.2L519.4 547L518.4 542.2L529 539L562.5 546.3Z"],["Oder-Spree",0,"M485.4 386.5L493.9 378.4L491.6 376L494.2 367.8L497.7 369.1L479.2 356.8L485.4 346.3L493.4 353.6L493.3 359.5L500.3 359.7L497.8 365.5L504.8 368.1L532.2 354.6L542.6 359.6L541.4 361.9L544.8 365.6L553.3 355.1L558 354.1L560.2 358.9L557.7 363.6L561.2 363.7L562.5 360.2L576.6 358.3L579.3 347.8L587.3 350.5L596.3 360.5L596.9 377.2L606.2 378.9L603.7 385.9L610.6 388.7L614.2 384.1L624.6 388.2L622 395.3L627.6 400.4L620.4 408.3L619.9 422.6L634 419.9L638.4 428.5L656.1 419.9L653.9 416.1L676.1 425.7L678.7 437.6L674.1 445.9L678 453L673.5 460.2L673.1 469.7L687 486.3L678.7 507.8L677.9 503L670.4 506.7L667.6 499.6L658.1 498.6L652 507.8L640.4 506.8L637.5 491L630.1 501.2L625.5 502L622.1 499.4L622.3 492.2L612 485.5L603.8 489.6L602.4 496.7L595.3 498.5L586.2 491.9L585.3 485.9L590.1 481.5L586.5 483.6L584.3 479.9L582.9 488.1L572.3 492.3L568.9 490.9L564.6 478.9L553.1 474.8L553.2 471.3L546.2 473.4L546.3 469.8L539.4 464.9L514.7 468.9L520.8 460.8L515.1 455.9L523.4 453.7L523.5 449L513 448.7L516.6 444.1L513.2 439.3L515.6 437L508.8 429.7L512.3 429.8L512.5 423.9L517.2 424L514.9 422.8L517.3 420.5L516.3 415.7L510.4 416.7L513 408.5L507.2 406L494.2 406.8L492 404.4L496.9 396.3L491.2 391.4L493.6 389.1L490.2 384.3L485.4 386.5Z"],["Ostprignitz-Ruppin",0,"M219.4 89L231.4 94L231.2 101.2L238.4 103.7L240.7 110.9L257.6 106.4L271.9 112.7L284 109.4L286.4 111.8L283.9 114.1L285.1 117.7L301.9 119.3L298.1 127.5L302.8 131.2L319.7 126.8L325.5 134L331.7 128.3L337.6 131.9L336.5 128.4L343.7 127.4L344.8 129.7L337.5 135.5L342.3 134.4L348.1 142.9L354.1 144.2L346.8 150L342 148.7L336.9 159.2L343.9 167.7L353.5 167.9L353.2 180.9L355.5 183.4L350.5 191.5L358.8 194.1L359.9 201.2L358.3 217.8L352.2 221.2L354.4 229.5L356.8 229.6L356.6 236.7L344.7 235.2L346.9 243.6L339.8 243.4L346.9 245.9L345.6 249.5L334.7 257.5L334.3 271.7L323.4 279.7L325.8 281L323.3 283.3L315 284.3L317.2 292.6L303 287.6L292.5 277.9L295.1 268.5L285.6 264.7L281 254L273.8 257.4L262 251.2L258.3 257.1L261.7 263.1L261.6 270.2L259.2 271.3L250.9 267.6L233 269.6L233.1 264.9L228.3 264.8L234.4 257.8L232.1 254.2L203.3 257.3L204.6 251.4L200.1 235.9L193 229.8L178.5 237.9L180.9 234.4L178.7 226L195.6 218L210 217.1L206.5 207.5L214.9 206.5L220 193.6L235.6 189.1L233.4 181.9L235.8 180.8L234.7 174.8L228.6 178.3L228.5 183L223.8 180.6L224.9 185.3L222.5 186.5L210.8 170.8L220.6 158L212.3 153.1L211.2 147.1L219.7 140.1L217.4 135.4L218.7 130.6L212.7 125.8L223.8 115.3L215.5 104.4L215.7 96.1L213.3 93.7L219.4 89Z"],["Potsdam-Mittelmark",0,"M371.3 366L358.2 370.4L340.5 365.3L336.7 375.9L339 378.3L340.3 373.6L346.3 373.7L347.1 386.7L344.7 391.4L358.7 400L361 400.1L360 395.3L368.2 396.7L369.5 393.2L376.5 398L379.1 386.3L382.7 384L380.4 381.6L392.4 374.8L401.8 380.9L407.8 376.3L409.9 387L399 397.4L398.8 403.3L385.8 405.3L380.9 410L384.4 413.6L377.3 414.6L381.8 421.8L372.2 428.7L372 435.8L365.8 447.4L345.4 463.5L340.7 463.4L349.7 479L342.4 489.4L342.3 496.5L345.7 501.3L331.6 498.6L322.1 503.2L318.4 511.3L305.3 515.8L283.1 505.9L280.6 511.7L274.7 512.8L275.8 515.2L260.5 514.8L259.4 508.9L251.2 506.4L249 499.3L238.3 503.8L231.3 495.4L225.4 495.3L217.4 481L208 476.1L207 469L196.5 455.8L199 449.9L202.5 451.2L202.7 442.9L212.2 438.4L202.9 428.7L205.4 417L215.2 399.4L210.6 394.6L214.2 391.1L211.8 388.7L214.4 380.5L208.5 378L214.6 366.3L225.3 368.9L226.4 373.6L231.2 371.3L231.9 395L237.7 402.2L236.4 410.4L253.1 407.2L259.2 396.7L271 399.3L273.7 384L270.3 376.8L291.8 369L283.6 364.1L266.9 367.3L268.3 357.9L264.7 359L264.5 367.3L256.2 365.9L253.9 362.3L255.2 357.6L246.7 366.9L242 365.6L239.4 376.2L237.2 365.6L242.1 357.4L235 358.4L237.4 354.9L235.1 347.8L238.8 345.5L234.1 338.3L238.9 338.4L239 333.7L248.5 332.6L252 338.6L266.2 342.5L294.9 335.9L294.7 341.9L300.6 346.7L298.1 351.4L302.7 356.2L299.2 357.3L300.2 363.3L314.6 358.8L328.6 366.2L327.6 361.5L333.5 359.2L338.5 348.7L350.5 345.4L355 356.2L363.1 362.3L367.9 360L369.5 345.8L377.8 343.7L382.5 347.3L372.7 357.8L371.3 366Z"],["Potsdam Städte",0,"M382.7 384L379.1 386.3L376.5 398L369.5 393.2L368.2 396.7L360 395.3L361 400.1L358.7 400L344.7 391.4L347.1 386.7L346.3 373.7L340.3 373.6L337.9 378.3L336.8 373.5L340.5 365.3L358.2 370.4L369 364.8L373.6 369.6L366.4 375.3L367.5 378.9L376.9 382.7L375.6 385L382.7 384Z"],["Prignitz",0,"M217 87.8L213.3 93.7L215.7 96.1L215.5 104.4L223.8 115.3L212.7 125.8L218.7 130.6L217.4 135.4L219.7 140.1L211.2 147.1L212.3 153.1L220.6 158L210.8 170.8L222.5 186.5L224.9 185.3L223.8 180.6L228.5 183L228.6 178.3L234.7 174.8L235.8 180.8L233.4 181.9L235.6 189.1L220 193.6L214.9 206.5L206.5 207.5L210 217.1L195.6 218L176.2 230.7L159.5 225.7L149.9 230.3L123.6 220.4L120.1 214.5L124.9 211L125 206.2L113 203.7L104.7 194.1L93.8 197.5L92.7 188L81.9 186.6L85.6 179.5L83.2 177.1L60.3 175.6L48.3 164.8L26.5 172.8L12 157.2L12 151.3L36.2 155.1L36.3 145.6L64.1 150.8L71.4 137.8L67.8 133L69.1 125.9L66.7 124.6L69.1 122.3L74 122.4L82.5 113L95.9 113.2L101.9 116.8L101.8 121.6L121.2 118.3L122.4 115.9L115.3 109.9L128.5 111.3L133.5 101.8L144.3 104.4L149.3 96.2L159 93.9L157.9 84.4L165.2 79.8L164.1 72.6L170.2 72.7L170.1 79.8L176.1 81.1L184.6 75.3L186.9 82.5L199.1 76.8L205 87.6L217 87.8Z"],["Spree-Neiße",0,"M630.1 501.2L637.5 491L640.4 506.8L652 507.8L658.1 498.6L667.6 499.6L670.4 506.7L675.8 503.1L679.8 506.6L677.2 518.5L680 526.8L676.7 529.2L675.3 538.8L656.7 560.5L658.8 570.4L669 573.9L670.5 594L683.7 607.7L688 632.6L681.1 641L676.1 636.3L676.8 643.5L672.3 651.8L661.6 654.3L660.1 647.6L653.7 644.9L645.5 652.6L632 651.7L631.7 656.4L623.6 658.2L620.4 655.5L610.8 661.9L609.3 667.8L598.5 658.5L577.2 655.3L577.5 648.2L574.3 643.1L586.3 629.9L578.5 623.2L571.5 623.8L569.5 615.3L563.8 611.4L573.7 593.1L565.7 587.8L569.7 572.7L565.4 563L559.6 562.7L561.3 547.4L579.6 553.2L586.7 550.2L588.2 538.4L608.3 529.3L618.7 531.4L621.1 529.2L616 508.5L632.3 505L630.1 501.2ZM609.7 556.9L604 552.9L602.7 558.7L605.9 566.2L598.8 571.5L600.8 581.2L598.4 583.4L600.5 588.3L598.2 589.3L601.4 596.8L612.8 600.2L619.9 596.1L623 604.7L631.1 604.3L632.5 599.7L621.4 589.1L632.8 591.4L636.7 582.2L642.5 581.6L640.3 580.2L640.5 573L635.8 574.9L631.4 568.5L624.3 573.8L617.6 564.8L619 556.6L609.7 556.9Z"],["Teltow-Fläming",0,"M431.1 388.7L436.8 398.3L447.3 400.9L443.6 406.7L447 411.5L444.5 417.4L449.2 418.7L449 423.4L438.3 426.7L439.4 432.6L445.2 435.1L454.7 430.6L463.7 445L456.6 447.2L458.6 461.5L455.8 477.9L473.2 485.5L477.7 492.7L474 497.3L476.2 504.4L459.6 508.7L448.8 519.1L431.2 516.3L430.8 531.6L452 531L464.5 543.1L456.2 547.6L458.2 559.5L455.7 564.1L461.5 569L441.4 574.4L421.8 562.1L401.7 566.4L394.9 560.3L395.2 547.3L382.3 545.8L382.1 552.9L379.7 554.1L379.9 549.3L376.4 546.9L366.9 551.4L357.5 550L358.9 540.6L344.8 540.3L346.1 534.4L341.4 534.3L342.7 529.6L334.5 528.2L330.8 532.9L321.5 530.3L320.5 519.7L306.4 520.5L305.3 515.8L318.4 511.3L322.1 503.2L331.6 498.6L345.7 501.3L342.3 496.5L342.4 489.4L349.7 479L340.7 463.4L345.4 463.5L365.8 447.4L372 435.8L372.2 428.7L381.8 421.8L377.2 417L384.4 413.6L380.9 410L388.2 404.2L392.8 406.7L398.8 403.3L399 397.4L416 377.7L425.3 385L425.2 388.5L431.1 388.7Z"],["Uckermark",0,"M623.7 84.3L625.2 100.8L629.2 101.2L630.2 106L622.1 121.2L616.5 124.3L614.8 139.1L618.3 146L610.1 172.6L574.8 199.7L547.9 203.5L544.1 210.5L540.6 210.4L538.5 202.1L540.9 201L538.6 199.7L531.4 203.1L528.1 194.7L515 198L508 193.1L509.5 182.5L514.3 183.8L515.7 176.7L520.6 172.1L513.6 170.7L507.6 171.8L507.4 175.3L481.2 175.9L481 181.8L477.4 184L483.2 186.6L479.5 190L444.8 195L446.1 191.5L437.9 186.6L435.7 180.6L427.3 182.7L429.9 173.3L424 172L419.5 162.4L411.3 157.5L404.4 146.6L409.5 133.7L395.5 122.7L397.9 120.4L395.6 118L397 108.5L404.4 102.8L418.9 102L424.6 112.8L434.6 100.1L433.5 95.3L441.8 97.9L445.5 94.4L445.8 86.1L450.6 88.6L450.9 78L448.5 77.9L456 69.9L455 62.7L469.6 59.5L472.4 47.8L474.8 49.1L486.2 36.4L499.4 39.1L505.7 35.8L509.5 31.2L504.6 31L498.9 22.5L501.8 12L504.3 12.1L507.4 25.2L519.3 29.1L517.9 35L527.1 45.9L523.2 51.7L526.7 55.3L542.8 51.1L551.3 52.6L553.5 58.6L563.5 55.4L566.3 48.4L578.4 54.7L589.6 52.8L588.6 71.6L565.1 97.9L562.3 106.1L593.1 107.1L595.6 106L594.6 101.2L602.2 97.9L605 89.7L623.7 84.3Z"]];
+
+  svg.setAttribute("viewBox", "0 0 " + PROJ.W + " " + PROJ.H);
+
+  function el(name, attrs) {
+    const n = document.createElementNS(NS, name);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    return n;
+  }
+
+  /* Gleiche Projektion fuer Umrisse und Orte, sonst passt nichts aufeinander. */
+  const legen = (lat, lon) => ({
+    x: lon * PROJ.cos * PROJ.skala + PROJ.vx,
+    y: -lat * PROJ.skala + PROJ.vy
+  });
+
+  const landGruppe = el("g", {});
+  svg.appendChild(landGruppe);
+  KREISE.forEach(([name, istBerlin, d]) => {
+    const flaeche = el("path", {
+      d, fill: istBerlin ? "var(--land-berlin)" : "var(--land)",
+      stroke: "var(--landlinie)", "stroke-width": .5, "stroke-linejoin": "round"
+    });
+    flaeche.setAttribute("class", "kreis");
+    const titel = el("title", {});
+    titel.textContent = name.replace(/ Städte$/, "").replace("Frankfurt am Oder", "Frankfurt (Oder)");
+    flaeche.appendChild(titel);
+    landGruppe.appendChild(flaeche);
+  });
+
+  const roh = [];
+  for (const plz in ANKER) {
+    const [name, lat, lon, gross] = ANKER[plz];
+    roh.push(Object.assign({ plz, name, gross }, legen(lat, lon)));
+  }
+
+  function huelle(punkte) {
+    const p = [...punkte].sort((a, b) => a.x - b.x || a.y - b.y);
+    const kreuz = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+    const bauen = liste => {
+      const s = [];
+      for (const q of liste) {
+        while (s.length >= 2 && kreuz(s[s.length - 2], s[s.length - 1], q) <= 0) s.pop();
+        s.push(q);
+      }
+      s.pop();
+      return s;
+    };
+    return bauen(p).concat(bauen([...p].reverse()));
+  }
+
+  function aufblasen(punkte, abstand) {
+    const mx = punkte.reduce((s, p) => s + p.x, 0) / punkte.length;
+    const my = punkte.reduce((s, p) => s + p.y, 0) / punkte.length;
+    return punkte.map(p => {
+      const dx = p.x - mx, dy = p.y - my, l = Math.hypot(dx, dy) || 1;
+      return { x: p.x + dx / l * abstand, y: p.y + dy / l * abstand };
+    });
+  }
+
+  /* Weiche Kontur: quadratische Kurven durch die Kantenmitten. */
+  function kontur(punkte) {
+    const m = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+    let d = "";
+    const start = m(punkte[punkte.length - 1], punkte[0]);
+    d += `M ${start.x.toFixed(1)} ${start.y.toFixed(1)}`;
+    for (let i = 0; i < punkte.length; i++) {
+      const p = punkte[i], next = punkte[(i + 1) % punkte.length], mid = m(p, next);
+      d += ` Q ${p.x.toFixed(1)} ${p.y.toFixed(1)} ${mid.x.toFixed(1)} ${mid.y.toFixed(1)}`;
+    }
+    return d + " Z";
+  }
+
+  const rand = huelle(roh);
+  svg.appendChild(el("path", {
+    d: kontur(aufblasen(rand, 14)),
+    fill: "var(--gold-flaeche)", stroke: "var(--gold)", "stroke-width": 1.2
+  }));
+
+  /* Ausschnitt aufs Liefergebiet legen. Die Nachbarkreise laufen dabei
+     ueber den Rand hinaus — genau wie auf einer gedruckten Karte. */
+  (() => {
+    const xs = roh.map(p => p.x), ys = roh.map(p => p.y);
+    const luft = 68;
+    const x0 = Math.min(...xs) - luft, x1 = Math.max(...xs) + luft;
+    const y0 = Math.min(...ys) - luft, y1 = Math.max(...ys) + luft;
+    svg.setAttribute("viewBox", [x0, y0, x1 - x0, y1 - y0].map(n => n.toFixed(1)).join(" "));
+  })();
+
+  const beschriftung = (x, y, text, klein, oben, seite) => {
+    const t = el("text", {
+      x: (x + (seite === "links" ? -4 : seite === "rechts" ? 4 : 0)).toFixed(1),
+      y: (oben ? y - 6 : y + (klein ? 10 : 12)).toFixed(1),
+      "text-anchor": seite === "links" ? "end" : seite === "rechts" ? "start" : "middle",
+      "font-size": klein ? 6.5 : 8.5,
+      "font-family": "var(--text)",
+      "font-weight": klein ? 400 : 600,
+      fill: klein ? "var(--leise)" : "var(--tinte)",
+      /* Schmaler Rand in Kartenfarbe: so bleibt der Name lesbar, auch wenn
+         ein Nachbarort direkt darunter liegt. */
+      stroke: "var(--karte)",
+      "stroke-width": klein ? 1.6 : 2,
+      "stroke-linejoin": "round",
+      "paint-order": "stroke fill"
+    });
+    t.textContent = text;
+    return t;
+  };
+
+  /* Alle Namen kommen zum Schluss aufs Blatt. Sonst zeichnet der naechste
+     Ortspunkt sich mitten in ein Wort, das schon dasteht. */
+  const namenGruppe = el("g", {});
+
+  /* Nur zur Orientierung, damit man die Karte lesen kann — bewusst
+     unauffaellig, damit nichts nach zweiter Zone aussieht. */
+  AUSSERHALB.forEach(([name, lat, lon]) => {
+    const p = legen(lat, lon);
+    svg.appendChild(el("circle", { cx: p.x.toFixed(1), cy: p.y.toFixed(1), r: 1.6,
+      fill: "none", stroke: "var(--leise)", "stroke-width": .7 }));
+    namenGruppe.appendChild(beschriftung(p.x, p.y, name, true));
+  });
+
+  /* Nur wenige Namen aufs Blatt — der Rest erscheint beim Draufzeigen,
+     sonst ueberlagern sich die Schriften noerdlich von Berlin. */
+  const MIT_NAMEN = ["16767", "16816", "16792", "14612", "16348", "16775", "16515", "16766"];
+  /* Oranienburg und Kremmen stehen ueber ihrem Punkt — unter ihnen liegen
+     Leegebruch und die dichte Ortsgruppe, da waere kein Platz. Weil die
+     beiden nur gut zwei Zentimeter auseinanderliegen, rueckt Kremmen nach
+     links und Oranienburg nach rechts, sonst ueberdecken sie sich. */
+  const NAME_OBEN = ["16515", "16766"];
+  const NAME_SEITE = { "16766": "links", "16515": "rechts" };
+
+  roh.forEach(p => {
+    const daheim = p.plz === "16767";
+    const kreis = el("circle", {
+      cx: p.x.toFixed(1), cy: p.y.toFixed(1),
+      r: daheim ? 3.4 : 2.4,
+      fill: daheim ? "var(--gold-tief)" : "var(--gold)",
+      stroke: "var(--karte)", "stroke-width": daheim ? 1.2 : .7
+    });
+    const titel = el("title", {});
+    titel.textContent = p.name;
+    kreis.appendChild(titel);
+    dotById[p.plz] = kreis;
+    svg.appendChild(kreis);
+    if (MIT_NAMEN.includes(p.plz)) {
+      namenGruppe.appendChild(beschriftung(p.x, p.y, p.name, false,
+        NAME_OBEN.includes(p.plz), NAME_SEITE[p.plz]));
+    }
+  });
+
+  svg.appendChild(namenGruppe);
+
+  /* ── Suche ──────────────────────────────────────────────────── */
+  const feld = document.getElementById("ortsfeld");
+  const liste = document.getElementById("trefferliste");
+  const antwort = document.getElementById("antwortfeld");
+
+  const falten = s => s.toLowerCase()
+    .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
+    .replace(/[^a-z0-9]/g, "");
+
+  function suchen(text) {
+    const q = falten(text);
+    if (q.length < 2) return [];
+    const beginnt = [], enthaelt = [];
+    for (const o of ORTE) {
+      const n = falten(o[0]);
+      if (n.startsWith(q) || o[1].startsWith(q)) beginnt.push(o);
+      else if (n.includes(q)) enthaelt.push(o);
+    }
+    return beginnt.concat(enthaelt).slice(0, 8);
+  }
+
+  function waehlen(ort) {
+    feld.value = ort[0];
+    liste.innerHTML = "";
+    antwort.innerHTML = "";
+    const kasten = document.createElement("div");
+    kasten.className = "antwort";
+    const z1 = document.createElement("div");
+    z1.className = "zeile1";
+    z1.textContent = "Ja, nach " + ort[0] + " liefern wir.";
+    const z2 = document.createElement("div");
+    z2.className = "zeile2";
+    z2.innerHTML = "Postleitzahl <b>" + ort[1] + "</b> · " +
+      '<a href="https://angebot.mama-mia-events.de">Angebot berechnen</a>';
+    kasten.append(z1, z2);
+    antwort.appendChild(kasten);
+
+    const punkt = dotById[ort[1]];
+    if (punkt) {
+      svg.querySelectorAll(".pulsiert").forEach(k => k.classList.remove("pulsiert"));
+      void punkt.getBBox();
+      punkt.classList.add("pulsiert");
+    }
+  }
+
+  function keinTreffer(text) {
+    antwort.innerHTML = "";
+    const kasten = document.createElement("div");
+    kasten.className = "antwort frage";
+    const z1 = document.createElement("div");
+    z1.className = "zeile1";
+    z1.textContent = '„' + text.trim() + "“ steht nicht in der Liste.";
+    const z2 = document.createElement("div");
+    z2.className = "zeile2";
+    z2.innerHTML = 'Das heißt nicht nein. Außerhalb des markierten Bereichs fahren wir auf Anfrage — ' +
+      'rufen Sie an unter <a href="tel:+491739344723">0173 9344723</a> oder ' +
+      '<a href="https://angebot.mama-mia-events.de">stellen Sie eine Anfrage</a>.';
+    kasten.append(z1, z2);
+    antwort.appendChild(kasten);
+  }
+
+  let letzteEingabe = "";
+  feld.addEventListener("input", () => {
+    const text = feld.value;
+    letzteEingabe = text;
+    liste.innerHTML = "";
+    if (text.trim().length < 2) { antwort.innerHTML = ""; return; }
+
+    const treffer = suchen(text);
+    if (!treffer.length) { keinTreffer(text); return; }
+
+    antwort.innerHTML = "";
+    for (const ort of treffer) {
+      const li = document.createElement("li");
+      const b = document.createElement("button");
+      b.type = "button";
+      b.innerHTML = '<span class="name"></span><span class="plz"></span>';
+      b.querySelector(".name").textContent = ort[0];
+      b.querySelector(".plz").textContent = ort[1];
+      b.addEventListener("click", () => waehlen(ort));
+      li.appendChild(b);
+      liste.appendChild(li);
+    }
+  });
+
+  feld.addEventListener("keydown", e => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    const ersteTaste = liste.querySelector("button");
+    if (ersteTaste) ersteTaste.click();
+    else if (feld.value.trim().length >= 2) keinTreffer(feld.value);
+  });
+
+  /* Frische Orte aus dem CRM nachladen. Klappt das nicht — kein Netz,
+     Tabelle gerade nicht erreichbar —, bleibt die eingebaute Liste stehen. */
+  const SUPABASE = "https://jypugzjdoluvmawkwewl.supabase.co";
+  const SCHLUESSEL = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5cHVnempkb2x1dm1hd2t3ZXdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgzMTY4MTUsImV4cCI6MjA5Mzg5MjgxNX0.b1yX6Dnc6b8iIWevHTcPZ44H3OOoEF9wyl8seebm9CA";
+  fetch(SUPABASE + "/rest/v1/lieferorte?select=ort,plz,fahrzeit_min&aktiv=eq.true&order=ort",
+        { headers: { apikey: SCHLUESSEL, Authorization: "Bearer " + SCHLUESSEL } })
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(d => {
+      if (Array.isArray(d) && d.length) {
+        ORTE = d.map(o => [o.ort, o.plz, o.fahrzeit_min]);
+        if (letzteEingabe) feld.dispatchEvent(new Event("input"));
+      }
+    })
+    .catch(() => { /* eingebaute Liste genuegt */ });
+})();
+</script>
+
+</body>
+</html>
