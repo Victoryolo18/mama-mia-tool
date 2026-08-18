@@ -445,7 +445,7 @@
     const z2 = document.createElement("div");
     z2.className = "zeile2";
     z2.innerHTML = "Postleitzahl <b>" + ort[1] + "</b> · " +
-      '<a href="https://angebot.mama-mia-events.de">Angebot berechnen</a>';
+      '<a target="_blank" rel="noopener" href="https://angebot.mama-mia-events.de">Angebot berechnen</a>';
     kasten.append(z1, z2);
     antwort.appendChild(kasten);
 
@@ -468,7 +468,7 @@
     z2.className = "zeile2";
     z2.innerHTML = 'Das heißt nicht nein. Außerhalb des markierten Bereichs fahren wir auf Anfrage — ' +
       'rufen Sie an unter <a href="tel:+491739344723">0173 9344723</a> oder ' +
-      '<a href="https://angebot.mama-mia-events.de">stellen Sie eine Anfrage</a>.';
+      '<a target="_blank" rel="noopener" href="https://angebot.mama-mia-events.de">stellen Sie eine Anfrage</a>.';
     kasten.append(z1, z2);
     antwort.appendChild(kasten);
   }
