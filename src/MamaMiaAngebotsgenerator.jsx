@@ -484,11 +484,19 @@ export default function MamaMiaAngebotsgenerator() {
   const lieferInfo = isDelivery
     ? getLieferzuschlag(data.plz, dbLieferzonen, dbLieferorte, data.ortsteil)
     : { zuschlag: 0, rueckholungPreis: 0, bekannt: true };
-  const lieferzuschlag = data.lieferung === "anlieferung_rueckholung"
-    ? (lieferInfo.rueckholungPreis ?? lieferInfo.zuschlag ?? 0)
-    : (lieferInfo.zuschlag ?? 0);
+  /* Unbekannte Lieferzone bleibt unbekannt: null, nicht 0. Eine 0 heisst
+     "Lieferung kostenlos" (Kerngebiet) — und genau das stand dadurch in
+     Mamas Anfrageliste, obwohl der Kunde hier "auf Anfrage" gesehen hat.
+     Aufgefallen an 16798 (Fuerstenberg) und 16565 (Lehnitz). */
+  const lieferzuschlag = !lieferInfo.bekannt
+    ? null
+    : data.lieferung === "anlieferung_rueckholung"
+      ? (lieferInfo.rueckholungPreis ?? lieferInfo.zuschlag ?? 0)
+      : (lieferInfo.zuschlag ?? 0);
   const upgradeSummeProPerson = Object.values(upgrades).reduce((s, p) => s + p, 0);
-  const gesamtpreis = speisenPreis + lieferzuschlag + upgradeSummeProPerson * (data.gaeste || 0);
+  /* Ohne bekannten Lieferpreis ist das eine Zwischensumme ohne Lieferung.
+     Schritt 7 weist sie mit "zzgl. Liefergebuehr" aus. */
+  const gesamtpreis = speisenPreis + (lieferzuschlag ?? 0) + upgradeSummeProPerson * (data.gaeste || 0);
 
   /* ── Submit (Supabase + E-Mail) ── */
   async function handleSubmit() {
@@ -652,7 +660,7 @@ export default function MamaMiaAngebotsgenerator() {
           <p style="margin: 4px 0;"><strong>Gäste:</strong> ${request.gaeste}</p>
           <p style="margin: 4px 0;"><strong>Datum:</strong> ${datumFormatted}</p>
           <p style="margin: 4px 0;"><strong>Ort:</strong> ${request.plz || "—"} (${({ selbstabholung: "Selbstabholung", abholung: "Selbstabholung", nur_anlieferung: "Nur Anlieferung", anlieferung_rueckholung: "Anlieferung + Rückholung", lieferung: "Lieferung" })[request.lieferung] || request.lieferung})</p>
-          <p style="margin: 4px 0;"><strong>Geschätzter Preis:</strong> ${request.gesamtpreis} €</p>
+          <p style="margin: 4px 0;"><strong>Geschätzter Preis:</strong> ${request.gesamtpreis} €${request.lieferzuschlag == null && ["nur_anlieferung", "anlieferung_rueckholung", "lieferung"].includes(request.lieferung) ? ' <span style="color: #B00020;">(zzgl. Lieferung — PLZ nicht im Liefergebiet hinterlegt, Preis auf Anfrage)</span>' : ''}</p>
           ${request.menue_auswahl?._upgrades && Object.keys(request.menue_auswahl._upgrades).length ? `<p style="margin: 4px 0;"><strong>Upgrades:</strong> ${Object.entries(request.menue_auswahl._upgrades).map(([k,v]) => `+1 ${k} (${Number(v).toFixed(2).replace('.',',')} € p.P.)`).join(', ')}</p>` : ''}
           ${hatGetraenkeservice ? '<p style="margin: 4px 0;"><strong>Getränkeservice:</strong> Ja</p>' : ''}
         </div>
