@@ -85,7 +85,7 @@ Neue Tabellen (Namen vorläufig):
 
 Geänderte Tabellen:
 
-- `gerichte`: neue Spalte `gruppe` (Verweis auf `gruppen`), neue Spalte `aufpreis_pro_person` (leer = Standard der Gruppe). `themen_tags` wird zur einzigen Quelle für Stile und bereinigt.
+- `gerichte`: neue Spalte `aufpreis_pro_person` (leer = Standard der Gruppe). Gruppe und Stil eines Gerichts stehen in den Zuordnungstabellen `gericht_gruppen` und `gericht_stile`, weil ein Gericht in mehreren Töpfen liegen kann (Draniki ist Hauptgericht und Brunch-Extra). `themen_tags` wird nicht mehr gelesen und entfällt mit GEN-5.
 - `requests`: neue Spalten `essensart`, `stil`; `anlass` wird freiwillig. `angebot_snapshot` (JSON) hält Paket, Preise, Aufpreise und Gerichte, wie der Kunde sie gesehen hat.
 
 Entfällt nach der Umstellung, in einem zweiten Schritt und erst nach Victors OK: `paket_konfiguration`, `paket_slots`, `slot_gerichte`, `themen`, `pakete_versionen`.
@@ -113,9 +113,9 @@ Entfällt nach der Umstellung, in einem zweiten Schritt und erst nach Victors OK
 
 ### GEN-1 Neue Kataloge in der Datenbank
 Fertig, wenn:
-- [ ] Migration legt die neuen Tabellen mit RLS an und befüllt sie aus dem Bestand
-- [ ] Prüfabfrage zeigt: jedes aktive Gericht hat genau eine Gruppe; jedes Paket hat seine Gruppen
-- [ ] Victor hat das SQL geprüft und ausgeführt
+- [x] Migration legt die neuen Tabellen mit RLS an und befüllt sie aus dem Bestand (`supabase/migrations/angebot_essensart_1_kataloge.sql`)
+- [x] Prüfabfrage zeigt: jedes aktive Gericht hat mindestens eine Gruppe; jedes Paket hat seine Gruppen (Test-Projekt, 08.10.2026: 9 Pakete, 37 Blöcke, 175 Zuordnungen, alle wie vorausberechnet)
+- [ ] Victor hat das SQL geprüft und ausgeführt (im Test-Projekt am 08.10.2026 erledigt; im echten Projekt erst zur Umschaltung)
 
 ### GEN-2 Rechenregeln als eigene Datei
 Baut auf: GEN-1
@@ -163,4 +163,8 @@ Fertig, wenn:
 - 08.10.2026, Victor: Der Anlass wird ein freiwilliges Feld am Ende.
 - 08.10.2026, Victor: Preise sind nachrangig; erst die Struktur.
 - 08.10.2026, Victor: Kalt und warm werden nicht getrennt. Die vorgewählte Kachel heißt weiter „Individuell“. Keine Klick-Auswertung über Fremddienste.
+- 08.10.2026, Victor: Gebaut wird gegen ein eigenes Supabase-Test-Projekt, nicht gegen die echte Datenbank.
+- 08.10.2026, Victor: Die zwölf heutigen Häppchen, die nicht auf Janas Liste stehen, bleiben Fingerfood; ihre Liste ergänzt den Bestand. Miniwraps gibt es in zwei Sorten: Tomate, Mozzarella, Pesto, Salat · frittiertes Hühnchen, Salat, Gurke, Soße.
+- 08.10.2026, Victor: Die Teilanzahl je Fingerfood-Paket richtet sich nach relaxx-catering (Zahlen noch zu erheben; sie stehen nur im Bestellablauf).
+- 08.10.2026, Victor: Das Elfsight-Bewertungs-Widget wird ohne Einwilligungsabfrage eingebaut; das Risiko trägt er. Eigenes Vorhaben im Website-Repo.
 - 08.10.2026, Victor: Spec abgenommen. Bedingung: Es wird in Kopien gearbeitet, und beim Umzug gehen keine Kundendaten verloren.
