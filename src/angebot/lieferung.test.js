@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { esc, getLieferzuschlag, getOrtsteile, formatEUR } from './MamaMiaAngebotsgenerator.jsx';
+import { esc } from './mail.js';
+import { getLieferzuschlag, getOrtsteile } from './lieferung.js';
 
 /* Kundeneingaben landen in den Benachrichtigungs-Mails an Jana. Ohne
    Maskierung koennte jemand ueber das oeffentliche Formular fremdes
@@ -68,16 +69,6 @@ describe('getLieferzuschlag (Generator)', () => {
   it('stuerzt nicht ab, solange die Zonen noch laden', () => {
     expect(getLieferzuschlag('16767', undefined).bekannt).toBe(false);
     expect(getLieferzuschlag('16767', []).bekannt).toBe(false);
-  });
-});
-
-describe('formatEUR (Generator)', () => {
-  it('zeigt Preise als Euro an', () => {
-    expect(formatEUR(1850)).toMatch(/€/);
-  });
-
-  it('behandelt 0 als gueltigen Preis', () => {
-    expect(formatEUR(0)).toMatch(/0/);
   });
 });
 

@@ -130,9 +130,10 @@ Fertig, wenn:
 ### GEN-4 Generator: neuer Ablauf
 Baut auf: GEN-2, GEN-3
 Fertig, wenn:
-- [ ] Essensart → Paket → Gerichte → Angaben → Zusammenfassung, mit Vorwahl per Link
-- [ ] Anfrage speichert `essensart`, `stil`, freiwilligen `anlass` und `angebot_snapshot`
-- [ ] Bestätigungs-Mail nennt Essensart, Paket, Aufpreise
+- [x] Essensart → Paket → Gerichte → Angaben → Zusammenfassung, mit Vorwahl per Link (`?essensart=`; die alten Links `?anlass=` füllen den freiwilligen Anlass, `?anlass=fruehstueck` führt zum Frühstück). Klickprüfung am 08.10.2026 lokal mit abgefangener Datenbank, Desktop und Handy: 55 von 55 Punkten
+- [ ] Anfrage speichert `essensart`, `stil`, freiwilligen `anlass` und `angebot_snapshot` (`src/angebot/anfrage.js`, 27 Tests mit Gegenprobe; die bisherigen Spalten bleiben gefüllt, damit das CRM neue Anfragen ohne Umbau anzeigt. Offen: eine TEST-Anfrage aus der Vorschau im Test-Projekt, nachdem dort `angebot_essensart_3_preispruefung.sql` gelaufen ist)
+- [x] Bestätigungs-Mail nennt Essensart, Paket, Aufpreise (`src/angebot/mail.js`, Tests; Versand selbst im Test-Projekt nicht prüfbar, dort gibt es die Mailfunktion nicht)
+- [ ] Datenbank rechnet den Preis jeder neuen Anfrage nach und markiert Abweichungen (`angebot_essensart_3_preispruefung.sql`; von Victor im Test-Projekt auszuführen, Ergebnis `preis_pruefung = stimmt` an einer TEST-Anfrage)
 
 ### CRM-1 Pflege der Kataloge
 Baut auf: GEN-1

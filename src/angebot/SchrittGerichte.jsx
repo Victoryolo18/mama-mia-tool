@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { C, S } from "../theme.js";
 import {
-  blockErfuellt, formatPreis, gerichteFuerBlock, maxAuswahl, plusEinsPreis, zusatzPreis,
+  aktiverStil, blockErfuellt, formatPreis, gerichteFuerBlock, maxAuswahl, plusEinsPreis, zusatzPreis,
 } from "./angebotspreis.js";
 
 /* Schritt "Gerichte": Stil-Kacheln oben, darunter die Blöcke des Pakets.
-   Hält selbst keine Auswahl; die liegt beim Aufrufer, damit der Preis überall derselbe ist. */
+   Hält selbst keine Auswahl; die liegt beim Aufrufer, damit der Preis überall derselbe ist.
+   `children` steht am Ende der Karte (im Generator: das Feld für Anmerkungen). */
 
 const UNTERGRUPPEN = [
   ["suppen", "Suppen"], ["platten", "Platten"], ["haeppchen", "Häppchen"],
@@ -123,10 +124,10 @@ function StilLeiste({ stile, gewaehlt, onWahl }) {
 
 export default function SchrittGerichte({
   paket, bloecke, gruppen, stile, gerichte,
-  stilSlug, onStil, auswahl, onAuswahl, plusEins, onPlusEins,
+  stilSlug, onStil, auswahl, onAuswahl, plusEins, onPlusEins, schritt, children,
 }) {
   const [offen, setOffen] = useState({});
-  const stil = stile.find((s) => s.slug === stilSlug) ?? stile.find((s) => s.zeigt_alles) ?? null;
+  const stil = aktiverStil(stile, stilSlug);
   const wahlGruppen = bloecke.filter((b) => b.typ === "wahl").flatMap((b) => b.gruppen);
   const feste = bloecke.filter((b) => b.typ === "fix");
 
@@ -161,7 +162,7 @@ export default function SchrittGerichte({
       `}</style>
 
       <div style={S.heroBlock}>
-        <div style={S.heroEyebrow}>{paket.name} · {formatPreis(paket.preis_pro_person)} pro Person</div>
+        <div style={S.heroEyebrow}>{schritt} · {paket.name} · {formatPreis(paket.preis_pro_person)} pro Person</div>
         <h1 style={S.heroTitle} className="mm-hero-title">
           Ihr <em style={S.italic}>Menü</em>
         </h1>
@@ -353,6 +354,8 @@ export default function SchrittGerichte({
             </div>
           );
         })}
+
+        {children}
       </div>
     </div>
   );

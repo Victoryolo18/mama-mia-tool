@@ -33,7 +33,7 @@ export function baueKataloge({ essensarten, pakete, gruppen, bloecke, stile, ger
 export async function ladeKataloge(supabase) {
   const abfragen = {
     essensarten: supabase.from('essensarten').select('slug, label, beschreibung, bild_url, mindestpersonen, reihenfolge').eq('aktiv', true).limit(GRENZE),
-    pakete: supabase.from('pakete').select('id, essensart, name, preis_pro_person, reihenfolge').eq('aktiv', true).limit(GRENZE),
+    pakete: supabase.from('pakete').select('id, essensart, name, untertitel, hinweis, hervorgehoben, preis_pro_person, reihenfolge').eq('aktiv', true).limit(GRENZE),
     gruppen: supabase.from('gruppen').select('slug, label, label_einzahl, aufpreis_plus_eins, aufpreis_je_gericht, reihenfolge').limit(GRENZE),
     bloecke: supabase.from('paket_gruppen').select('id, paket_id, label, gruppen, typ, min_auswahl, max_auswahl, fix_gericht_id, reihenfolge').eq('aktiv', true).limit(GRENZE),
     stile: supabase.from('stile').select('slug, essensart, label, beschreibung, bild_url, bild_url_1, bild_url_2, bild_url_3, zeigt_alles, reihenfolge').eq('aktiv', true).limit(GRENZE),

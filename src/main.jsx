@@ -11,20 +11,10 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Klick-Prototyp für den neuen Schritt "Gerichte" (GEN-3): nur mit ?prototyp=gerichte, sonst der Generator wie bisher.
-const PrototypGerichte = React.lazy(() => import("./prototyp/PrototypGerichte.jsx"));
-const prototyp = new URLSearchParams(window.location.search).get("prototyp") === "gerichte";
-
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ErrorBoundary>
-      {prototyp ? (
-        <React.Suspense fallback={null}>
-          <PrototypGerichte />
-        </React.Suspense>
-      ) : (
-        <MamaMiaAngebotsgenerator />
-      )}
+      <MamaMiaAngebotsgenerator />
     </ErrorBoundary>
   </React.StrictMode>
 );

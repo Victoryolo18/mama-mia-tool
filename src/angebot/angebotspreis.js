@@ -48,6 +48,12 @@ export function blockErfuellt(block, gewaehlt = [], mitPlusEins = false) {
   return anzahl >= block.min_auswahl + (mitPlusEins ? 1 : 0);
 }
 
+/** Der Stil, der gerade gilt: der gewählte, sonst der vorgewählte, der alles zeigt ("Individuell").
+    null, wenn die Essensart keine Stile hat. */
+export function aktiverStil(stile, slug) {
+  return stile.find((s) => s.slug === slug) ?? stile.find((s) => s.zeigt_alles) ?? null;
+}
+
 /** Welche Gerichte zeigt ein Block an?
     - nur aktive Gerichte aus den Gruppen des Blocks
     - in Wahl-Blöcken gefiltert nach Stil; ohne Stil oder bei einem Stil mit `zeigt_alles` alle
