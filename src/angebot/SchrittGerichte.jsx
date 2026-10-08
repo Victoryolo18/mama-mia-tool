@@ -64,12 +64,12 @@ function GerichtKnopf({ gericht, an, gesperrt, rund, preis, onClick }) {
       }}
     >
       <Haken an={an} rund={rund} />
-      <span style={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
+      <span style={{ display: "flex", alignItems: "center", gap: 2, flex: 1, minWidth: 0 }}>
         <Kostform gericht={gericht} />
-        {gericht.name}
+        <span style={{ minWidth: 0, overflowWrap: "anywhere" }}>{gericht.name}</span>
       </span>
       {preis !== undefined && (
-        <span style={{ fontSize: 13, fontWeight: 700, color: C.gold, whiteSpace: "nowrap" }}>+ {formatPreis(preis)}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: C.gold, whiteSpace: "nowrap", flexShrink: 0 }}>+ {formatPreis(preis)}</span>
       )}
     </button>
   );
@@ -109,8 +109,9 @@ function StilLeiste({ stile, gewaehlt, onWahl }) {
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>✓</span>
             )}
-            <span style={{
+            <span lang="de" style={{
               padding: "8px 6px", fontSize: 12, lineHeight: 1.25, textAlign: "center", width: "100%",
+              overflowWrap: "anywhere", hyphens: "auto",
               fontWeight: an ? 700 : 600, color: an ? C.burgundy : C.inkSoft,
             }}>{s.label}</span>
           </button>
@@ -149,7 +150,9 @@ export default function SchrittGerichte({
     <div className="mm-fade">
       <style>{`
         .mm-dish-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
-        .mm-stil-leiste { display: grid; grid-template-columns: repeat(auto-fit, minmax(78px, 1fr)); gap: 8px; max-width: 720px; margin: 0 auto 14px; }
+        .mm-dish-grid-breit { grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); }
+        .mm-dish-grid > button { min-width: 0; width: 100%; }
+        .mm-stil-leiste { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 10px; max-width: 960px; margin: 0 auto 14px; }
         @media (max-width: 640px) {
           .mm-dish-grid { grid-template-columns: 1fr !important; }
           .mm-stil-leiste { display: flex; overflow-x: auto; scroll-snap-type: x proximity; padding: 4px 20px 12px; margin: 0 -20px 6px; -webkit-overflow-scrolling: touch; }
@@ -286,7 +289,7 @@ export default function SchrittGerichte({
                           {teil.label}
                         </div>
                       )}
-                      <div className="mm-dish-grid">
+                      <div className={zusatz ? "mm-dish-grid mm-dish-grid-breit" : "mm-dish-grid"}>
                         {teil.gerichte.map((g) => {
                           const an = gewaehlt.includes(g.id);
                           return (
