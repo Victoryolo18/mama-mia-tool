@@ -125,7 +125,7 @@ Fertig, wenn:
 
 ### GEN-3 Klick-Prototyp Schritt „Gerichte“
 Fertig, wenn:
-- [ ] Victor hat Stil-Kacheln, Filter und „Fingerfood dazu“ am Handy und am Desktop abgenommen
+- [x] Victor hat Stil-Kacheln, Filter und „Fingerfood dazu“ am Handy und am Desktop abgenommen (08.10.2026, nach Korrektur von Überlauf und Reihenfolge; Aufruf `?prototyp=gerichte`)
 
 ### GEN-4 Generator: neuer Ablauf
 Baut auf: GEN-2, GEN-3
@@ -167,4 +167,5 @@ Fertig, wenn:
 - 08.10.2026, Victor: Die zwölf heutigen Häppchen, die nicht auf Janas Liste stehen, bleiben Fingerfood; ihre Liste ergänzt den Bestand. Miniwraps gibt es in zwei Sorten: Tomate, Mozzarella, Pesto, Salat · frittiertes Hühnchen, Salat, Gurke, Soße.
 - 08.10.2026, Victor: Die Teilanzahl je Fingerfood-Paket richtet sich nach relaxx-catering (Zahlen noch zu erheben; sie stehen nur im Bestellablauf).
 - 08.10.2026, Victor: Das Elfsight-Bewertungs-Widget wird ohne Einwilligungsabfrage eingebaut; das Risiko trägt er. Eigenes Vorhaben im Website-Repo.
+- 08.10.2026, Victor, am Prototyp: Reihenfolge der Stile Individuell, Mediterran, Klassisch deutsch, Modern festlich, Osteuropäisch, Buntes Buffet, Klassisch elegant, Kinderfreundlich. Die drei Stimmungsbilder bleiben unter den Kacheln. „Fingerfood dazu“ bleibt zwischen Vorspeisen und Hauptgerichten, eingeklappt und ohne Stil-Filter. Wer „+1“ bucht, muss das zusätzliche Gericht wählen.
 - 08.10.2026, Victor: Spec abgenommen. Bedingung: Es wird in Kopien gearbeitet, und beim Umzug gehen keine Kundendaten verloren.
