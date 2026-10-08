@@ -120,7 +120,7 @@ Fertig, wenn:
 ### GEN-2 Rechenregeln als eigene Datei
 Baut auf: GEN-1
 Fertig, wenn:
-- [ ] `angebotspreis.js` rechnet Paket, „+1“, „Fingerfood dazu“ und Lieferung; Tests mit Gegenprobe
+- [x] `src/angebot/angebotspreis.js` rechnet Paket, „+1“, „Fingerfood dazu“ und Lieferung; 28 Tests. Gegenprobe am 08.10.2026: Rechnen ohne Cent, eigener Gerichtpreis ignoriert, „+1“ ohne Pflichtwahl, Doppelangebot im Zusatz-Block, Auswahl verschwindet beim Stilwechsel – jeder Fehler ließ einen Test rot werden
 - [ ] Dieselben Testfälle laufen im CRM
 
 ### GEN-3 Klick-Prototyp Schritt „Gerichte“
