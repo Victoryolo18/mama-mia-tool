@@ -121,7 +121,7 @@ Fertig, wenn:
 Baut auf: GEN-1
 Fertig, wenn:
 - [x] `src/angebot/angebotspreis.js` rechnet Paket, „+1“, „Fingerfood dazu“ und Lieferung; 28 Tests. Gegenprobe am 08.10.2026: Rechnen ohne Cent, eigener Gerichtpreis ignoriert, „+1“ ohne Pflichtwahl, Doppelangebot im Zusatz-Block, Auswahl verschwindet beim Stilwechsel – jeder Fehler ließ einen Test rot werden
-- [ ] Dieselben Testfälle laufen im CRM
+- [x] Dieselben Testfälle laufen im CRM (`src/shared/angebotspreis.js` und `.test.js`, unverändert kopiert; 29 Tests grün am 09.10.2026)
 
 ### GEN-3 Klick-Prototyp Schritt „Gerichte“
 Fertig, wenn:
@@ -138,7 +138,7 @@ Fertig, wenn:
 ### CRM-1 Pflege der Kataloge
 Baut auf: GEN-1
 Fertig, wenn:
-- [ ] Pakete, Gruppen je Paket, Aufpreise, Stile und Gerichte sind im CRM änderbar; die alten Masken „Pakete & Slots“ sind ersetzt
+- [ ] Pakete, Gruppen je Paket, Aufpreise, Stile und Gerichte sind im CRM änderbar; die alten Masken „Pakete & Slots“ sind ersetzt (CRM-Zweig `crm-1-kataloge-pflegen`, Commit 8c4217a; Klickprüfung lokal mit nachgebauter Anmeldung und Datenbank: 29 von 29 Punkten. Offen: Durchklicken in der Vorschau gegen das Test-Projekt, dafür fehlt dort ein CRM-Nutzer)
 
 ### CRM-2 Anfragen mit der neuen Struktur
 Baut auf: GEN-2, CRM-1
