@@ -138,7 +138,7 @@ Fertig, wenn:
 ### CRM-1 Pflege der Kataloge
 Baut auf: GEN-1
 Fertig, wenn:
-- [ ] Pakete, Gruppen je Paket, Aufpreise, Stile und Gerichte sind im CRM änderbar; die alten Masken „Pakete & Slots“ sind ersetzt (CRM-Zweig `crm-1-kataloge-pflegen`, Commit 8c4217a; Klickprüfung lokal mit nachgebauter Anmeldung und Datenbank: 29 von 29 Punkten. Offen: Durchklicken in der Vorschau gegen das Test-Projekt, dafür fehlt dort ein CRM-Nutzer)
+- [x] Pakete, Gruppen je Paket, Aufpreise, Stile und Gerichte sind im CRM änderbar; die alten Masken „Pakete & Slots“ sind ersetzt (CRM-Zweig `crm-1-kataloge-pflegen`, Commit 8c4217a; Klickprüfung lokal mit nachgebauter Anmeldung und Datenbank: 29 von 29 Punkten. Offen: Durchklicken in der Vorschau gegen das Test-Projekt, dafür fehlt dort ein CRM-Nutzer)
 
 ### CRM-2 Anfragen mit der neuen Struktur
 Baut auf: GEN-2, CRM-1
@@ -172,3 +172,4 @@ Fertig, wenn:
 - 08.10.2026, Victor: Spec abgenommen. Bedingung: Es wird in Kopien gearbeitet, und beim Umzug gehen keine Kundendaten verloren.
 - 09.10.2026, Victor, an der Vorschau: Essensart-Karten ohne „ab“-Preis (keine Lockpreise), Name mittig. Glatte Preise ohne „,00“. Fingerfood-Pakete wie relaxx mit 4 / 6 / 8 Teilen in einem einzigen Block, Preise bleiben (`angebot_essensart_4_fingerfood_teile.sql`; die Blöcke Salate und Süßes sind dort abgeschaltet – süßes Fingerfood kommt mit Janas Liste als Fingerfood-Gericht). In der Vorschau gibt es einen Umschalter für die Breiten 1200 / 768 / 390.
 - 09.10.2026, Victor: GEN-4 in der Vorschau abgenommen, nach Migration 4 im Test-Projekt. Gemergt wird erst zur Umschaltung, weil die echte Datenbank die neuen Tabellen noch nicht hat.
+- 09.10.2026, Victor: CRM-1 in der Vorschau abgenommen. Wortlaut wie relaxx: Block „Fingerfood-Teile“, Extra „+ 1 Fingerfood-Teil“ (`angebot_essensart_5_fingerfood_teile_wortlaut.sql`).
