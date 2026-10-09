@@ -143,8 +143,8 @@ Fertig, wenn:
 ### CRM-2 Anfragen mit der neuen Struktur
 Baut auf: GEN-2, CRM-1
 Fertig, wenn:
-- [ ] Anlegen und Bearbeiten nutzt `angebotspreis.js`; alte Anfragen öffnen und speichern, ohne dass sich Preis oder Gerichte ändern (Test)
-- [ ] Filter nach Essensart und Stil; KPIs je Essensart, Stil, Anlass
+- [ ] Anlegen und Bearbeiten nutzt `angebotspreis.js`; alte Anfragen öffnen und speichern, ohne dass sich Preis oder Gerichte ändern (Test) (CRM-Zweig `crm-2-anfragen-nach-essensart`, Commit 41528e2; `anfrageMenue.test.js` mit 20 Tests und Gegenprobe; Klickprüfung lokal mit nachgebauter Datenbank 28 von 28. Offen: Abnahme in der Vorschau, Migration 6 im Test-Projekt)
+- [ ] Filter nach Essensart und Stil; KPIs je Essensart, Stil, Anlass (Commit f24094e; Abnahme offen)
 
 ### WEB-6 Menü, Kacheln und Essensart-Seiten
 Baut auf: GEN-4
@@ -173,3 +173,4 @@ Fertig, wenn:
 - 09.10.2026, Victor, an der Vorschau: Essensart-Karten ohne „ab“-Preis (keine Lockpreise), Name mittig. Glatte Preise ohne „,00“. Fingerfood-Pakete wie relaxx mit 4 / 6 / 8 Teilen in einem einzigen Block, Preise bleiben (`angebot_essensart_4_fingerfood_teile.sql`; die Blöcke Salate und Süßes sind dort abgeschaltet – süßes Fingerfood kommt mit Janas Liste als Fingerfood-Gericht). In der Vorschau gibt es einen Umschalter für die Breiten 1200 / 768 / 390.
 - 09.10.2026, Victor: GEN-4 in der Vorschau abgenommen, nach Migration 4 im Test-Projekt. Gemergt wird erst zur Umschaltung, weil die echte Datenbank die neuen Tabellen noch nicht hat.
 - 09.10.2026, Victor: CRM-1 in der Vorschau abgenommen. Wortlaut wie relaxx: Block „Fingerfood-Teile“, Extra „+ 1 Fingerfood-Teil“ (`angebot_essensart_5_fingerfood_teile_wortlaut.sql`).
+- 09.10.2026, Victor: Eine gespeicherte Anfrage ist gegen Änderungen am System eingefroren, bleibt für Jana aber jederzeit frei bearbeitbar (Gerichte herausnehmen, tauschen, dazunehmen, Preis ändern); was sie speichert, ist der neue Stand. Das gilt auch für Anfragen von vor der Umstellung.
