@@ -149,7 +149,7 @@ Fertig, wenn:
 ### WEB-6 Menü, Kacheln und Essensart-Seiten
 Baut auf: GEN-4
 Fertig, wenn:
-- [ ] Menü und Startseite wie oben; drei Essensart-Seiten; Anlass-Seiten sind verlinkt
+- [ ] Menü und Startseite wie oben; drei Essensart-Seiten; Anlass-Seiten sind verlinkt (Website-Repo, Zweig `web-6-essensarten`, Commit 3c780d0, baut auf `web-1-nachbau` auf; 263 Tests mit Gegenprobe, lokal in vier Breiten angesehen. Frühstück nutzt die bestehende Adresse `/services/frühstück`. Offen: `KATALOG_SCHLUESSEL` als Vorschau-Variable bei Vercel, dann Abnahme in der Vorschau)
 
 ### GEN-5 Alte Tabellen entfernen
 Baut auf: GEN-4, CRM-2, zwei Wochen Betrieb ohne Befund
@@ -175,3 +175,4 @@ Fertig, wenn:
 - 09.10.2026, Victor: CRM-1 in der Vorschau abgenommen. Wortlaut wie relaxx: Block „Fingerfood-Teile“, Extra „+ 1 Fingerfood-Teil“ (`angebot_essensart_5_fingerfood_teile_wortlaut.sql`).
 - 09.10.2026, Victor: Eine gespeicherte Anfrage ist gegen Änderungen am System eingefroren, bleibt für Jana aber jederzeit frei bearbeitbar (Gerichte herausnehmen, tauschen, dazunehmen, Preis ändern); was sie speichert, ist der neue Stand. Das gilt auch für Anfragen von vor der Umstellung.
 - 09.10.2026, Victor: CRM-2 in der Vorschau abgenommen, nach Migration 6 im Test-Projekt. Einzige Rückmeldung: Bei „1 von 1“ blieb der Rest nicht ausgegraut (behoben in ecb3a4a).
+- 09.10.2026, Victor: Die Website kommt vor der Umschaltung, damit alles zusammen in der Vorschau zu sehen ist. Preise stehen auf den Unterseiten, nicht auf den drei Kacheln der Startseite. Aus dem Firmen-Repo `website-framework` werden Regeln und Prüfungen übernommen, nicht der Code: Paket A mit WEB-6, Paket B (noindex am Host, Markdown-Fassung, Vorschaubild je Seitenart, Search-Console-Baseline, IndexNow) vor dem Umzug von Framer, Paket C (Überlappung der Ortsseiten messen, Herkunftsliste für Bilder) mit den Ortsseiten.
