@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { memo, useEffect, useState, useTransition } from "react";
 import { C, S } from "../theme.js";
 import {
   aktiverStil, blockErfuellt, formatPreis, gerichteFuerBlock, maxAuswahl, plusEinsPreis, zusatzPreis,
@@ -94,15 +94,16 @@ function StilLeiste({ stile, gewaehlt, onWahl }) {
               border: `3px solid ${an ? C.gold : C.border}`,
               boxShadow: an ? `0 6px 18px ${C.gold}55` : "0 2px 8px rgba(28,16,8,.04)",
               borderRadius: 14, padding: 0, overflow: "hidden", cursor: "pointer", fontFamily: "inherit",
-              display: "flex", flexDirection: "column", position: "relative", transition: "all .2s",
+              display: "flex", flexDirection: "column", position: "relative",
             }}
           >
-            <span style={{
-              display: "block", width: "100%", aspectRatio: "4 / 3",
-              backgroundColor: C.creamSoft,
-              backgroundImage: s.bild_url ? `url(${s.bild_url})` : "none",
-              backgroundSize: "cover", backgroundPosition: "center",
-            }} />
+            {/* Die Fotos sind oft sehr groß. Als eigene Ebene werden sie einmal verkleinert und beim
+                Umranden der Kachel nicht jedes Mal neu gezeichnet. */}
+            <span style={{ display: "block", width: "100%", aspectRatio: "4 / 3", backgroundColor: C.creamSoft, overflow: "hidden", transform: "translateZ(0)" }}>
+              {s.bild_url && (
+                <img src={s.bild_url} alt="" decoding="async" style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }} />
+              )}
+            </span>
             {an && (
               <span aria-hidden="true" style={{
                 position: "absolute", top: 6, right: 6, width: 22, height: 22, borderRadius: "50%",
@@ -122,12 +123,10 @@ function StilLeiste({ stile, gewaehlt, onWahl }) {
   );
 }
 
-export default function SchrittGerichte({
-  paket, bloecke, gruppen, stile, gerichte,
-  stilSlug, onStil, auswahl, onAuswahl, plusEins, onPlusEins, schritt, children,
-}) {
+/* Stimmungsbilder und Gerichteliste. `memo`: Ein Klick auf eine Stil-Kachel umrandet zuerst nur die
+   Kachel; diese Liste wird erst danach neu gezeichnet, wenn der Stil bei ihr ankommt. */
+const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil, auswahl, onAuswahl, plusEins, onPlusEins, children }) {
   const [offen, setOffen] = useState({});
-  const stil = aktiverStil(stile, stilSlug);
   const wahlGruppen = bloecke.filter((b) => b.typ === "wahl").flatMap((b) => b.gruppen);
   const feste = bloecke.filter((b) => b.typ === "fix");
 
@@ -148,44 +147,11 @@ export default function SchrittGerichte({
   const stimmung = stil ? [stil.bild_url_1, stil.bild_url_2, stil.bild_url_3].filter(Boolean) : [];
 
   return (
-    <div className="mm-fade">
-      <style>{`
-        .mm-dish-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
-        .mm-dish-grid-breit { grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); }
-        .mm-dish-grid > button { min-width: 0; width: 100%; }
-        .mm-stil-leiste { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 10px; max-width: 960px; margin: 0 auto 14px; }
-        @media (max-width: 640px) {
-          .mm-dish-grid { grid-template-columns: 1fr !important; }
-          .mm-stil-leiste { display: flex; overflow-x: auto; scroll-snap-type: x proximity; padding: 4px 20px 12px; margin: 0 -20px 6px; -webkit-overflow-scrolling: touch; }
-          .mm-stil { flex: 0 0 108px; scroll-snap-align: start; }
-        }
-      `}</style>
-
-      <div style={S.heroBlock}>
-        <div style={S.heroEyebrow}>{schritt} · {paket.name} · {formatPreis(paket.preis_pro_person)} pro Person</div>
-        <h1 style={S.heroTitle} className="mm-hero-title">
-          Ihr <em style={S.italic}>Menü</em>
-        </h1>
-        <p style={S.heroSub} className="mm-hero-sub">
-          {stile.length > 1
-            ? "Wählen Sie eine Richtung oder stellen Sie frei zusammen."
-            : "Stellen Sie Ihre Lieblings-Komponenten zusammen."}
-        </p>
-      </div>
-
-      {stile.length > 1 && stil && (
-        <>
-          <StilLeiste stile={stile} gewaehlt={stil} onWahl={onStil} />
-          <p style={{ textAlign: "center", fontSize: 14, color: C.cappuccino, margin: "0 auto 22px", maxWidth: 720, minHeight: 20 }}>
-            {stil.beschreibung}
-          </p>
-        </>
-      )}
-
+    <>
       {stimmung.length > 0 && (
         <div style={S.menueBilder}>
           {stimmung.map((url) => (
-            <div key={url} style={{ ...S.menueBild, backgroundImage: `url(${url})` }} />
+            <div key={url} style={{ ...S.menueBild, backgroundImage: `url(${url})`, transform: "translateZ(0)" }} />
           ))}
         </div>
       )}
@@ -357,6 +323,73 @@ export default function SchrittGerichte({
 
         {children}
       </div>
+    </>
+  );
+});
+
+export default function SchrittGerichte({
+  paket, bloecke, gruppen, stile, gerichte,
+  stilSlug, onStil, auswahl, onAuswahl, plusEins, onPlusEins, schritt, children,
+}) {
+  /* Die angeklickte Kachel wird sofort umrandet (`sofort`). Der Stil selbst geht als Übergang nach oben:
+     Liste und Stimmungsbilder ziehen nach, ohne den Klick aufzuhalten. */
+  const [sofort, setSofort] = useState(stilSlug);
+  const [, starteUebergang] = useTransition();
+  useEffect(() => { setSofort(stilSlug); }, [stilSlug]);
+  const markiert = aktiverStil(stile, sofort);
+  const stil = aktiverStil(stile, stilSlug);
+  const waehleStil = (slug) => {
+    setSofort(slug);
+    starteUebergang(() => onStil(slug));
+  };
+
+  return (
+    <div className="mm-fade">
+      <style>{`
+        .mm-dish-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+        .mm-dish-grid-breit { grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); }
+        .mm-dish-grid > button { min-width: 0; width: 100%; }
+        .mm-stil-leiste { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 10px; max-width: 960px; margin: 0 auto 14px; }
+        @media (max-width: 640px) {
+          .mm-dish-grid { grid-template-columns: 1fr !important; }
+          .mm-stil-leiste { display: flex; overflow-x: auto; scroll-snap-type: x proximity; padding: 4px 20px 12px; margin: 0 -20px 6px; -webkit-overflow-scrolling: touch; }
+          .mm-stil { flex: 0 0 108px; scroll-snap-align: start; }
+        }
+      `}</style>
+
+      <div style={S.heroBlock}>
+        <div style={S.heroEyebrow}>{schritt} · {paket.name} · {formatPreis(paket.preis_pro_person)} pro Person</div>
+        <h1 style={S.heroTitle} className="mm-hero-title">
+          Ihr <em style={S.italic}>Menü</em>
+        </h1>
+        <p style={S.heroSub} className="mm-hero-sub">
+          {stile.length > 1
+            ? "Wählen Sie eine Richtung oder stellen Sie frei zusammen."
+            : "Stellen Sie Ihre Lieblings-Komponenten zusammen."}
+        </p>
+      </div>
+
+      {stile.length > 1 && markiert && (
+        <>
+          <StilLeiste stile={stile} gewaehlt={markiert} onWahl={waehleStil} />
+          <p style={{ textAlign: "center", fontSize: 14, color: C.cappuccino, margin: "0 auto 22px", maxWidth: 720, minHeight: 20 }}>
+            {markiert.beschreibung}
+          </p>
+        </>
+      )}
+
+      <Komponenten
+        bloecke={bloecke}
+        gruppen={gruppen}
+        gerichte={gerichte}
+        stil={stil}
+        auswahl={auswahl}
+        onAuswahl={onAuswahl}
+        plusEins={plusEins}
+        onPlusEins={onPlusEins}
+      >
+        {children}
+      </Komponenten>
     </div>
   );
 }

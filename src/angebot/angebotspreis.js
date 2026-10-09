@@ -130,8 +130,9 @@ export function berechneAngebot({ paket, bloecke, gruppen, gerichte, auswahl = {
   };
 }
 
-/** 12.5 → "12,50 €" */
+/** 12.5 → "12,50 €", 25 → "25 €". Glatte Beträge stehen ohne ",00" da. */
 export function formatPreis(betrag) {
   if (!istZahl(betrag)) return '—';
-  return Number(betrag).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+  const glatt = cent(betrag) % 100 === 0;
+  return Number(betrag).toLocaleString('de-DE', { style: 'currency', currency: 'EUR', minimumFractionDigits: glatt ? 0 : 2, maximumFractionDigits: 2 });
 }

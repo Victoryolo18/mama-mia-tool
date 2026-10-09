@@ -135,7 +135,8 @@ describe('Mails nach der Anfrage', () => {
   it('nennt Jana Essensart und Paket im Betreff und den Preis mit Cent', () => {
     const { subject, html } = janaMail(anfrage(), new Date('2026-10-08T12:00:00'));
     expect(subject).toBe('🔔 Neue Anfrage: TEST Erika — Kalt-warmes Buffet Genuss');
-    expect(html).toMatch(/1\.438,00\s€/);
+    expect(html).toMatch(/1\.438\s€/);
+    expect(html).not.toContain('1.438,00');
     expect(html).toContain('Mediterran');
     expect(html).toContain('Getränkeservice');
   });

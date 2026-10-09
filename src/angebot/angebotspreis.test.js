@@ -204,7 +204,14 @@ describe('gerichteFuerBlock', () => {
 describe('formatPreis', () => {
   it('schreibt Beträge mit zwei Nachkommastellen und Komma', () => {
     expect(formatPreis(3.5).replace(/\s/g, ' ')).toBe('3,50 €');
-    expect(formatPreis(1215).replace(/\s/g, ' ')).toBe('1.215,00 €');
+    expect(formatPreis(1215.5).replace(/\s/g, ' ')).toBe('1.215,50 €');
+  });
+
+  it('lässt bei glatten Beträgen die Nachkommastellen weg', () => {
+    expect(formatPreis(25).replace(/\s/g, ' ')).toBe('25 €');
+    expect(formatPreis(1215).replace(/\s/g, ' ')).toBe('1.215 €');
+    expect(formatPreis(0).replace(/\s/g, ' ')).toBe('0 €');
+    expect(formatPreis(24.9).replace(/\s/g, ' ')).toBe('24,90 €');
   });
 
   it('zeigt einen Strich, wenn kein Betrag da ist', () => {

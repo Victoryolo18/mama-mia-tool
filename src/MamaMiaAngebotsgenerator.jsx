@@ -299,7 +299,6 @@ export default function MamaMiaAngebotsgenerator() {
             {sichtbar === 1 && (
               <SchrittEssensart
                 essensarten={kataloge.essensarten}
-                pakete={kataloge.pakete}
                 gewaehlt={data.essensart}
                 onWahl={waehleEssensart}
                 schritt={schritt}
