@@ -30,6 +30,8 @@ const INTERNAL_RECIPIENT = "info@mama-mia-events.de";
 // Nur diese Seiten dürfen die Funktion aufrufen.
 const ALLOWED_ORIGINS = [
   "https://angebot.mama-mia-events.de",
+  "https://mama-mia-events.de",
+  "https://www.mama-mia-events.de",
   "https://mama-mia-tool.vercel.app",
   "https://mama-mia-crm.vercel.app",
   "http://localhost:3000",
