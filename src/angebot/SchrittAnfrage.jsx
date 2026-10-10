@@ -54,7 +54,21 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
             <>
               <div style={S.summarySubDivider} />
               <div style={S.summarySubTitle}>Ihre Auswahl</div>
-              {auswahl.map((b) => <SummaryRow key={b.id} label={b.label} value={b.namen.join(", ")} />)}
+              {/* Je Rubrik eine Zeile mit dem Namen, darunter ein Gericht pro Zeile: Nebeneinander
+                  brachen lange Gerichtnamen auf dem Handy mitten im Namen um. */}
+              {auswahl.map((b) => (
+                <div key={b.id} style={{ padding: "10px 0", borderBottom: `1px solid ${C.cream}15` }}>
+                  <div style={{ ...S.summaryLabel, marginBottom: 4 }}>{b.label}</div>
+                  <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+                    {b.namen.map((name) => (
+                      <li key={name} style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "2px 0", fontSize: 14, fontWeight: 600, lineHeight: 1.4 }}>
+                        <span style={{ color: C.gold, flexShrink: 0 }} aria-hidden="true">•</span>
+                        <span>{name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </>
           )}
 
