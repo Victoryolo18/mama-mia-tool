@@ -101,7 +101,7 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
 
         {/* Uhrzeit */}
         <div style={S.field}>
-          <label style={S.label}>🕐 Gewünschte Lieferzeit (ca.) <span style={{ fontWeight: 400, color: C.cappuccino, fontSize: 13 }}>— optional</span></label>
+          <label style={S.label}>🕐 Gewünschte Lieferzeit (ca.) <span style={{ fontWeight: 400, color: C.cappuccino, fontSize: 13 }}>(optional)</span></label>
           <DateTimeField
             value={data.uhrzeit}
             onChange={e => update("uhrzeit", e.target.value)}

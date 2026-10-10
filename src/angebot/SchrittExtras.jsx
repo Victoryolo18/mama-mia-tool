@@ -18,7 +18,7 @@ export default function SchrittExtras({ data, update, next, schritt, zusatzwuens
           Noch etwas <em style={S.italic}>Besonderes</em>?
         </h1>
         <p style={S.heroSub} className="mm-hero-sub">
-          Diese Extras sind optional — Preise auf Anfrage.
+          Diese Extras sind optional, Preise auf Anfrage.
         </p>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 600, margin: "0 auto" }}>
@@ -30,7 +30,7 @@ export default function SchrittExtras({ data, update, next, schritt, zusatzwuens
               <input type="checkbox" checked={checked} onChange={() => toggle('Getränkeservice')} style={{ marginTop: 3, accentColor: C.gold, width: 18, height: 18, flexShrink: 0 }} />
               <div>
                 <div style={{ fontWeight: 600, color: checked ? C.cream : C.ink, fontSize: 15 }}>Getränkeservice</div>
-                <div style={{ fontSize: 13, color: checked ? C.gold : C.cappuccino, marginTop: 2 }}>Auf Anfrage — wir besprechen gemeinsam das passende Getränkeangebot für Ihren Anlass.</div>
+                <div style={{ fontSize: 13, color: checked ? C.gold : C.cappuccino, marginTop: 2 }}>Auf Anfrage. Wir besprechen gemeinsam das passende Getränkeangebot für Ihren Anlass.</div>
                 <div style={{ fontSize: 12, color: checked ? C.gold : C.cappuccino, marginTop: 4, fontStyle: 'italic' }}>Preis auf Anfrage</div>
               </div>
             </label>

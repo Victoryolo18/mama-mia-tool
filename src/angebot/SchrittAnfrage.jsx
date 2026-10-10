@@ -198,7 +198,7 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
 
           {/* Anlass — freiwillig */}
           <div style={S.field}>
-            <label style={S.label} htmlFor="mm-anlass">Anlass <span style={{ fontWeight: 400, color: C.cappuccino, fontSize: 13 }}>— optional</span></label>
+            <label style={S.label} htmlFor="mm-anlass">Anlass <span style={{ fontWeight: 400, color: C.cappuccino, fontSize: 13 }}>(optional)</span></label>
             <select
               id="mm-anlass"
               value={data.anlass || ""}
@@ -239,7 +239,7 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
 
           {sendeFehler && (
             <div role="alert" style={{ marginTop: 12, padding: "12px 14px", borderRadius: 10, border: "1.5px solid #C0392B", color: "#C0392B", fontSize: 14, lineHeight: 1.45 }}>
-              Ihre Anfrage konnte nicht gesendet werden. Ihre Angaben sind noch da — bitte versuchen Sie es in einem Moment noch einmal.
+              Ihre Anfrage konnte nicht gesendet werden. Ihre Angaben sind noch da. Bitte versuchen Sie es in einem Moment noch einmal.
               Klappt es weiterhin nicht, erreichen Sie mich unter <a href="tel:01739344723" style={{ color: "#C0392B", fontWeight: 700 }}>0173 9344723</a>.
             </div>
           )}

@@ -6,6 +6,16 @@ export const ANLAESSE = [
   { slug: "einschulung", label: "Einschulung" },
   { slug: "individuell", label: "Private Feier" },
   { slug: "firmenfeier", label: "Firmenfeier" },
+  { slug: "jugendweihe", label: "Jugendweihe" },
+  { slug: "konfirmation", label: "Konfirmation und Kommunion" },
+  { slug: "taufe", label: "Taufe" },
+  { slug: "jubilaeum", label: "Goldene Hochzeit und Jubiläum" },
+  { slug: "trauerfeier", label: "Trauerfeier" },
+  { slug: "sommerfest", label: "Sommerfest und Gartenparty" },
+  { slug: "seminar", label: "Seminar und Schulung" },
+  { slug: "weihnachtsfeier", label: "Weihnachtsfeier" },
+  { slug: "eroeffnung", label: "Firmenjubiläum und Eröffnung" },
+  { slug: "empfang", label: "Empfang und Business-Lunch" },
 ];
 
 export const anlassLabel = (slug) => ANLAESSE.find((a) => a.slug === slug)?.label ?? null;
