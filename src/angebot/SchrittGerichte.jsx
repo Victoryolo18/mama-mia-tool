@@ -3,6 +3,7 @@ import { C, S } from "../theme.js";
 import {
   aktiverStil, blockErfuellt, formatPreis, gerichteFuerBlock, maxAuswahl, plusEinsPreis, zusatzPreis,
 } from "./angebotspreis.js";
+import { KOSTFORMEN, kostform, kostformenIn } from "./kostform.js";
 
 /* Schritt "Gerichte": Stil-Kacheln oben, darunter die Blöcke des Pakets.
    Hält selbst keine Auswahl; die liegt beim Aufrufer, damit der Preis überall derselbe ist.
@@ -14,11 +15,33 @@ const UNTERGRUPPEN = [
 ];
 const AB_SO_VIELEN_EINKLAPPEN = 6;
 
+/* Kostform als kleiner farbiger Punkt vor dem Namen; was die Farben heißen, steht in der Legende darüber. */
+function Punkt({ farbe }) {
+  return <span aria-hidden="true" style={{ width: 9, height: 9, borderRadius: "50%", background: farbe, flexShrink: 0, marginRight: 7 }} />;
+}
+
 function Kostform({ gericht }) {
-  const stil = { fontSize: 16, lineHeight: 1, marginRight: 5, flexShrink: 0 };
-  if (gericht.vegetarisch) return <span title="Vegetarisch" style={stil}>🌱</span>;
-  if (gericht.unterkategorie === "fisch") return <span title="Fisch" style={stil}>🐟</span>;
-  return <span title="Fleisch" style={stil}>🍖</span>;
+  const k = KOSTFORMEN.find((x) => x.slug === kostform(gericht));
+  return (
+    <>
+      <Punkt farbe={k.farbe} />
+      <span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>{k.label}: </span>
+    </>
+  );
+}
+
+function Legende({ gerichte }) {
+  const da = kostformenIn(gerichte);
+  if (da.length < 2) return null;
+  return (
+    <div aria-hidden="true" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 16px", fontSize: 12, color: C.inkSoft, margin: "-6px 0 18px" }}>
+      {da.map((k) => (
+        <span key={k.slug} style={{ display: "inline-flex", alignItems: "center" }}>
+          <Punkt farbe={k.farbe} />{k.label}
+        </span>
+      ))}
+    </div>
+  );
 }
 
 function nachUntergruppe(gerichte) {
@@ -158,6 +181,7 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
 
       <div style={S.menueCard}>
         <div style={S.menueCardTitle}>Ihre Komponenten</div>
+        <Legende gerichte={gerichte.filter((g) => bloecke.some((b) => b.typ !== "fix" && b.gruppen.some((gr) => g.gruppen?.includes(gr))))} />
 
         {feste.length > 0 && (
           <div style={{ ...S.menueKategorie, borderBottom: `1px solid ${C.border}`, paddingBottom: 16, marginBottom: 20 }}>

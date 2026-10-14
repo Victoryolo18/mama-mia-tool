@@ -37,7 +37,7 @@ export async function ladeKataloge(supabase) {
     gruppen: supabase.from('gruppen').select('slug, label, label_einzahl, aufpreis_plus_eins, aufpreis_je_gericht, reihenfolge').limit(GRENZE),
     bloecke: supabase.from('paket_gruppen').select('id, paket_id, label, gruppen, typ, min_auswahl, max_auswahl, fix_gericht_id, reihenfolge').eq('aktiv', true).limit(GRENZE),
     stile: supabase.from('stile').select('slug, essensart, label, beschreibung, bild_url, bild_url_1, bild_url_2, bild_url_3, zeigt_alles, reihenfolge').eq('aktiv', true).limit(GRENZE),
-    gerichte: supabase.from('gerichte').select('id, name, vegetarisch, unterkategorie, aktiv, aufpreis_pro_person').eq('aktiv', true).limit(GRENZE),
+    gerichte: supabase.from('gerichte').select('id, name, vegetarisch, vegan, unterkategorie, aktiv, aufpreis_pro_person').eq('aktiv', true).limit(GRENZE),
     gerichtGruppen: supabase.from('gericht_gruppen').select('gericht_id, gruppe').limit(GRENZE),
     gerichtStile: supabase.from('gericht_stile').select('gericht_id, stil').limit(GRENZE),
   };
