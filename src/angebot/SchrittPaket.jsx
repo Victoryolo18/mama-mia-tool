@@ -33,7 +33,7 @@ export default function SchrittPaket({ essensart, pakete, bloecke, gewaehlt, onW
         {kleid ? (
           <>
             <h1 style={{ ...S.heroTitle, color: C.cream }} className="mm-hero-title">
-              Ihre <em style={S.italic}>{kleid.titel}</em>
+              {kleid.ueberschrift[0]} <em style={S.italic}>{kleid.ueberschrift[1]}</em>
             </h1>
             {kleid.schmuck && (
               <img src={kleid.schmuck} alt="" aria-hidden="true" style={{ display: "block", width: 180, maxWidth: "60%", height: "auto", margin: "4px auto 12px" }} />
