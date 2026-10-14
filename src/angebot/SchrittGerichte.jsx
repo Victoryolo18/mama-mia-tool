@@ -17,7 +17,7 @@ const AB_SO_VIELEN_EINKLAPPEN = 6;
 
 /* Kostform als kleiner farbiger Punkt vor dem Namen; was die Farben heißen, steht in der Legende darüber. */
 function Punkt({ farbe }) {
-  return <span aria-hidden="true" style={{ width: 9, height: 9, borderRadius: "50%", background: farbe, flexShrink: 0, marginRight: 7 }} />;
+  return <span aria-hidden="true" style={{ width: 9, height: 9, borderRadius: "50%", background: farbe, boxShadow: "inset 0 0 0 1px rgba(28,16,8,.2)", flexShrink: 0, marginRight: 7 }} />;
 }
 
 function Kostform({ gericht }) {

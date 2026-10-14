@@ -7,8 +7,8 @@
 export const KOSTFORMEN = [
   { slug: "fleisch",     label: "Fleisch",     farbe: "#5C2818" },
   { slug: "fisch",       label: "Fisch",       farbe: "#4F7EA0" },
-  { slug: "vegetarisch", label: "Vegetarisch", farbe: "#4CAF50" },
-  { slug: "vegan",       label: "Vegan",       farbe: "#1F6B34" },
+  { slug: "vegetarisch", label: "Vegetarisch", farbe: "#3D8B40" },
+  { slug: "vegan",       label: "Vegan",       farbe: "#B5D334" },
 ];
 
 const FISCH = /lachs|garnele|matjes|hering|thunfisch|forelle|scampi|krabbe|shrimp|fisch/i;
