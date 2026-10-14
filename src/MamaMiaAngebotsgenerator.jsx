@@ -7,6 +7,7 @@ import { aktiverStil, berechneAngebot } from "./angebot/angebotspreis.js";
 import { lieferpreis } from "./angebot/lieferung.js";
 import { vorwahlAusLink } from "./angebot/anlaesse.js";
 import { kleidAusPfad } from "./angebot/anlassKleider.js";
+import { firmenAnlass } from "./angebot/firmenVorteil.js";
 import { baueAnfrage } from "./angebot/anfrage.js";
 import { sendeMails } from "./angebot/mailversand.js";
 import SchrittEssensart from "./angebot/SchrittEssensart.jsx";
@@ -322,6 +323,7 @@ export default function MamaMiaAngebotsgenerator() {
                 onWahl={waehlePaket}
                 schritt={schritt}
                 kleid={kleid}
+                vorteil={!!kleid && firmenAnlass(data.anlass)}
               />
             )}
             {sichtbar === 3 && (

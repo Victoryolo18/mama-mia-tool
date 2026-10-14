@@ -1,6 +1,7 @@
 import React from "react";
 import { C, S } from "../theme.js";
 import { formatPreis } from "./angebotspreis.js";
+import { FIRMEN_VORTEIL, firmenVorteilBedingungen } from "./firmenVorteil.js";
 
 /* Schritt "Paket": die Pakete der gewählten Essensart, dahinter ihr Essensbild. */
 
@@ -13,7 +14,7 @@ export function paketMerkmale(bloecke) {
 }
 
 /* Mit `kleid` (Aufruf über einen Anlass-Pfad) zeigt der Kopf Bild, Überschrift und Schmuck des Anlasses. */
-export default function SchrittPaket({ essensart, pakete, bloecke, gewaehlt, onWahl, schritt, kleid }) {
+export default function SchrittPaket({ essensart, pakete, bloecke, gewaehlt, onWahl, schritt, kleid, vorteil }) {
   const bild = kleid?.bild ?? essensart.bild_url;
   const mitBild = !!bild;
   return (
@@ -41,6 +42,12 @@ export default function SchrittPaket({ essensart, pakete, bloecke, gewaehlt, onW
             <p style={{ ...S.heroSub, color: C.cream }} className="mm-hero-sub">
               {kleid.unterzeile} Wählen Sie ein Paket, die Gerichte stellen Sie danach selbst zusammen.
             </p>
+            {vorteil && (
+              <p style={{ ...S.heroSub, color: C.gold, fontSize: 14, marginTop: 14 }}>
+                Firmen-Vorteil: {FIRMEN_VORTEIL.prozent} % auf die Speisen, {firmenVorteilBedingungen()}.
+                Ich ziehe ihn nach Prüfung im Angebot ab.
+              </p>
+            )}
           </>
         ) : (
           <>

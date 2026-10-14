@@ -3,6 +3,7 @@ import { C, S } from "../theme.js";
 import { formatPreis } from "./angebotspreis.js";
 import { ANLAESSE } from "./anlaesse.js";
 import { LIEFER_LABELS, istLieferart } from "./lieferung.js";
+import { FIRMEN_VORTEIL, firmenVorteilBedingungen, firmenVorteilMoeglich } from "./firmenVorteil.js";
 
 /* ── 📞 KONTAKT-METHODEN ── */
 export const KONTAKT_OPTIONEN = [
@@ -140,6 +141,13 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
             * Unverbindliche Schätzung. Endpreis nach individueller Beratung.
             Eigene Zusatzwünsche oder besondere Komponenten können den Preis leicht beeinflussen.
           </div>
+
+          {firmenVorteilMoeglich(data) && (
+            <div style={{ ...S.summaryNote, opacity: 1, fontStyle: "normal", fontSize: 13, color: C.gold, fontWeight: 600 }}>
+              Firmen-Vorteil {FIRMEN_VORTEIL.prozent} % auf die Speisen ({firmenVorteilBedingungen()}):
+              wird nach Prüfung im Angebot abgezogen, im Preis oben ist er noch nicht enthalten.
+            </div>
+          )}
         </div>
 
         {/* Rechte Seite: Kontaktformular */}

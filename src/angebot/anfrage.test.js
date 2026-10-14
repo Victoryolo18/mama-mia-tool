@@ -55,6 +55,22 @@ describe('baueAnfrage — was gespeichert wird', () => {
     expect(anfrage({ anlass: '' }).anlass).toBeNull();
   });
 
+  it('merkt den Firmen-Vorteil nur vor, ohne den Preis zu ändern (Firmenfeier an einem Montag, 30 Gäste)', () => {
+    const mit = anfrage({ anlass: 'firmenfeier', datum: '2026-10-19' });
+    expect(mit.angebot_snapshot.firmen_vorteil).toEqual({ prozent: 5, abgezogen: false });
+    expect(mit.gesamtpreis).toBe(anfrage().gesamtpreis);
+    expect(janaMail(mit).html).toContain('Firmen-Vorteil');
+    expect(kundenMail(mit).html).toContain('5 % auf die Speisen');
+  });
+
+  it('merkt keinen Firmen-Vorteil vor bei privatem Anlass oder am Samstag', () => {
+    expect(anfrage().angebot_snapshot.firmen_vorteil).toBeNull();
+    const samstag = anfrage({ anlass: 'firmenfeier', datum: '2026-10-24' });
+    expect(samstag.angebot_snapshot.firmen_vorteil).toBeNull();
+    expect(janaMail(samstag).html).not.toContain('Firmen-Vorteil');
+    expect(kundenMail(samstag).html).not.toContain('Firmen-Vorteil');
+  });
+
   it('speichert denselben Gesamtpreis, den die Rechnung ergibt: (29,90 + 9,50 + 3,50 + 4,20) × 30 + 25', () => {
     const a = anfrage();
     expect(a.gesamtpreis).toBe(1438);

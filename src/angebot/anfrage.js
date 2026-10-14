@@ -8,6 +8,7 @@
      stehen pro Person in `menue_auswahl._upgrades`; `gesamtpreis` enthält alles samt Lieferung. */
 
 import { maxAuswahl } from "./angebotspreis.js";
+import { FIRMEN_VORTEIL, firmenVorteilMoeglich } from "./firmenVorteil.js";
 
 const cent = (euro) => Math.round(Number(euro) * 100);
 
@@ -82,6 +83,10 @@ export function baueAnfrage({ requestNumber, data, essensart, paket, stil, bloec
       speisen_gesamt: ergebnis.speisenGesamt,
       lieferzuschlag: ergebnis.lieferzuschlag,
       gesamt: ergebnis.gesamt,
+      // Nur ein Hinweis für Jana: Der Preis oben enthält den Vorteil nicht, sie zieht ihn nach Prüfung ab.
+      firmen_vorteil: firmenVorteilMoeglich({ anlass: data.anlass, datum: data.datum, gaeste: personen })
+        ? { prozent: FIRMEN_VORTEIL.prozent, abgezogen: false }
+        : null,
     },
   };
 }
