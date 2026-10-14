@@ -12,28 +12,46 @@ export function paketMerkmale(bloecke) {
   return ["wahl", "fix", "zusatz"].flatMap((typ) => bloecke.filter((b) => b.typ === typ).map(text));
 }
 
-export default function SchrittPaket({ essensart, pakete, bloecke, gewaehlt, onWahl, schritt }) {
-  const mitBild = !!essensart.bild_url;
+/* Mit `kleid` (Aufruf über einen Anlass-Pfad) zeigt der Kopf Bild, Überschrift und Schmuck des Anlasses. */
+export default function SchrittPaket({ essensart, pakete, bloecke, gewaehlt, onWahl, schritt, kleid }) {
+  const bild = kleid?.bild ?? essensart.bild_url;
+  const mitBild = !!bild;
   return (
     <div className="mm-fade">
       <div
         style={mitBild ? {
           ...S.heroBlock,
           marginBottom: 0,
-          padding: "48px 24px 120px",
+          padding: kleid ? "64px 24px 128px" : "48px 24px 120px",
           borderRadius: 24,
-          backgroundImage: `linear-gradient(180deg, rgba(28,16,8,.45) 0%, rgba(28,16,8,.72) 100%), url(${essensart.bild_url})`,
+          backgroundImage: `linear-gradient(180deg, rgba(28,16,8,.45) 0%, rgba(28,16,8,.72) 100%), url(${bild})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         } : S.heroBlock}
       >
         <div style={S.heroEyebrow}>{schritt} · {essensart.label}</div>
-        <h1 style={{ ...S.heroTitle, ...(mitBild ? { color: C.cream } : {}) }} className="mm-hero-title">
-          Welches <em style={S.italic}>Paket</em> passt zu Ihnen?
-        </h1>
-        <p style={{ ...S.heroSub, ...(mitBild ? { color: C.cream } : {}) }} className="mm-hero-sub">
-          Alle Pakete sind individuell anpassbar — ein guter Ausgangspunkt.
-        </p>
+        {kleid ? (
+          <>
+            <h1 style={{ ...S.heroTitle, color: C.cream }} className="mm-hero-title">
+              Ihre <em style={S.italic}>{kleid.titel}</em>
+            </h1>
+            {kleid.schmuck && (
+              <img src={kleid.schmuck} alt="" aria-hidden="true" style={{ display: "block", width: 180, maxWidth: "60%", height: "auto", margin: "4px auto 12px" }} />
+            )}
+            <p style={{ ...S.heroSub, color: C.cream }} className="mm-hero-sub">
+              {kleid.unterzeile} Wählen Sie ein Paket, die Gerichte stellen Sie danach selbst zusammen.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 style={{ ...S.heroTitle, ...(mitBild ? { color: C.cream } : {}) }} className="mm-hero-title">
+              Welches <em style={S.italic}>Paket</em> passt zu Ihnen?
+            </h1>
+            <p style={{ ...S.heroSub, ...(mitBild ? { color: C.cream } : {}) }} className="mm-hero-sub">
+              Alle Pakete sind individuell anpassbar — ein guter Ausgangspunkt.
+            </p>
+          </>
+        )}
       </div>
 
       <div

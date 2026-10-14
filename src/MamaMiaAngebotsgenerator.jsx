@@ -6,6 +6,7 @@ import { ladeKataloge } from "./angebot/kataloge.js";
 import { aktiverStil, berechneAngebot } from "./angebot/angebotspreis.js";
 import { lieferpreis } from "./angebot/lieferung.js";
 import { vorwahlAusLink } from "./angebot/anlaesse.js";
+import { kleidAusPfad } from "./angebot/anlassKleider.js";
 import { baueAnfrage } from "./angebot/anfrage.js";
 import { sendeMails } from "./angebot/mailversand.js";
 import SchrittEssensart from "./angebot/SchrittEssensart.jsx";
@@ -29,6 +30,8 @@ import Preisleiste from "./angebot/Preisleiste.jsx";
 
    Aufruf von der Website: `?essensart=buffet | fingerfood | fruehstueck`
    wählt die Essensart vor und überspringt den ersten Schritt.
+   Aufruf mit Anlass-Pfad (`/weihnachtsfeier`, `/weihnachtsfeier/fingerfood`): Anlass und
+   Essensart sind vorbelegt, der Schritt "Paket" trägt das Kleid des Anlasses (anlassKleider.js).
    ══════════════════════════════════════════════════════════════════ */
 
 const SCHRITTE = ["Essensart", "Paket", "Menü", "Details", "Extras", "Anfrage"];
@@ -80,6 +83,7 @@ export default function MamaMiaAngebotsgenerator() {
   const [dbLieferzonen,    setDbLieferzonen]    = useState([]);
   const [dbLieferorte,     setDbLieferorte]     = useState([]);
   const [dbZusatzwuensche, setDbZusatzwuensche] = useState([]);
+  const [kleid,            setKleid]            = useState(null);
 
   /* ── Fonts laden ── */
   useEffect(() => {
@@ -105,7 +109,12 @@ export default function MamaMiaAngebotsgenerator() {
       setDbLieferzonen(zonen);
       setDbLieferorte(orte);
       setDbZusatzwuensche(zusatz);
-      const vorwahl = vorwahlAusLink(window.location.search, kat.essensarten);
+      const ausPfad = kleidAusPfad(window.location.pathname, kat.essensarten);
+      const vorwahl = ausPfad ?? vorwahlAusLink(window.location.search, kat.essensarten);
+      if (ausPfad) {
+        setKleid(ausPfad.kleid);
+        document.title = `${ausPfad.kleid.titel} · Angebot · Mama Mia Events & Catering`;
+      }
       setData(d => ({ ...d, essensart: vorwahl.essensart, anlass: vorwahl.anlass }));
       if (vorwahl.essensart) setStep(2);
       setKataloge(kat);
@@ -312,6 +321,7 @@ export default function MamaMiaAngebotsgenerator() {
                 gewaehlt={data.paketId}
                 onWahl={waehlePaket}
                 schritt={schritt}
+                kleid={kleid}
               />
             )}
             {sichtbar === 3 && (
