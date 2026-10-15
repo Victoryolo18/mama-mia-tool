@@ -28,7 +28,7 @@ export default class ErrorBoundary extends Component {
           <div style={{ fontSize: 40 }}>⚠️</div>
           <div style={{ fontSize: 18, fontWeight: 700, color: C.burgundy }}>Etwas ist schiefgelaufen.</div>
           <div style={{ fontSize: 14, color: C.cappuccino, maxWidth: 400 }}>
-            Bitte laden Sie die Seite neu. Falls das Problem bestehen bleibt, kontaktieren Sie uns gerne
+            Bitte laden Sie die Seite neu. Falls das Problem bestehen bleibt, erreichen Sie mich gerne
             direkt unter <a href="tel:01739344723" style={{ color: C.burgundy }}>0173 9344723</a>.
           </div>
           <button

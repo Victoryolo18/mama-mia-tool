@@ -36,6 +36,11 @@ function DateTimeField({ value, onChange, display, icon, type, min, hasValue }) 
 }
 
 /* Schritt "Details": Gäste, Datum, Lieferung, Postleitzahl. */
+
+/* Bis hierhin rechnet der Generator wie gewohnt. Die Website sagt "bis etwa 120 Gäste, größere Feiern
+   auf Anfrage": Darüber bleibt der Preis ein Richtwert, Jana stimmt Menge und Ablauf persönlich ab. */
+const GROSSE_FEIER_AB = 120;
+const HOECHSTENS = 250;
 export default function SchrittDetails({ data, update, next, schritt, mindestpersonen = 8, dbLieferzonen = [], dbLieferorte = [] }) {
   /* Der Ortsteil bestimmt nur den Lieferpreis. Wer selbst abholt, soll
      nicht danach gefragt werden — und schon gar nicht daran haengenbleiben. */
@@ -47,10 +52,10 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
   const gaesteNum = Number(data.gaeste);
   const gaesteError = data.gaeste !== '' && data.gaeste !== null
     ? gaesteNum < mindestpersonen ? `Mindestbestellung ab ${mindestpersonen} Personen`
-    : gaesteNum > 250 ? "Bitte kontaktieren Sie uns direkt für Großveranstaltungen"
+    : gaesteNum > HOECHSTENS ? "Für so große Feiern sprechen Sie mich bitte direkt an: 0173 9344723"
     : null
     : null;
-  const gaesteValid = data.gaeste !== '' && data.gaeste !== null && gaesteNum >= mindestpersonen && gaesteNum <= 250;
+  const gaesteValid = data.gaeste !== '' && data.gaeste !== null && gaesteNum >= mindestpersonen && gaesteNum <= HOECHSTENS;
   const canContinue = gaesteValid && data.datum && data.plz && data.lieferung && !ortsteilNoetig;
 
   return (
@@ -58,7 +63,7 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
       <div style={S.heroBlock}>
         <div style={S.heroEyebrow}>{schritt}</div>
         <h1 style={S.heroTitle} className="mm-hero-title">
-          Erzählen Sie uns mehr über Ihr <em style={S.italic}>Event</em>
+          Erzählen Sie mir mehr über Ihr <em style={S.italic}>Event</em>
         </h1>
         <p style={S.heroSub} className="mm-hero-sub">
           Mit diesen Angaben kann ich Ihr Angebot präzise gestalten.
@@ -72,7 +77,7 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
           <input
             type="number"
             min={mindestpersonen}
-            max="250"
+            max={HOECHSTENS}
             value={data.gaeste ?? ''}
             onChange={e => update("gaeste", e.target.value === '' ? '' : Number(e.target.value))}
             placeholder="z.B. 25"
@@ -81,7 +86,9 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
           />
           {gaesteError
             ? <div style={{ fontSize: 12, color: '#C0392B', marginTop: 4 }}>{gaesteError}</div>
-            : <div style={{ fontSize: 12, color: C.cappuccino, marginTop: 4 }}>Mindestbestellung ab {mindestpersonen} Personen</div>
+            : gaesteNum > GROSSE_FEIER_AB
+              ? <div style={{ fontSize: 12, color: C.cappuccino, marginTop: 4 }}>Ab {GROSSE_FEIER_AB} Gästen stimme ich Menge und Ablauf persönlich mit Ihnen ab. Der Preis hier ist ein Richtwert.</div>
+              : <div style={{ fontSize: 12, color: C.cappuccino, marginTop: 4 }}>Mindestbestellung ab {mindestpersonen} Personen</div>
           }
         </div>
 
