@@ -74,6 +74,19 @@ export function gerichteFuerBlock(block, alleGerichte, { stil = null, gewaehlt =
     .sort((a, b) => a.name.localeCompare(b.name, 'de'));
 }
 
+/** Gerichte außerhalb des Stils, wenn der Stil weniger Gerichte hat, als der Block verlangt.
+    Sonst säße der Kunde fest: "Buntes Buffet" hat zwei Vorspeisen, "Genuss" verlangt drei.
+    Gezählt wird nur, was zum Stil gehört; so bleibt die Liste stehen, während der Kunde daraus wählt.
+    Ohne Mangel leer, damit der Stil seine Auswahl behält. */
+export function weitereGerichte(block, alleGerichte, { stil = null, gewaehlt = [], gruppen = {}, wahlGruppen = [], mitPlusEins = false } = {}) {
+  if (block.typ !== 'wahl' || !stil || stil.zeigt_alles) return [];
+  const max = maxAuswahl(block, mitPlusEins);
+  const bedarf = Number.isFinite(max) ? max : block.min_auswahl + (mitPlusEins ? 1 : 0);
+  if (gerichteFuerBlock(block, alleGerichte, { stil, gruppen, wahlGruppen }).length >= bedarf) return [];
+  const sichtbar = new Set(gerichteFuerBlock(block, alleGerichte, { stil, gewaehlt, gruppen, wahlGruppen }).map((g) => g.id));
+  return gerichteFuerBlock(block, alleGerichte, { gruppen, wahlGruppen }).filter((g) => !sichtbar.has(g.id));
+}
+
 /** Rechnet ein Angebot aus.
     @param paket          { preis_pro_person }
     @param bloecke        Blöcke des Pakets

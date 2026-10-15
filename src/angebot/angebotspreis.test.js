@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  berechneAngebot, blockErfuellt, formatPreis, gerichteFuerBlock, maxAuswahl, plusEinsPreis, zusatzPreis,
+  berechneAngebot, blockErfuellt, formatPreis, gerichteFuerBlock, maxAuswahl, weitereGerichte, plusEinsPreis, zusatzPreis,
 } from './angebotspreis.js';
 
 /* Beispieldaten in der Form der Tabellen gruppen, paket_gruppen und gerichte.
@@ -198,6 +198,33 @@ describe('gerichteFuerBlock', () => {
 
   it('zeigt in einem festen Block genau das eine Gericht', () => {
     expect(namen(brot)).toEqual(['Brötchen']);
+  });
+});
+
+describe('weitereGerichte', () => {
+  const mediterran = { slug: 'mediterran', zeigt_alles: false };
+  const namen = (block, optionen) => weitereGerichte(block, liste, { gruppen, ...optionen }).map((g) => g.name);
+
+  it('bietet die übrigen Gerichte an, wenn der Stil zu wenige hat: 2 mediterrane Vorspeisen, verlangt sind 3', () => {
+    expect(namen(vorspeisen, { stil: mediterran })).toEqual(['Käseplatte', 'Kürbissuppe']);
+  });
+
+  it('lässt die Liste stehen, während der Kunde daraus wählt; Gewähltes steht oben, nicht doppelt', () => {
+    expect(namen(vorspeisen, { stil: mediterran, gewaehlt: ['g-suppe'] })).toEqual(['Käseplatte']);
+  });
+
+  it('zählt "+1" mit', () => {
+    const zwei = { ...vorspeisen, min_auswahl: 2, max_auswahl: 2 };
+    expect(namen(zwei, { stil: mediterran })).toEqual([]);
+    expect(namen(zwei, { stil: mediterran, mitPlusEins: true })).toEqual(['Käseplatte', 'Kürbissuppe']);
+  });
+
+  it('bleibt leer, wenn der Stil genug hat, ohne Stil, bei "Individuell" und außerhalb von Wahl-Blöcken', () => {
+    const zwei = { ...vorspeisen, min_auswahl: 2, max_auswahl: 2 };
+    expect(namen(zwei, { stil: mediterran })).toEqual([]);
+    expect(namen(vorspeisen)).toEqual([]);
+    expect(namen(vorspeisen, { stil: { slug: 'individuell', zeigt_alles: true } })).toEqual([]);
+    expect(namen(fingerDazu, { stil: mediterran })).toEqual([]);
   });
 });
 

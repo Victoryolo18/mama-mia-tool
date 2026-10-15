@@ -1,7 +1,7 @@
 import React, { memo, useEffect, useState, useTransition } from "react";
 import { C, S } from "../theme.js";
 import {
-  aktiverStil, blockErfuellt, formatPreis, gerichteFuerBlock, maxAuswahl, plusEinsPreis, zusatzPreis,
+  aktiverStil, blockErfuellt, formatPreis, gerichteFuerBlock, maxAuswahl, plusEinsPreis, weitereGerichte, zusatzPreis,
 } from "./angebotspreis.js";
 import { KOSTFORMEN, kostform, kostformenIn } from "./kostform.js";
 
@@ -214,7 +214,8 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
           const gewaehlt = auswahl[block.id] ?? [];
           const mitPlus = !!plusEins[block.id];
           const liste = gerichteFuerBlock(block, gerichte, { stil, gewaehlt, gruppen, wahlGruppen });
-          if (liste.length === 0) return null;
+          const weitere = weitereGerichte(block, gerichte, { stil, gewaehlt, gruppen, wahlGruppen, mitPlusEins: mitPlus });
+          if (liste.length === 0 && weitere.length === 0) return null;
           const max = maxAuswahl(block, mitPlus);
           const erfuellt = blockErfuellt(block, gewaehlt, mitPlus);
           const zusatz = block.typ === "zusatz";
@@ -226,6 +227,20 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
             : 0;
           const abPreis = zusatz ? Math.min(...liste.map((g) => zusatzPreis(block, g, gruppen))) : null;
           const fehlen = Math.max(0, block.min_auswahl + (mitPlus ? 1 : 0) - gewaehlt.length);
+          const knopf = (g) => {
+            const an = gewaehlt.includes(g.id);
+            return (
+              <GerichtKnopf
+                key={g.id}
+                gericht={g}
+                an={an}
+                rund={rund && !zusatz}
+                gesperrt={!an && !rund && gewaehlt.length >= max}
+                preis={zusatz ? zusatzPreis(block, g, gruppen) : undefined}
+                onClick={() => umschalten(block, g.id, max)}
+              />
+            );
+          };
 
           return (
             <div
@@ -281,23 +296,21 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
                         </div>
                       )}
                       <div className={zusatz ? "mm-dish-grid mm-dish-grid-breit" : "mm-dish-grid"}>
-                        {teil.gerichte.map((g) => {
-                          const an = gewaehlt.includes(g.id);
-                          return (
-                            <GerichtKnopf
-                              key={g.id}
-                              gericht={g}
-                              an={an}
-                              rund={rund && !zusatz}
-                              gesperrt={!an && !rund && gewaehlt.length >= max}
-                              preis={zusatz ? zusatzPreis(block, g, gruppen) : undefined}
-                              onClick={() => umschalten(block, g.id, max)}
-                            />
-                          );
-                        })}
+                        {teil.gerichte.map(knopf)}
                       </div>
                     </div>
                   ))}
+                  {weitere.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: C.cappuccino, textTransform: "uppercase", letterSpacing: 1, margin: "16px 0 4px" }}>
+                        Weitere {block.label}
+                      </div>
+                      <div style={{ fontSize: 12, color: C.cappuccino, marginBottom: 6 }}>
+                        Diese Richtung hat weniger {block.label}, als Ihr Paket enthält. Den Rest wählen Sie hier.
+                      </div>
+                      <div className="mm-dish-grid">{weitere.map(knopf)}</div>
+                    </div>
+                  )}
                   {zusatz && liste.length > AB_SO_VIELEN_EINKLAPPEN && (
                     <button
                       type="button"
