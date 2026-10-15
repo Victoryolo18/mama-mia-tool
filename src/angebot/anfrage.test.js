@@ -125,6 +125,13 @@ describe('baueAnfrage — was gespeichert wird', () => {
     expect(anfrage({ kontaktart: 'whatsapp', kontaktdaten: '0176 1234567' })).toMatchObject({ customer_email: null, customer_phone: '0176 1234567' });
   });
 
+  it('speichert, wie viele Gäste besonders essen, begrenzt auf die Gästezahl; ohne Angabe nichts', () => {
+    expect(anfrage({ ernaehrung: { vegetarisch: '4', vegan: '2', glutenfrei: '40' } }).angebot_snapshot.ernaehrung)
+      .toEqual({ vegetarisch: 4, vegan: 2, glutenfrei: 30 });
+    expect(anfrage().angebot_snapshot.ernaehrung).toBeNull();
+    expect(anfrage({ ernaehrung: { vegetarisch: '', vegan: '', glutenfrei: '' } }).angebot_snapshot.ernaehrung).toBeNull();
+  });
+
   it('hängt Extras und Anmerkung zeilenweise zusammen', () => {
     expect(anfrage().zusatzwuensche).toBe('Getränkeservice\nBitte ohne Nüsse');
     expect(anfrage({ extras: [], zusatzwuensche: '' }).zusatzwuensche).toBeNull();
@@ -160,6 +167,17 @@ describe('Mails nach der Anfrage', () => {
   it('warnt Jana, wenn der Lieferpreis offen ist', () => {
     expect(janaMail(anfrage({}, null)).html).toContain('zzgl. Lieferung');
     expect(janaMail(anfrage()).html).not.toContain('zzgl. Lieferung');
+  });
+
+  it('nennt in beiden Mails die besondere Ernährung, bei vegan oder glutenfrei mit Hinweis auf Absprache', () => {
+    const mit = anfrage({ ernaehrung: { vegetarisch: '3', vegan: '2', glutenfrei: '' } });
+    expect(kundenMail(mit).html).toContain('3 vegetarisch, 2 vegan');
+    expect(kundenMail(mit).html).toContain('auf Anfrage');
+    expect(janaMail(mit).html).toContain('Gerichte und Aufpreis absprechen');
+    const nurVegetarisch = anfrage({ ernaehrung: { vegetarisch: '3' } });
+    expect(janaMail(nurVegetarisch).html).toContain('3 vegetarisch');
+    expect(janaMail(nurVegetarisch).html).not.toContain('absprechen');
+    expect(kundenMail(anfrage()).html).not.toContain('Besondere Ernährung');
   });
 
   it('entschärft Kundeneingaben in beiden Mails', () => {

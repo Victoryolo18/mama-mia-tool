@@ -71,6 +71,7 @@ export default function MamaMiaAngebotsgenerator() {
     kontaktdaten: "",
     name: "",
     notizen: "",
+    ernaehrung: { vegetarisch: "", vegan: "", glutenfrei: "" },
     anlass: null,
   });
   const [submitting, setSubmitting] = useState(false);

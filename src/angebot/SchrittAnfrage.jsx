@@ -4,6 +4,7 @@ import { formatPreis } from "./angebotspreis.js";
 import { ANLAESSE } from "./anlaesse.js";
 import { LIEFER_LABELS, istLieferart } from "./lieferung.js";
 import { FIRMEN_VORTEIL, firmenVorteilBedingungen, firmenVorteilMoeglich } from "./firmenVorteil.js";
+import { ERNAEHRUNG, ernaehrungAusEingabe, ernaehrungText } from "./ernaehrung.js";
 
 /* ── 📞 KONTAKT-METHODEN ── */
 export const KONTAKT_OPTIONEN = [
@@ -49,6 +50,9 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
           <SummaryRow label="Datum"    value={data.datum ? new Date(data.datum).toLocaleDateString("de-DE", { day:"2-digit", month:"long", year:"numeric" }) : "—"} />
           {data.uhrzeit && <SummaryRow label="Lieferzeit" value={`${data.uhrzeit} Uhr`} />}
           <SummaryRow label="Ort"      value={`${data.plz} (${LIEFER_LABELS[data.lieferung] || data.lieferung})`} />
+          {ernaehrungText(ernaehrungAusEingabe(data.ernaehrung, data.gaeste)) && (
+            <SummaryRow label="Ernährung" value={ernaehrungText(ernaehrungAusEingabe(data.ernaehrung, data.gaeste))} />
+          )}
 
           {/* Menü-Auswahl */}
           {auswahl.length > 0 && (
@@ -218,6 +222,35 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
               {ANLAESSE.map(a => <option key={a.slug} value={a.slug}>{a.label}</option>)}
             </select>
           </div>
+
+          {/* Besondere Ernährung — freiwillig. Vegan und glutenfrei kocht Jana auf Anfrage (mehr Aufwand). */}
+          <fieldset style={{ ...S.field, border: "none", padding: 0, margin: 0 }}>
+            <legend style={{ ...S.label, padding: 0 }}>
+              Wie viele Gäste essen … <span style={{ fontWeight: 400, color: C.cappuccino, fontSize: 13 }}>(optional)</span>
+            </legend>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
+              {ERNAEHRUNG.map((e) => (
+                <label key={e.slug} style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13, color: C.inkSoft, minWidth: 0 }}>
+                  {e.label[0].toUpperCase() + e.label.slice(1)}
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    max={Number(data.gaeste) || undefined}
+                    value={data.ernaehrung?.[e.slug] ?? ""}
+                    onChange={(ev) => update("ernaehrung", { ...data.ernaehrung, [e.slug]: ev.target.value })}
+                    placeholder="0"
+                    style={{ ...S.input, minWidth: 0 }}
+                    className="mm-input"
+                  />
+                </label>
+              ))}
+            </div>
+            <div style={{ fontSize: 12, color: C.cappuccino, marginTop: 6, lineHeight: 1.45 }}>
+              Vegetarische Gerichte sind im Menü gekennzeichnet. Vegan und glutenfrei koche ich auf Anfrage;
+              das ist mehr Aufwand und kann etwas mehr kosten, ich bespreche es mit Ihnen. Allergien bitte unten bei den Anmerkungen.
+            </div>
+          </fieldset>
 
           {/* Notizen */}
           <div style={S.field}>

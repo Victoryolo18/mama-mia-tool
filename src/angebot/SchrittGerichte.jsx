@@ -4,6 +4,7 @@ import {
   aktiverStil, blockErfuellt, formatPreis, gerichteFuerBlock, maxAuswahl, plusEinsPreis, weitereGerichte, zusatzPreis,
 } from "./angebotspreis.js";
 import { KOSTFORMEN, kostform, kostformenIn } from "./kostform.js";
+import { aufAnfrage, aufAnfrageIn } from "./ernaehrung.js";
 
 /* Schritt "Gerichte": Stil-Kacheln oben, darunter die Blöcke des Pakets.
    Hält selbst keine Auswahl; die liegt beim Aufrufer, damit der Preis überall derselbe ist.
@@ -30,14 +31,44 @@ function Kostform({ gericht }) {
   );
 }
 
+/* "VG" und "GF" hinter dem Namen: Das Gericht gibt es auf Anfrage vegan bzw. glutenfrei. */
+function Kuerzel({ children }) {
+  return (
+    <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: ".5px", color: C.cappuccino, border: `1px solid ${C.border}`, borderRadius: 4, padding: "1px 3px", lineHeight: 1.2, flexShrink: 0 }}>
+      {children}
+    </span>
+  );
+}
+
+function AufAnfrage({ gericht }) {
+  const da = aufAnfrage(gericht);
+  if (da.length === 0) return null;
+  return (
+    <span style={{ display: "inline-flex", gap: 3, marginLeft: 6, verticalAlign: "middle" }}>
+      {da.map((a) => (
+        <span key={a.slug} style={{ display: "inline-flex" }}>
+          <span aria-hidden="true"><Kuerzel>{a.kurz}</Kuerzel></span>
+          <span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>, {a.label}</span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
 function Legende({ gerichte }) {
   const da = kostformenIn(gerichte);
-  if (da.length < 2) return null;
+  const anfrage = aufAnfrageIn(gerichte);
+  if (da.length < 2 && anfrage.length === 0) return null;
   return (
     <div aria-hidden="true" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 16px", fontSize: 12, color: C.inkSoft, margin: "-6px 0 18px" }}>
-      {da.map((k) => (
+      {da.length >= 2 && da.map((k) => (
         <span key={k.slug} style={{ display: "inline-flex", alignItems: "center" }}>
           <Punkt farbe={k.farbe} />{k.label}
+        </span>
+      ))}
+      {anfrage.map((a) => (
+        <span key={a.slug} style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+          <Kuerzel>{a.kurz}</Kuerzel>{a.label}
         </span>
       ))}
     </div>
@@ -90,7 +121,7 @@ function GerichtKnopf({ gericht, an, gesperrt, rund, preis, onClick }) {
       <Haken an={an} rund={rund} />
       <span style={{ display: "flex", alignItems: "center", gap: 2, flex: 1, minWidth: 0 }}>
         <Kostform gericht={gericht} />
-        <span style={{ minWidth: 0, overflowWrap: "anywhere" }}>{gericht.name}</span>
+        <span style={{ minWidth: 0, overflowWrap: "anywhere" }}>{gericht.name}<AufAnfrage gericht={gericht} /></span>
       </span>
       {preis !== undefined && (
         <span style={{ fontSize: 13, fontWeight: 700, color: C.gold, whiteSpace: "nowrap", flexShrink: 0 }}>+ {formatPreis(preis)}</span>
