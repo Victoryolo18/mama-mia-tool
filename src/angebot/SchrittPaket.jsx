@@ -2,7 +2,6 @@ import React from "react";
 import { C, S } from "../theme.js";
 import { formatPreis } from "./angebotspreis.js";
 import { FIRMEN_VORTEIL, firmenVorteilBedingungen } from "./firmenVorteil.js";
-import { mehrAlsVorher, mehrText } from "./paketVergleich.js";
 
 /* Schritt "Paket": die Pakete der gewählten Essensart, dahinter ihr Essensbild. */
 
@@ -68,10 +67,7 @@ export default function SchrittPaket({ essensart, pakete, bloecke, gewaehlt, onW
       >
         {pakete.map((p, i) => {
           const hervor = !!p.hervorgehoben;
-          const eigene = bloecke.filter((b) => b.paket_id === p.id);
-          const merkmale = paketMerkmale(eigene);
-          const vorher = pakete[i - 1];
-          const mehr = vorher ? mehrText(vorher.name, mehrAlsVorher(eigene, bloecke.filter((b) => b.paket_id === vorher.id))) : null;
+          const merkmale = paketMerkmale(bloecke.filter((b) => b.paket_id === p.id));
           return (
             <button
               key={p.id}
@@ -115,11 +111,6 @@ export default function SchrittPaket({ essensart, pakete, bloecke, gewaehlt, onW
                   </li>
                 ))}
               </ul>
-              {mehr && (
-                <div style={{ fontSize: 12, lineHeight: 1.45, color: hervor ? C.goldSoft : C.cappuccino, fontStyle: "italic", margin: "-4px 0 14px", textAlign: "left" }}>
-                  {mehr}
-                </div>
-              )}
 
               <div style={{
                 ...S.paketCta,
