@@ -21,7 +21,7 @@ begin;
 
 do $$
 declare
-  vegan text[] := array[
+  liste_vegan text[] := array[
     'Gemüseplatte mit Dips', 'Marinierte Auberginen', 'Antipasti-Platte mit Brotkorb', 'Kürbissuppe', 'Tomatensuppe',
     'Minestrone', 'Grüner Borschtsch (mit Sauerampfer)', 'Roter Borschtsch mit Pampuschki', 'Kartoffelsuppe mit/ohne Würstchen',
     'Platte Mediterran (Grillgemüse, Schafskäse)',
@@ -37,7 +37,7 @@ declare
     'Brötchen & Croissants',
     'Panna Cotta', 'Apfelcrumble'
   ];
-  glutenfrei text[] := array[
+  liste_gf text[] := array[
     'Gemüseplatte mit Dips', 'Marinierte Auberginen', 'Antipasti-Platte mit Brotkorb', 'Kürbissuppe', 'Tomatensuppe',
     'Minestrone', 'Grüner Borschtsch (mit Sauerampfer)', 'Roter Borschtsch mit Pampuschki', 'Kartoffelsuppe mit/ohne Würstchen',
     'Platte Mediterran (Grillgemüse, Schafskäse)', 'Tomaten-Mozzarella-Teller', 'Tomaten-Mozzarella im Glas', 'Käseplatte',
@@ -68,21 +68,21 @@ declare
   n_gf integer;
 begin
   select string_agg(x, ', ') into fehlt
-  from unnest(vegan || glutenfrei || array['Kalifornischer Spaghetti-Salat']) as x
+  from unnest(liste_vegan || liste_gf || array['Kalifornischer Spaghetti-Salat']) as x
   where not exists (select 1 from public.gerichte g where g.name = x and g.aktiv);
   if fehlt is not null then
     raise exception 'Nicht als aktives Gericht gefunden, nichts geändert: %', fehlt;
   end if;
 
   -- Ein Gericht, das schon vegan ist, braucht kein "vegan auf Anfrage".
-  update public.gerichte set vegan_moeglich = true where name = any(vegan) and not vegan and not vegan_moeglich;
-  update public.gerichte set glutenfrei_moeglich = true where name = any(glutenfrei) and not glutenfrei_moeglich;
+  update public.gerichte set vegan_moeglich = true where name = any(liste_vegan) and not vegan and not vegan_moeglich;
+  update public.gerichte set glutenfrei_moeglich = true where name = any(liste_gf) and not glutenfrei_moeglich;
   update public.gerichte set aktiv = false where name = 'Kalifornischer Spaghetti-Salat' and aktiv;
 
   select count(*) into n_vegan from public.gerichte where aktiv and vegan_moeglich;
   select count(*) into n_gf from public.gerichte where aktiv and glutenfrei_moeglich;
   raise notice 'Vegan auf Anfrage: % Gerichte (erwartet %). Glutenfrei auf Anfrage: % Gerichte (erwartet %).',
-    n_vegan, cardinality(vegan), n_gf, cardinality(glutenfrei);
+    n_vegan, cardinality(liste_vegan), n_gf, cardinality(liste_gf);
 end;
 $$;
 
