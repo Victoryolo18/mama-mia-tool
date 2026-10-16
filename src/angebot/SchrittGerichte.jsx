@@ -115,13 +115,16 @@ function GerichtKnopf({ gericht, an, gesperrt, rund, preis, onClick }) {
       style={{
         ...S.menueWahlBtn,
         ...(an ? S.menueWahlBtnActive : {}),
+        // Fett macht den Namen breiter: Er bräche beim Antippen um, und die Zeile spränge. Hervorgehoben
+        // wird er deshalb mit einer Kontur, die die Breite nicht ändert.
+        fontWeight: 400,
         ...(gesperrt ? { opacity: 0.4, cursor: "not-allowed" } : {}),
       }}
     >
       <Haken an={an} rund={rund} />
       <span style={{ display: "flex", alignItems: "center", gap: 2, flex: 1, minWidth: 0 }}>
         <Kostform gericht={gericht} />
-        <span style={{ minWidth: 0, overflowWrap: "anywhere" }}>{gericht.name}<AufAnfrage gericht={gericht} /></span>
+        <span style={{ minWidth: 0, overflowWrap: "anywhere", WebkitTextStroke: an ? "0.5px currentColor" : undefined }}>{gericht.name}<AufAnfrage gericht={gericht} /></span>
       </span>
       {preis !== undefined && (
         <span style={{ fontSize: 13, fontWeight: 700, color: C.gold, whiteSpace: "nowrap", flexShrink: 0 }}>+ {formatPreis(preis)}</span>
