@@ -2,8 +2,10 @@ import { describe, it, expect } from "vitest";
 import { KOSTFORMEN, kostform, kostformenIn } from "./kostform.js";
 
 describe("kostform", () => {
-  it("folgt den Häkchen aus dem CRM: vegan vor vegetarisch", () => {
-    expect(kostform({ name: "Obstspieße", vegetarisch: true, vegan: true })).toBe("vegan");
+  it("folgt dem Häkchen aus dem CRM; vegan zählt als vegetarisch, ohne eigenen Punkt", () => {
+    expect(kostform({ name: "Obstspieße", vegetarisch: true, vegan: true })).toBe("vegetarisch");
+    expect(kostform({ name: "Obstplatte", vegetarisch: false, vegan: true })).toBe("vegetarisch");
+    expect(KOSTFORMEN.map((k) => k.slug)).not.toContain("vegan");
     expect(kostform({ name: "Käseplatte", vegetarisch: true, vegan: false })).toBe("vegetarisch");
   });
 
@@ -31,7 +33,7 @@ describe("kostformenIn", () => {
     expect(kostformenIn([])).toEqual([]);
   });
 
-  it("hat vier Kostformen mit eigener Farbe", () => {
-    expect(new Set(KOSTFORMEN.map((k) => k.farbe)).size).toBe(4);
+  it("hat drei Kostformen mit eigener Farbe", () => {
+    expect(new Set(KOSTFORMEN.map((k) => k.farbe)).size).toBe(3);
   });
 });
