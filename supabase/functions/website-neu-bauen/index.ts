@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════
 // SUPABASE EDGE FUNCTION: website-neu-bauen
 // Stößt einen Neubau der Website auf Vercel an (Deploy Hook), damit eine
-// Stelle, die Jana im CRM ändert, auf /mitarbeiten erscheint (WEB-30).
+// Stelle, die Jana im CRM ändert, auf /jobs erscheint (WEB-30).
 //
 // Wer darf: nur die eingeloggte CRM-Nutzerin. Der öffentliche anon-Key
 // reicht nicht; die Funktion fragt bei Supabase Auth nach, wem das
