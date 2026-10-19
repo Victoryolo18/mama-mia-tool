@@ -63,7 +63,7 @@ describe('baueAnfrage — was gespeichert wird', () => {
     expect(anfrage({ anlass: '' }).anlass).toBeNull();
   });
 
-  const firma = { name: 'TEST Muster GmbH', adresse: 'Hauptstraße 1, 16767 Leegebruch', ust_id: 'DE123456789' };
+  const firma = { name: 'TEST Muster GmbH', strasse: 'Hauptstraße', nr: '1', plz: '16767', ort: 'Leegebruch', ust_id: 'DE123456789' };
 
   it('zieht den Firmen-Vorteil ab: 5 % von 1.413 € Speisen (Firmenfeier an einem Montag, 30 Gäste)', () => {
     const ohne = anfrage({ anlass: 'firmenfeier', datum: '2026-10-19', firma }, 25, null);
@@ -72,7 +72,7 @@ describe('baueAnfrage — was gespeichert wird', () => {
     expect(mit.angebot_snapshot.speisen_gesamt).toBe(1413);
     expect(mit.gesamtpreis).toBe(1438 - 70.65);
     expect(mit.angebot_snapshot.gesamt).toBe(mit.gesamtpreis);
-    expect(mit).toMatchObject({ firma_name: 'TEST Muster GmbH', firma_adresse: 'Hauptstraße 1, 16767 Leegebruch', firma_ust_id: 'DE123456789' });
+    expect(mit).toMatchObject({ firma_name: 'TEST Muster GmbH', firma_adresse: 'Hauptstraße 1\n16767 Leegebruch', firma_ust_id: 'DE123456789' });
     expect(ohne.angebot_snapshot.firmen_vorteil).toBeNull();
     expect(ohne.gesamtpreis).toBe(1438);
     expect(janaMail(mit).html).toContain('TEST Muster GmbH');

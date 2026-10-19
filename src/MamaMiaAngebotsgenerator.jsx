@@ -72,7 +72,7 @@ export default function MamaMiaAngebotsgenerator() {
     name: "",
     notizen: "",
     anlass: null,
-    firma: { name: "", adresse: "", ust_id: "" },
+    firma: { name: "", strasse: "", nr: "", plz: "", ort: "", ust_id: "" },
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -373,8 +373,6 @@ export default function MamaMiaAngebotsgenerator() {
                 mindestpersonen={essensart.mindestpersonen ?? 8}
                 dbLieferzonen={dbLieferzonen}
                 dbLieferorte={dbLieferorte}
-                regel={regel}
-                ergebnis={ergebnis}
               />
             )}
             {sichtbar === 5 && (

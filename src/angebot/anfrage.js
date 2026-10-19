@@ -8,13 +8,13 @@
      stehen pro Person in `menue_auswahl._upgrades`; `gesamtpreis` enthält alles samt Lieferung. */
 
 import { maxAuswahl } from "./angebotspreis.js";
-import { pruefeFirma } from "./firmenVorteil.js";
+import { pruefeFirmaEingabe } from "./firmenVorteil.js";
 
 const cent = (euro) => Math.round(Number(euro) * 100);
 
 export function baueAnfrage({ requestNumber, data, essensart, paket, stil, bloecke, gerichte, ergebnis }) {
   const personen = Math.max(0, Math.floor(Number(data.gaeste) || 0));
-  const firma = pruefeFirma(data.firma).wert;
+  const firma = pruefeFirmaEingabe(data.firma).wert;
   const name = (id) => gerichte[id]?.name;
 
   const jeLabel = new Map();

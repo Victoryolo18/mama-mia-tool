@@ -111,6 +111,27 @@ export function pruefeFirma(firma) {
   return { wert: { name, adresse, ust_id: ust || null } };
 }
 
+/** Die Rechnungsadresse aus den vier Feldern des Generators, so wie sie gespeichert wird: "Straße Nr\nPLZ Ort". */
+export function adresseAusFeldern({ strasse, nr, plz, ort } = {}) {
+  const zeile = (...teile) => teile.map((t) => String(t ?? "").trim().replace(/\s+/g, " ")).filter(Boolean).join(" ");
+  return [zeile(strasse, nr), zeile(plz, ort)].filter(Boolean).join("\n");
+}
+
+/** Firmendaten aus dem Generator (Name, Straße, Nr., PLZ, Ort, USt-ID) → `{ wert: { name, adresse, ust_id } }`,
+    `{ wert: null }` (leer) oder `{ fehler }`. `plzOrte` ist die Liste aus plzOrte.js; ohne sie (noch nicht
+    geladen) wird nur geprüft, dass die Postleitzahl fünf Ziffern hat. */
+export function pruefeFirmaEingabe(eingabe, plzOrte = null) {
+  const feld = (name) => String(eingabe?.[name] ?? "").trim();
+  if (!["name", "strasse", "nr", "plz", "ort", "ust_id"].some((n) => feld(n))) return { wert: null };
+  if (feld("name").length < 2) return { fehler: "Bitte den Namen der Firma angeben." };
+  if (!feld("strasse")) return { fehler: "Bitte die Straße angeben." };
+  if (!feld("nr")) return { fehler: "Bitte die Hausnummer angeben." };
+  if (!/^\d{5}$/.test(feld("plz"))) return { fehler: "Bitte eine Postleitzahl mit fünf Ziffern angeben." };
+  if (plzOrte && !Object.hasOwn(plzOrte, feld("plz"))) return { fehler: "Diese Postleitzahl gibt es nicht. Bitte prüfen." };
+  if (!feld("ort")) return { fehler: "Bitte den Ort angeben." };
+  return pruefeFirma({ name: feld("name"), adresse: adresseAusFeldern(eingabe), ust_id: feld("ust_id") });
+}
+
 /** Wie viel Prozent abgezogen werden: die Prozent der Regel, wenn Anlass, Tag und Personenzahl passen, sonst null.
     Die Firmendaten sind dann Pflicht (firmaAbfrage), der Abzug hängt nicht an ihnen. */
 export function vorteilProzent(data, regel) {

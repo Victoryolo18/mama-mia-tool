@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { C, S } from "../theme.js";
 import { formatPreis } from "./angebotspreis.js";
 import { anlassLabel } from "./anlaesse.js";
 import { LIEFER_LABELS, istLieferart } from "./lieferung.js";
-import { FIRMA_GRENZEN, firmaAbfrage, firmenVorteilBedingungen, pruefeFirma } from "./firmenVorteil.js";
+import { FIRMA_GRENZEN, firmaAbfrage, pruefeFirmaEingabe } from "./firmenVorteil.js";
+import { ladePlzOrte, orteZurPlz, ortVorschlag } from "./plzOrte.js";
+import { reportError } from "../errorLog.js";
 import { MWST_PROZENT, mwstAus } from "./mwst.js";
 
 /* ── 📞 KONTAKT-METHODEN ── */
@@ -19,10 +21,25 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
   // Gibt es den Firmen-Vorteil, ist die Firma Pflicht; bei anderen Firmenanlässen und der Weihnachtsfeier freiwillig.
   // Eingetipptes muss stimmen.
   const firmaArt = firmaAbfrage(data, regel);
-  const firmaPruefung = firmaArt ? pruefeFirma(data.firma) : { wert: null };
+  // Die Postleitzahlen kommen erst, wenn die Firmenfelder erscheinen; bis dahin gilt: fünf Ziffern.
+  const [plzOrte, setPlzOrte] = useState(null);
+  useEffect(() => {
+    if (!firmaArt) return undefined;
+    let aktuell = true;
+    ladePlzOrte().then((k) => { if (aktuell) setPlzOrte(k); }).catch((e) => reportError("plz_orte_laden", e));
+    return () => { aktuell = false; };
+  }, [!!firmaArt]);
+  const firmaPruefung = firmaArt ? pruefeFirmaEingabe(data.firma, plzOrte) : { wert: null };
+  const firmaBegonnen = ["name", "strasse", "nr", "plz", "ort", "ust_id"].some((n) => String(data.firma[n] ?? "").trim());
   const firmaOk = !firmaPruefung.fehler && (firmaArt !== "pflicht" || !!firmaPruefung.wert);
   const canSubmit = data.name.trim().length >= 2 && data.kontaktdaten.trim().length >= 5 && firmaOk;
   const setFirma = (feld, wert) => update("firma", { ...data.firma, [feld]: wert });
+  // Postleitzahl eintippen: Gibt es genau einen Ort, trägt er sich ein.
+  const setPlz = (plz) => {
+    const ort = ortVorschlag(plzOrte, plz, data.firma.ort, data.firma.plz);
+    update("firma", { ...data.firma, plz, ...(ort ? { ort } : {}) });
+  };
+  const orte = orteZurPlz(plzOrte, data.firma.plz) ?? [];
   const steuer = mwstAus(ergebnis.gesamt);
   const istLieferung = istLieferart(data.lieferung);
   const lieferzoneUnbekannt = istLieferung && !lieferInfo.bekannt;
@@ -160,11 +177,6 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
             Eigene Zusatzwünsche oder besondere Komponenten können den Preis leicht beeinflussen.
           </div>
 
-          {ergebnis.firmenVorteil && regel && (
-            <div style={{ ...S.summaryNote, opacity: 1, fontStyle: "normal", fontSize: 13, color: C.gold, fontWeight: 600 }}>
-              Firmen-Vorteil auf die Speisen ({firmenVorteilBedingungen(regel)}). Ohne Rechnung an die Firma entfällt er.
-            </div>
-          )}
         </div>
 
         {/* Rechte Seite: Kontaktformular */}
@@ -242,17 +254,55 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
                   style={S.input}
                   className="mm-input"
                 />
-                <textarea
-                  aria-label="Rechnungsadresse"
-                  value={data.firma.adresse}
-                  onChange={(e) => setFirma("adresse", e.target.value)}
-                  placeholder={"Straße und Hausnummer\nPLZ und Ort"}
-                  autoComplete="street-address"
-                  rows={2}
-                  maxLength={FIRMA_GRENZEN.adresse}
-                  style={{ ...S.input, resize: "vertical", fontFamily: "inherit" }}
-                  className="mm-input"
-                />
+                <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 76px", gap: 8 }}>
+                  <input
+                    type="text"
+                    aria-label="Straße"
+                    value={data.firma.strasse}
+                    onChange={(e) => setFirma("strasse", e.target.value)}
+                    placeholder="Straße"
+                    autoComplete="address-line1"
+                    maxLength={120}
+                    style={{ ...S.input, minWidth: 0 }}
+                    className="mm-input"
+                  />
+                  <input
+                    type="text"
+                    aria-label="Hausnummer"
+                    value={data.firma.nr}
+                    onChange={(e) => setFirma("nr", e.target.value)}
+                    placeholder="Nr."
+                    maxLength={10}
+                    style={{ ...S.input, minWidth: 0 }}
+                    className="mm-input"
+                  />
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "96px minmax(0, 1fr)", gap: 8 }}>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    aria-label="Postleitzahl"
+                    value={data.firma.plz}
+                    onChange={(e) => setPlz(e.target.value.replace(/\D/g, "").slice(0, 5))}
+                    placeholder="PLZ"
+                    autoComplete="postal-code"
+                    style={{ ...S.input, minWidth: 0 }}
+                    className="mm-input"
+                  />
+                  <input
+                    type="text"
+                    aria-label="Ort"
+                    value={data.firma.ort}
+                    onChange={(e) => setFirma("ort", e.target.value)}
+                    placeholder="Ort"
+                    autoComplete="address-level2"
+                    list={orte.length > 1 ? "mm-firma-orte" : undefined}
+                    maxLength={60}
+                    style={{ ...S.input, minWidth: 0 }}
+                    className="mm-input"
+                  />
+                  {orte.length > 1 && <datalist id="mm-firma-orte">{orte.map((o) => <option key={o} value={o} />)}</datalist>}
+                </div>
                 <input
                   type="text"
                   aria-label="Umsatzsteuer-ID, optional"
@@ -264,13 +314,9 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
                   className="mm-input"
                 />
               </div>
-              <div style={{ fontSize: 12, color: firmaPruefung.fehler ? "#C0392B" : C.cappuccino, marginTop: 6, lineHeight: 1.45 }}>
-                {firmaPruefung.fehler && (data.firma.name || data.firma.adresse || data.firma.ust_id)
-                  ? firmaPruefung.fehler
-                  : firmaArt === "pflicht"
-                    ? "Für den Firmen-Vorteil stelle ich die Rechnung an die Firma. Bitte Firmenname und Rechnungsadresse angeben."
-                    : "Feiern Sie mit Ihrer Firma, stelle ich die Rechnung gern an die Firma."}
-              </div>
+              {firmaPruefung.fehler && firmaBegonnen && (
+                <div style={{ fontSize: 12, color: "#C0392B", marginTop: 6, lineHeight: 1.45 }}>{firmaPruefung.fehler}</div>
+              )}
             </fieldset>
           )}
 

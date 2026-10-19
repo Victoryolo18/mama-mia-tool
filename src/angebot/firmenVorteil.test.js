@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import {
-  FIRMEN_ANLAESSE, firmaAbfrage, firmenAnlass, firmenVorteilBedingungen, firmenVorteilMoeglich, ladeFirmenVorteil,
-  mitFirmenVorteil, pruefeFirma, pruefeRegel, regelAusZeile, vorteilProzent, wochentag, wochentageText,
+  FIRMEN_ANLAESSE, adresseAusFeldern, firmaAbfrage, firmenAnlass, firmenVorteilBedingungen, firmenVorteilMoeglich, ladeFirmenVorteil,
+  mitFirmenVorteil, pruefeFirma, pruefeFirmaEingabe, pruefeRegel, regelAusZeile, vorteilProzent, wochentag, wochentageText,
 } from "./firmenVorteil.js";
 import { ANLAESSE } from "./anlaesse.js";
 
@@ -193,5 +193,31 @@ describe("mitFirmenVorteil", () => {
   it("lässt den Preis ohne Vorteil stehen", () => {
     expect(mitFirmenVorteil(ergebnis, null)).toEqual({ ...ergebnis, firmenVorteil: null });
     expect(mitFirmenVorteil(null, 5)).toBe(null);
+  });
+});
+
+describe("pruefeFirmaEingabe — Rechnungsadresse in vier Feldern", () => {
+  const eingabe = { name: "TEST Muster GmbH", strasse: "Hauptstraße", nr: "1a", plz: "16767", ort: "Leegebruch", ust_id: "" };
+  const plzOrte = { "16767": ["Germendorf", "Leegebruch"] };
+
+  it("setzt die Adresse so zusammen, wie sie gespeichert wird", () => {
+    expect(pruefeFirmaEingabe(eingabe, plzOrte)).toEqual({ wert: { name: "TEST Muster GmbH", adresse: "Hauptstraße 1a\n16767 Leegebruch", ust_id: null } });
+    expect(adresseAusFeldern({ strasse: " Am  Markt ", nr: "3", plz: "16767", ort: "Leegebruch" })).toBe("Am Markt 3\n16767 Leegebruch");
+  });
+
+  it("ist leer, wenn nichts eingetragen ist", () => {
+    expect(pruefeFirmaEingabe({ name: "", strasse: "", nr: "", plz: "", ort: "", ust_id: "" }, plzOrte)).toEqual({ wert: null });
+  });
+
+  it("verlangt jedes Feld außer der Umsatzsteuer-ID", () => {
+    expect(pruefeFirmaEingabe({ ...eingabe, strasse: "" }).fehler).toMatch(/Straße/);
+    expect(pruefeFirmaEingabe({ ...eingabe, nr: " " }).fehler).toMatch(/Hausnummer/);
+    expect(pruefeFirmaEingabe({ ...eingabe, plz: "1676" }).fehler).toMatch(/fünf Ziffern/);
+    expect(pruefeFirmaEingabe({ ...eingabe, ort: "" }).fehler).toMatch(/Ort/);
+  });
+
+  it("lehnt eine Postleitzahl ab, die es nicht gibt, sobald die Liste geladen ist", () => {
+    expect(pruefeFirmaEingabe({ ...eingabe, plz: "00000" }, plzOrte).fehler).toMatch(/gibt es nicht/);
+    expect(pruefeFirmaEingabe({ ...eingabe, plz: "00000" }).wert).toBeTruthy();
   });
 });
