@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { aufAnfrage, aufAnfrageIn, brauchtAbsprache, ernaehrungAusEingabe, ernaehrungText } from "./ernaehrung.js";
+import { aufAnfrage, aufAnfrageIn, brauchtAbsprache, ernaehrungText } from "./ernaehrung.js";
 
 describe("aufAnfrage", () => {
   it("nennt, was ein Gericht auf Anfrage sein kann, vegan vor glutenfrei", () => {
@@ -19,21 +19,6 @@ describe("aufAnfrage", () => {
   it("sammelt für die Legende nur, was vorkommt", () => {
     expect(aufAnfrageIn([{ glutenfrei_moeglich: true }, { name: "x" }]).map((a) => a.slug)).toEqual(["glutenfrei"]);
     expect(aufAnfrageIn([{ name: "x" }])).toEqual([]);
-  });
-});
-
-describe("ernaehrungAusEingabe", () => {
-  it("speichert ganze Zahlen je Ernährung", () => {
-    expect(ernaehrungAusEingabe({ vegetarisch: "4", vegan: "2", glutenfrei: "" }, 30)).toEqual({ vegetarisch: 4, vegan: 2, glutenfrei: 0 });
-  });
-
-  it("speichert nichts, wenn niemand etwas Besonderes isst", () => {
-    expect(ernaehrungAusEingabe({ vegetarisch: "", vegan: "0" }, 30)).toBeNull();
-    expect(ernaehrungAusEingabe(undefined, 30)).toBeNull();
-  });
-
-  it("begrenzt auf die Gästezahl und lässt nichts unter null zu", () => {
-    expect(ernaehrungAusEingabe({ vegan: "25", glutenfrei: "-3", vegetarisch: "2.7" }, 20)).toEqual({ vegetarisch: 2, vegan: 20, glutenfrei: 0 });
   });
 });
 

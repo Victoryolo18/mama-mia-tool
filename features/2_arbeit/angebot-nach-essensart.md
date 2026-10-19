@@ -168,6 +168,18 @@ Fertig, wenn:
 - [x] Website: Kopie des Generators, Texte und AGB.
 Nicht dabei: Prüfung der Umsatzsteuer-ID beim Bundeszentralamt; 19 % für Service vor Ort.
 
+### GEN-20 Firmen-Vorteil einstellbar, Anlass Pflicht, Ernährungsfelder raus
+Victor, 19.10.2026, an der Vorschau von GEN-19: Der Rabatt war erst nach den Firmendaten zu sehen. Er soll sofort sichtbar sein, unter der Lieferung, und Jana stellt ihn im CRM ein (an/aus, Höhe, Tage, ab wie vielen Personen). Der Anlass wird Pflicht, schon bei Gästen und Datum. Die Frage, wie viele Gäste vegetarisch, vegan oder glutenfrei essen, fällt weg; Wünsche gehen in die Anmerkungen. Bestehende Anfragen bleiben, wie sie sind.
+Baut auf: GEN-19
+Fertig, wenn:
+- [x] Die Regel steht in der Tabelle `firmen_vorteil` (Migration 18): eine Zeile, lesen für alle, ändern nur eingeloggt; Startwerte 5 %, Montag bis Donnerstag, ab 15 Personen. Die Preisprüfung liest sie von dort (Test vergleicht Anlässe, Grenzen und Wochentage mit `firmenVorteil.js`).
+- [x] Der Generator rechnet mit der eingestellten Regel; ausgeschaltet oder nicht ladbar gibt es keinen Abzug (Tests `firmenVorteilMoeglich`, `vorteilProzent`, `ladeFirmenVorteil`, `baueAnfrage` mit 10 % am Freitag).
+- [x] Der Anlass ist im Schritt „Details“ Pflicht. Passen Anlass, Tag und Personen, steht dort gleich „Firmen-Vorteil −5 %“ mit Betrag; in der Zusammenfassung steht die Zeile unter der Lieferung, der Gesamtpreis ist reduziert.
+- [x] Firmendaten sind Pflicht, sobald es den Vorteil gibt; sonst bei Firmenanlässen und Weihnachtsfeier freiwillig (Test `firmaAbfrage`).
+- [x] Keine Ernährungsfelder und kein Hinweis mehr im letzten Schritt; der Snapshot hat kein Feld `ernaehrung` mehr. Ältere Anfragen behalten ihres.
+- [x] Gespeicherte Anfragen behalten ihren Prozentsatz; der Trigger läuft nur beim Anlegen.
+Nicht dabei: andere Anlässe für den Vorteil einstellbar machen.
+
 ## Entscheidungen
 
 - 08.10.2026, Victor: Einstieg nach Essensart (Buffet, Fingerfood, Frühstück) wie relaxx-catering; Grill und Spanferkel entfallen.

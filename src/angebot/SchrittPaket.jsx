@@ -1,7 +1,7 @@
 import React from "react";
 import { C, S } from "../theme.js";
 import { formatPreis } from "./angebotspreis.js";
-import { FIRMEN_VORTEIL, firmenVorteilBedingungen } from "./firmenVorteil.js";
+import { firmenVorteilBedingungen } from "./firmenVorteil.js";
 
 /* Schritt "Paket": die Pakete der gewählten Essensart, dahinter ihr Essensbild. */
 
@@ -44,8 +44,8 @@ export default function SchrittPaket({ essensart, pakete, bloecke, gewaehlt, onW
             </p>
             {vorteil && (
               <p style={{ ...S.heroSub, color: C.gold, fontSize: 14, fontWeight: 600, margin: "16px auto 0", maxWidth: 520, padding: "10px 14px", borderRadius: 12, background: "rgba(28,16,8,.62)" }}>
-                Firmen-Vorteil: {FIRMEN_VORTEIL.prozent} % auf die Speisen, {firmenVorteilBedingungen()}.
-                Mit Ihren Firmendaten im letzten Schritt ziehe ich ihn direkt im Preis ab.
+                Firmen-Vorteil: {vorteil.prozent} % auf die Speisen, {firmenVorteilBedingungen(vorteil)}.
+                Ich ziehe ihn direkt im Preis ab.
               </p>
             )}
           </>

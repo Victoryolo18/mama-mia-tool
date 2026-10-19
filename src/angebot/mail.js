@@ -4,9 +4,7 @@
 import { formatPreis } from "./angebotspreis.js";
 import { anlassLabel } from "./anlaesse.js";
 import { LIEFER_LABELS, istLieferart } from "./lieferung.js";
-import { firmenVorteilBedingungen } from "./firmenVorteil.js";
 import { MWST_PROZENT } from "./mwst.js";
-import { brauchtAbsprache, ernaehrungText } from "./ernaehrung.js";
 
 // Kundeneingaben (Name, Kontakt, Freitext) landen in HTML-Mails. Ohne
 // Maskierung koennte jemand ueber das Formular fremdes Markup in die
@@ -25,7 +23,6 @@ const datumText = (datum) => datum
   : "Datum offen";
 
 const vorteil = (request) => request.angebot_snapshot?.firmen_vorteil ?? null;
-const ernaehrung = (request) => request.angebot_snapshot?.ernaehrung ?? null;
 
 const zeile = (label, wert) => `<p style="margin: 4px 0;"><strong>${label}:</strong> ${wert}</p>`;
 
@@ -63,9 +60,8 @@ export function kundenMail(request) {
         ${zeile("Datum", datumText(request.event_datum))}
         ${zeile("Gäste", `${request.gaeste} Personen`)}
         ${request.firma_name ? zeile("Rechnung an", firmaText(request)) : ""}
-        ${vorteil(request) ? zeile("Firmen-Vorteil", `${vorteil(request).prozent} % auf die Speisen abgezogen: −${formatPreis(vorteil(request).betrag)} (${firmenVorteilBedingungen()}). Ohne Rechnung an die Firma entfällt der Vorteil.`) : ""}
+        ${vorteil(request) ? zeile("Firmen-Vorteil", `${vorteil(request).prozent} % auf die Speisen abgezogen: −${formatPreis(vorteil(request).betrag)}. Ohne Rechnung an die Firma entfällt der Vorteil.`) : ""}
         ${zeile("Geschätzter Preis", `${formatPreis(request.gesamtpreis)} inkl. ${MWST_PROZENT} % MwSt`)}
-        ${ernaehrung(request) ? zeile("Besondere Ernährung", `${ernaehrungText(ernaehrung(request))}${brauchtAbsprache(ernaehrung(request)) ? ". Vegan und glutenfrei koche ich auf Anfrage; welche Gerichte das sein können und ob es etwas mehr kostet, bespreche ich mit Ihnen." : ""}`) : ""}
       </div>
       <p>Bei Rückfragen erreichen Sie mich unter:<br>
       📞 <a href="tel:01739344723" style="color: #5C2818;">0173 9344723</a><br>
@@ -110,7 +106,6 @@ export function janaMail(request, jetzt = new Date()) {
         ${zeile("Geschätzter Preis", `${formatPreis(request.gesamtpreis)}${lieferungOffen ? ' <span style="color: #B00020;">(zzgl. Lieferung — PLZ nicht im Liefergebiet hinterlegt, Preis auf Anfrage)</span>' : ""}`)}
         ${hatGetraenkeservice ? zeile("Getränkeservice", "Ja") : ""}
         ${vorteil(request) ? zeile("Firmen-Vorteil", `${vorteil(request).prozent} % abgezogen, −${formatPreis(vorteil(request).betrag)}, im Preis oben schon enthalten. Bitte die Firma prüfen; stimmt etwas nicht, im CRM unter „Bearbeiten“ das Häkchen beim Firmen-Vorteil herausnehmen.`) : ""}
-        ${ernaehrung(request) ? zeile("Besondere Ernährung", `${ernaehrungText(ernaehrung(request))}${brauchtAbsprache(ernaehrung(request)) ? ' <span style="color: #B00020;">(vegan oder glutenfrei: Gerichte und Aufpreis absprechen)</span>' : ""}`) : ""}
       </div>
       ${sonstigeZusatzwuensche ? `
       <div style="background: #FFF3E0; border-left: 4px solid #E07B00; padding: 12px 16px; margin: 16px 0; border-radius: 6px;">

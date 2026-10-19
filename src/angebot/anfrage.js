@@ -9,7 +9,6 @@
 
 import { maxAuswahl } from "./angebotspreis.js";
 import { pruefeFirma } from "./firmenVorteil.js";
-import { ernaehrungAusEingabe } from "./ernaehrung.js";
 
 const cent = (euro) => Math.round(Number(euro) * 100);
 
@@ -92,8 +91,6 @@ export function baueAnfrage({ requestNumber, data, essensart, paket, stil, bloec
       firmen_vorteil: ergebnis.firmenVorteil
         ? { prozent: ergebnis.firmenVorteil.prozent, betrag: ergebnis.firmenVorteil.betrag, abgezogen: true }
         : null,
-      // Wie viele Gäste vegetarisch, vegan oder glutenfrei essen; null, wenn der Kunde nichts angibt.
-      ernaehrung: ernaehrungAusEingabe(data.ernaehrung, personen),
     },
   };
 }

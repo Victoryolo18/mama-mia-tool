@@ -41,12 +41,15 @@ const eingabe = (mehr = {}) => ({
   ...mehr,
 });
 
-function anfrage(mehr = {}, lieferzuschlag = 25) {
+// Startwerte aus Migration 18, wie Jana sie im CRM einstellen kann.
+const regel = { prozent: 5, wochentage: [1, 2, 3, 4], mindestpersonen: 15 };
+
+function anfrage(mehr = {}, lieferzuschlag = 25, mitRegel = regel) {
   const data = eingabe(mehr);
   // Wie im Generator: der Firmen-Vorteil wird auf das Ergebnis angewendet, bevor es gezeigt und gespeichert wird.
   const ergebnis = mitFirmenVorteil(
     berechneAngebot({ paket, bloecke, gruppen, gerichte, auswahl: data.auswahl, plusEins: data.plusEins, gaeste: data.gaeste, lieferzuschlag }),
-    vorteilProzent(data),
+    vorteilProzent(data, mitRegel),
   );
   return baueAnfrage({ requestNumber: 'MM-26-1234', data, essensart, paket, stil, bloecke, gerichte, ergebnis });
 }
@@ -62,8 +65,8 @@ describe('baueAnfrage — was gespeichert wird', () => {
 
   const firma = { name: 'TEST Muster GmbH', adresse: 'Hauptstraße 1, 16767 Leegebruch', ust_id: 'DE123456789' };
 
-  it('zieht den Firmen-Vorteil mit Firmendaten ab: 5 % von 1.413 € Speisen (Firmenfeier an einem Montag, 30 Gäste)', () => {
-    const ohne = anfrage({ anlass: 'firmenfeier', datum: '2026-10-19' });
+  it('zieht den Firmen-Vorteil ab: 5 % von 1.413 € Speisen (Firmenfeier an einem Montag, 30 Gäste)', () => {
+    const ohne = anfrage({ anlass: 'firmenfeier', datum: '2026-10-19', firma }, 25, null);
     const mit = anfrage({ anlass: 'firmenfeier', datum: '2026-10-19', firma });
     expect(mit.angebot_snapshot.firmen_vorteil).toEqual({ prozent: 5, betrag: 70.65, abgezogen: true });
     expect(mit.angebot_snapshot.speisen_gesamt).toBe(1413);
@@ -75,6 +78,12 @@ describe('baueAnfrage — was gespeichert wird', () => {
     expect(janaMail(mit).html).toContain('TEST Muster GmbH');
     expect(janaMail(mit).html).toContain('Firmen-Vorteil');
     expect(kundenMail(mit).html).toContain('−70,65');
+  });
+
+  it('nimmt den Prozentsatz, den Jana eingestellt hat, und hält ihn in der Anfrage fest', () => {
+    const zehn = anfrage({ anlass: 'seminar', datum: '2026-10-23', firma }, 25, { prozent: 10, wochentage: [5], mindestpersonen: 20 });
+    expect(zehn.angebot_snapshot.firmen_vorteil).toEqual({ prozent: 10, betrag: 141.3, abgezogen: true });
+    expect(zehn.gesamtpreis).toBe(1438 - 141.3);
   });
 
   it('speichert Firmendaten auch ohne Vorteil, etwa bei der Weihnachtsfeier', () => {
@@ -146,11 +155,8 @@ describe('baueAnfrage — was gespeichert wird', () => {
     expect(anfrage({ kontaktart: 'whatsapp', kontaktdaten: '0176 1234567' })).toMatchObject({ customer_email: null, customer_phone: '0176 1234567' });
   });
 
-  it('speichert, wie viele Gäste besonders essen, begrenzt auf die Gästezahl; ohne Angabe nichts', () => {
-    expect(anfrage({ ernaehrung: { vegetarisch: '4', vegan: '2', glutenfrei: '40' } }).angebot_snapshot.ernaehrung)
-      .toEqual({ vegetarisch: 4, vegan: 2, glutenfrei: 30 });
-    expect(anfrage().angebot_snapshot.ernaehrung).toBeNull();
-    expect(anfrage({ ernaehrung: { vegetarisch: '', vegan: '', glutenfrei: '' } }).angebot_snapshot.ernaehrung).toBeNull();
+  it('fragt keine Ernährungszahlen mehr ab: Wünsche stehen in den Anmerkungen', () => {
+    expect(anfrage().angebot_snapshot).not.toHaveProperty('ernaehrung');
   });
 
   it('hängt Extras und Anmerkung zeilenweise zusammen', () => {
@@ -188,17 +194,6 @@ describe('Mails nach der Anfrage', () => {
   it('warnt Jana, wenn der Lieferpreis offen ist', () => {
     expect(janaMail(anfrage({}, null)).html).toContain('zzgl. Lieferung');
     expect(janaMail(anfrage()).html).not.toContain('zzgl. Lieferung');
-  });
-
-  it('nennt in beiden Mails die besondere Ernährung, bei vegan oder glutenfrei mit Hinweis auf Absprache', () => {
-    const mit = anfrage({ ernaehrung: { vegetarisch: '3', vegan: '2', glutenfrei: '' } });
-    expect(kundenMail(mit).html).toContain('3 vegetarisch, 2 vegan');
-    expect(kundenMail(mit).html).toContain('auf Anfrage');
-    expect(janaMail(mit).html).toContain('Gerichte und Aufpreis absprechen');
-    const nurVegetarisch = anfrage({ ernaehrung: { vegetarisch: '3' } });
-    expect(janaMail(nurVegetarisch).html).toContain('3 vegetarisch');
-    expect(janaMail(nurVegetarisch).html).not.toContain('absprechen');
-    expect(kundenMail(anfrage()).html).not.toContain('Besondere Ernährung');
   });
 
   it('entschärft Kundeneingaben in beiden Mails', () => {

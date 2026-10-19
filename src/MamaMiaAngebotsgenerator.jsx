@@ -7,7 +7,7 @@ import { aktiverStil, berechneAngebot } from "./angebot/angebotspreis.js";
 import { lieferpreis } from "./angebot/lieferung.js";
 import { vorwahlAusLink } from "./angebot/anlaesse.js";
 import { kleidAusPfad } from "./angebot/anlassKleider.js";
-import { firmenAnlass, mitFirmenVorteil, vorteilProzent } from "./angebot/firmenVorteil.js";
+import { firmenAnlass, ladeFirmenVorteil, mitFirmenVorteil, vorteilProzent } from "./angebot/firmenVorteil.js";
 import { baueAnfrage } from "./angebot/anfrage.js";
 import { sendeMails } from "./angebot/mailversand.js";
 import SchrittEssensart from "./angebot/SchrittEssensart.jsx";
@@ -71,7 +71,6 @@ export default function MamaMiaAngebotsgenerator() {
     kontaktdaten: "",
     name: "",
     notizen: "",
-    ernaehrung: { vegetarisch: "", vegan: "", glutenfrei: "" },
     anlass: null,
     firma: { name: "", adresse: "", ust_id: "" },
   });
@@ -87,6 +86,8 @@ export default function MamaMiaAngebotsgenerator() {
   const [dbLieferorte,     setDbLieferorte]     = useState([]);
   const [dbZusatzwuensche, setDbZusatzwuensche] = useState([]);
   const [kleid,            setKleid]            = useState(null);
+  // Firmen-Vorteil, wie Jana ihn im CRM eingestellt hat; null: ausgeschaltet oder nicht geladen.
+  const [regel,            setRegel]            = useState(null);
 
   /* ── Fonts laden ── */
   useEffect(() => {
@@ -100,6 +101,10 @@ export default function MamaMiaAngebotsgenerator() {
   /* ── Beim Start: Kataloge, Lieferzonen, Zusatzwünsche; danach die Vorwahl aus dem Link ── */
   useEffect(() => {
     let aktuell = true;
+    // Ohne Regel gibt es keinen Firmen-Vorteil; das Angebot funktioniert trotzdem.
+    ladeFirmenVorteil(supabase)
+      .then((r) => { if (aktuell) setRegel(r); })
+      .catch((e) => reportError("firmen_vorteil_laden", e));
     async function init() {
       const [kat, zonen, orte, zusatz] = await Promise.all([
         ladeKataloge(supabase),
@@ -161,12 +166,12 @@ export default function MamaMiaAngebotsgenerator() {
   /* Ein Preis für alle Schritte: Was hier herauskommt, zeigt die Leiste, die Zusammenfassung
      und die Mail, und genau das wird gespeichert. */
   const liefer = lieferpreis(data, dbLieferzonen, dbLieferorte);
-  // Der Firmen-Vorteil ist schon abgezogen, sobald Bedingungen und Firmendaten stimmen.
+  // Der Firmen-Vorteil ist schon abgezogen, sobald Anlass, Tag und Personenzahl zur Regel passen.
   const ergebnis = paket
     ? mitFirmenVorteil(berechneAngebot({
         paket, bloecke, gruppen: kataloge.gruppen, gerichte: gerichtKarte,
         auswahl: data.auswahl, plusEins: data.plusEins, gaeste: data.gaeste, lieferzuschlag: liefer.zuschlag,
-      }), vorteilProzent(data))
+      }), vorteilProzent(data, regel))
     : null;
 
   /* ── Submit (Supabase + E-Mail) ── */
@@ -326,7 +331,7 @@ export default function MamaMiaAngebotsgenerator() {
                 onWahl={waehlePaket}
                 schritt={schritt}
                 kleid={kleid}
-                vorteil={!!kleid && firmenAnlass(data.anlass)}
+                vorteil={kleid && firmenAnlass(data.anlass) ? regel : null}
               />
             )}
             {sichtbar === 3 && (
@@ -350,7 +355,7 @@ export default function MamaMiaAngebotsgenerator() {
                     id="mm-anmerkungen"
                     value={data.zusatzwuensche}
                     onChange={e => update("zusatzwuensche", e.target.value)}
-                    placeholder="Allergien, Vegetarier, besondere Wünsche…"
+                    placeholder="Allergien, Gerichte vegan oder glutenfrei, besondere Wünsche…"
                     rows={3}
                     maxLength={2000}
                     style={{ ...S.input, resize: "vertical", fontFamily: "inherit", marginTop: 8 }}
@@ -368,6 +373,8 @@ export default function MamaMiaAngebotsgenerator() {
                 mindestpersonen={essensart.mindestpersonen ?? 8}
                 dbLieferzonen={dbLieferzonen}
                 dbLieferorte={dbLieferorte}
+                regel={regel}
+                ergebnis={ergebnis}
               />
             )}
             {sichtbar === 5 && (
@@ -394,6 +401,7 @@ export default function MamaMiaAngebotsgenerator() {
                 ergebnis={ergebnis}
                 lieferInfo={liefer.info}
                 sendeFehler={sendeFehler}
+                regel={regel}
               />
             )}
           </>

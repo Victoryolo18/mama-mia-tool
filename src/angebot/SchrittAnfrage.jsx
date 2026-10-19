@@ -1,11 +1,10 @@
 import React from "react";
 import { C, S } from "../theme.js";
 import { formatPreis } from "./angebotspreis.js";
-import { ANLAESSE } from "./anlaesse.js";
+import { anlassLabel } from "./anlaesse.js";
 import { LIEFER_LABELS, istLieferart } from "./lieferung.js";
-import { FIRMA_GRENZEN, FIRMEN_VORTEIL, firmaAbfrage, firmenVorteilBedingungen, firmenVorteilMoeglich, pruefeFirma } from "./firmenVorteil.js";
+import { FIRMA_GRENZEN, firmaAbfrage, firmenVorteilBedingungen, pruefeFirma } from "./firmenVorteil.js";
 import { MWST_PROZENT, mwstAus } from "./mwst.js";
-import { ERNAEHRUNG, ernaehrungAusEingabe, ernaehrungText } from "./ernaehrung.js";
 
 /* ── 📞 KONTAKT-METHODEN ── */
 export const KONTAKT_OPTIONEN = [
@@ -16,9 +15,10 @@ export const KONTAKT_OPTIONEN = [
 
 /* Schritt "Anfrage": Zusammenfassung links, Kontakt rechts.
    Rechnet nichts selbst: `ergebnis` ist dasselbe Ergebnis, das auch gespeichert wird. */
-export default function SchrittAnfrage({ data, update, onSubmit, submitting, schritt, essensart, paket, stil, bloecke, gerichte, ergebnis, lieferInfo, sendeFehler }) {
-  // Bei Firmenanlässen mit Vorteil ist die Firma Pflicht, bei der Weihnachtsfeier freiwillig; Eingetipptes muss stimmen.
-  const firmaArt = firmaAbfrage(data.anlass);
+export default function SchrittAnfrage({ data, update, onSubmit, submitting, schritt, essensart, paket, stil, bloecke, gerichte, ergebnis, lieferInfo, sendeFehler, regel = null }) {
+  // Gibt es den Firmen-Vorteil, ist die Firma Pflicht; bei anderen Firmenanlässen und der Weihnachtsfeier freiwillig.
+  // Eingetipptes muss stimmen.
+  const firmaArt = firmaAbfrage(data, regel);
   const firmaPruefung = firmaArt ? pruefeFirma(data.firma) : { wert: null };
   const firmaOk = !firmaPruefung.fehler && (firmaArt !== "pflicht" || !!firmaPruefung.wert);
   const canSubmit = data.name.trim().length >= 2 && data.kontaktdaten.trim().length >= 5 && firmaOk;
@@ -53,13 +53,11 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
           <SummaryRow label="Essensart" value={essensart.label} />
           {stil && <SummaryRow label="Stil" value={stil.label} />}
           <SummaryRow label="Paket"    value={paket.name} />
+          {anlassLabel(data.anlass) && <SummaryRow label="Anlass" value={anlassLabel(data.anlass)} />}
           <SummaryRow label="Gäste"    value={`${data.gaeste} Personen`} />
           <SummaryRow label="Datum"    value={data.datum ? new Date(data.datum).toLocaleDateString("de-DE", { day:"2-digit", month:"long", year:"numeric" }) : "—"} />
           {data.uhrzeit && <SummaryRow label="Lieferzeit" value={`${data.uhrzeit} Uhr`} />}
           <SummaryRow label="Ort"      value={`${data.plz} (${LIEFER_LABELS[data.lieferung] || data.lieferung})`} />
-          {ernaehrungText(ernaehrungAusEingabe(data.ernaehrung, data.gaeste)) && (
-            <SummaryRow label="Ernährung" value={ernaehrungText(ernaehrungAusEingabe(data.ernaehrung, data.gaeste))} />
-          )}
 
           {/* Menü-Auswahl */}
           {auswahl.length > 0 && (
@@ -123,12 +121,6 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
                 <span style={S.summaryBreakdownValue}>{formatPreis(malGaeste(a.proPerson))}</span>
               </div>
             ))}
-            {ergebnis.firmenVorteil && (
-              <div style={S.summaryBreakdownRow}>
-                <span style={{ ...S.summaryBreakdownLabel, color: C.gold, opacity: 1 }}>Firmen-Vorteil −{ergebnis.firmenVorteil.prozent} % auf die Speisen</span>
-                <span style={{ ...S.summaryBreakdownValue, color: C.gold }}>−{formatPreis(ergebnis.firmenVorteil.betrag)}</span>
-              </div>
-            )}
             {istLieferung && (
               <div style={S.summaryBreakdownRow}>
                 <span style={S.summaryBreakdownLabel}>{LIEFER_LABELS[data.lieferung] || "Lieferung"}</span>
@@ -140,6 +132,13 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
                       : formatPreis(ergebnis.lieferzuschlag)
                   }
                 </span>
+              </div>
+            )}
+            {/* Unter der Lieferung, damit man sieht: Der Gesamtpreis darunter ist schon reduziert. */}
+            {ergebnis.firmenVorteil && (
+              <div style={S.summaryBreakdownRow}>
+                <span style={{ ...S.summaryBreakdownLabel, color: C.gold, opacity: 1, fontWeight: 700 }}>Firmen-Vorteil −{ergebnis.firmenVorteil.prozent} %</span>
+                <span style={{ ...S.summaryBreakdownValue, color: C.gold, fontWeight: 700 }}>−{formatPreis(ergebnis.firmenVorteil.betrag)}</span>
               </div>
             )}
           </div>
@@ -161,11 +160,9 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
             Eigene Zusatzwünsche oder besondere Komponenten können den Preis leicht beeinflussen.
           </div>
 
-          {firmenVorteilMoeglich(data) && (
+          {ergebnis.firmenVorteil && regel && (
             <div style={{ ...S.summaryNote, opacity: 1, fontStyle: "normal", fontSize: 13, color: C.gold, fontWeight: 600 }}>
-              {ergebnis.firmenVorteil
-                ? `Firmen-Vorteil ${FIRMEN_VORTEIL.prozent} % (${firmenVorteilBedingungen()}) ist abgezogen. Ohne Rechnung an die Firma entfällt er.`
-                : `Firmen-Vorteil ${FIRMEN_VORTEIL.prozent} % auf die Speisen (${firmenVorteilBedingungen()}): Mit Ihren Firmendaten ziehe ich ihn direkt ab.`}
+              Firmen-Vorteil auf die Speisen ({firmenVorteilBedingungen(regel)}). Ohne Rechnung an die Firma entfällt er.
             </div>
           )}
         </div>
@@ -224,22 +221,7 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
             />
           </div>
 
-          {/* Anlass — freiwillig */}
-          <div style={S.field}>
-            <label style={S.label} htmlFor="mm-anlass">Anlass <span style={{ fontWeight: 400, color: C.cappuccino, fontSize: 13 }}>(optional)</span></label>
-            <select
-              id="mm-anlass"
-              value={data.anlass || ""}
-              onChange={e => update("anlass", e.target.value || null)}
-              style={{ ...S.input, cursor: "pointer" }}
-              className="mm-input"
-            >
-              <option value="">Keine Angabe</option>
-              {ANLAESSE.map(a => <option key={a.slug} value={a.slug}>{a.label}</option>)}
-            </select>
-          </div>
-
-          {/* Firma: Pflicht bei Anlässen mit Firmen-Vorteil, bei der Weihnachtsfeier freiwillig. Ohne Firma kein Vorteil. */}
+          {/* Firma: Pflicht, sobald es den Firmen-Vorteil gibt; sonst bei Firmenanlässen und der Weihnachtsfeier freiwillig. */}
           {firmaArt && (
             <fieldset style={{ ...S.field, border: "none", padding: 0, margin: 0 }}>
               <legend style={{ ...S.label, padding: 0 }}>
@@ -286,40 +268,11 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
                 {firmaPruefung.fehler && (data.firma.name || data.firma.adresse || data.firma.ust_id)
                   ? firmaPruefung.fehler
                   : firmaArt === "pflicht"
-                    ? "Für Firmenanlässe stelle ich die Rechnung an die Firma. Bitte Firmenname und Rechnungsadresse angeben."
+                    ? "Für den Firmen-Vorteil stelle ich die Rechnung an die Firma. Bitte Firmenname und Rechnungsadresse angeben."
                     : "Feiern Sie mit Ihrer Firma, stelle ich die Rechnung gern an die Firma."}
               </div>
             </fieldset>
           )}
-
-          {/* Besondere Ernährung — freiwillig. Vegan und glutenfrei kocht Jana auf Anfrage (mehr Aufwand). */}
-          <fieldset style={{ ...S.field, border: "none", padding: 0, margin: 0 }}>
-            <legend style={{ ...S.label, padding: 0 }}>
-              Wie viele Gäste essen … <span style={{ fontWeight: 400, color: C.cappuccino, fontSize: 13 }}>(optional)</span>
-            </legend>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
-              {ERNAEHRUNG.map((e) => (
-                <label key={e.slug} style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: 13, color: C.inkSoft, minWidth: 0 }}>
-                  {e.label[0].toUpperCase() + e.label.slice(1)}
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    min={0}
-                    max={Number(data.gaeste) || undefined}
-                    value={data.ernaehrung?.[e.slug] ?? ""}
-                    onChange={(ev) => update("ernaehrung", { ...data.ernaehrung, [e.slug]: ev.target.value })}
-                    placeholder="0"
-                    style={{ ...S.input, minWidth: 0 }}
-                    className="mm-input"
-                  />
-                </label>
-              ))}
-            </div>
-            <div style={{ fontSize: 12, color: C.cappuccino, marginTop: 6, lineHeight: 1.45 }}>
-              Vegetarische Gerichte sind im Menü gekennzeichnet. Vegan und glutenfrei koche ich auf Anfrage;
-              das ist mehr Aufwand und kann etwas mehr kosten, ich bespreche es mit Ihnen. Allergien bitte unten bei den Anmerkungen.
-            </div>
-          </fieldset>
 
           {/* Notizen */}
           <div style={S.field}>

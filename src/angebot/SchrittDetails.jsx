@@ -1,6 +1,9 @@
 import React, { useRef } from "react";
 import { C, S } from "../theme.js";
 import { getLieferzuschlag, getOrtsteile, istLieferart } from "./lieferung.js";
+import { ANLAESSE } from "./anlaesse.js";
+import { formatPreis } from "./angebotspreis.js";
+import { firmenAnlass, firmenVorteilBedingungen } from "./firmenVorteil.js";
 
 /* Ganzes Feld klickbar statt nur des winzigen nativen Kalender-/Uhr-Icons:
    Klick öffnet den Picker programmatisch über showPicker() (Fallback: .click()). */
@@ -35,13 +38,15 @@ function DateTimeField({ value, onChange, display, icon, type, min, hasValue }) 
   );
 }
 
-/* Schritt "Details": Gäste, Datum, Lieferung, Postleitzahl. */
+/* Schritt "Details": Anlass, Gäste, Datum, Lieferung, Postleitzahl.
+   Der Anlass ist Pflicht (Victor, 19.10.2026): Nur so sieht eine Firma den Firmen-Vorteil gleich hier im Preis
+   und weiß, dass sie im letzten Schritt Firmenname und Rechnungsadresse angeben muss. */
 
 /* Bis hierhin rechnet der Generator wie gewohnt. Die Website sagt "bis etwa 120 Gäste, größere Feiern
    auf Anfrage": Darüber bleibt der Preis ein Richtwert, Jana stimmt Menge und Ablauf persönlich ab. */
 const GROSSE_FEIER_AB = 120;
 const HOECHSTENS = 250;
-export default function SchrittDetails({ data, update, next, schritt, mindestpersonen = 8, dbLieferzonen = [], dbLieferorte = [] }) {
+export default function SchrittDetails({ data, update, next, schritt, mindestpersonen = 8, dbLieferzonen = [], dbLieferorte = [], regel = null, ergebnis = null }) {
   /* Der Ortsteil bestimmt nur den Lieferpreis. Wer selbst abholt, soll
      nicht danach gefragt werden — und schon gar nicht daran haengenbleiben. */
   const istLieferungGewaehlt = istLieferart(data.lieferung);
@@ -56,7 +61,8 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
     : null
     : null;
   const gaesteValid = data.gaeste !== '' && data.gaeste !== null && gaesteNum >= mindestpersonen && gaesteNum <= HOECHSTENS;
-  const canContinue = gaesteValid && data.datum && data.plz && data.lieferung && !ortsteilNoetig;
+  const canContinue = !!data.anlass && gaesteValid && data.datum && data.plz && data.lieferung && !ortsteilNoetig;
+  const vorteil = ergebnis?.firmenVorteil ?? null;
 
   return (
     <div className="mm-fade">
@@ -71,6 +77,21 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
       </div>
 
       <div style={S.formCard}>
+        {/* Anlass */}
+        <div style={S.field}>
+          <label style={S.label} htmlFor="mm-anlass">🎉 Was ist der Anlass?</label>
+          <select
+            id="mm-anlass"
+            value={data.anlass || ""}
+            onChange={e => update("anlass", e.target.value || null)}
+            style={{ ...S.input, cursor: "pointer", color: data.anlass ? C.ink : C.cappuccino }}
+            className="mm-input"
+          >
+            <option value="">Bitte auswählen…</option>
+            {ANLAESSE.map(a => <option key={a.slug} value={a.slug}>{a.label}</option>)}
+          </select>
+        </div>
+
         {/* Gästezahl */}
         <div style={S.field}>
           <label style={S.label}>👥 Wie viele Gäste erwarten Sie?</label>
@@ -105,6 +126,23 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
             hasValue={!!data.datum}
           />
         </div>
+
+        {/* Firmen-Vorteil: sofort im Preis, sobald Anlass, Tag und Personenzahl passen */}
+        {vorteil ? (
+          <div style={{ ...S.field, padding: "12px 14px", borderRadius: 12, border: `1.5px solid ${C.gold}`, background: C.creamSoft }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, fontWeight: 700, color: C.gold }}>
+              <span>🏢 Firmen-Vorteil −{vorteil.prozent} % auf die Speisen</span>
+              <span>−{formatPreis(vorteil.betrag)}</span>
+            </div>
+            <div style={{ fontSize: 12, color: C.inkSoft, marginTop: 4, lineHeight: 1.45 }}>
+              Ist schon im Preis abgezogen. Im letzten Schritt brauche ich dafür Firmenname und Rechnungsadresse.
+            </div>
+          </div>
+        ) : regel && firmenAnlass(data.anlass) ? (
+          <div style={{ ...S.field, fontSize: 12, color: C.cappuccino, lineHeight: 1.45 }}>
+            Firmen-Vorteil {regel.prozent} % auf die Speisen: {firmenVorteilBedingungen(regel)}.
+          </div>
+        ) : null}
 
         {/* Uhrzeit */}
         <div style={S.field}>
