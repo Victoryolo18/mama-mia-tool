@@ -156,6 +156,18 @@ Baut auf: GEN-4, CRM-2, zwei Wochen Betrieb ohne Befund
 Fertig, wenn:
 - [ ] Kein Code liest die alten Tabellen (Suche in beiden Repos); Migration entfernt sie; Victor hat ausgeführt
 
+### GEN-19 Firmen-Vorteil direkt im Preis, Firmendaten, MwSt
+Victor, 19.10.2026: 5 %, Montag bis Donnerstag, ab 15 Personen gilt. Der Vorteil wird direkt abgezogen und ist im Preis sichtbar; ohne Firmendaten kein Vorteil. Firmendaten sind Pflicht bei Firmenfeier, Seminar, Empfang, Firmenjubiläum, bei der Weihnachtsfeier freiwillig. Umsatzsteuer-ID freiwillig.
+Fertig, wenn:
+- [x] Mit Firmenname und Rechnungsadresse (mit PLZ) zieht der Generator 5 % von den Speisen ab, nicht von der Lieferung; eine eigene Zeile zeigt den Abzug (Test `mitFirmenVorteil`, `baueAnfrage`).
+- [x] Ohne gültige Firmendaten, am Freitag bis Sonntag oder unter 15 Personen kein Abzug (Test `vorteilProzent`).
+- [x] Bei Anlässen mit Vorteil lässt sich die Anfrage ohne Firmendaten nicht absenden; bei der Weihnachtsfeier schon.
+- [x] Unter dem Gesamtpreis steht „inkl. 7 % MwSt“, bei Firmenanlässen zusätzlich netto (Test `mwstAus`).
+- [x] Die Datenbank prüft einen abgezogenen Vorteil nach und markiert unberechtigte Abzüge als „weicht_ab“ (Migration 17; Test vergleicht ihre Werte mit `firmenVorteil.js`).
+- [x] CRM zeigt Firma und Vorteil, Jana kann ihn im Formular herausnehmen; Angebot und Rechnung gehen an die Firma.
+- [x] Website: Kopie des Generators, Texte und AGB.
+Nicht dabei: Prüfung der Umsatzsteuer-ID beim Bundeszentralamt; 19 % für Service vor Ort.
+
 ## Entscheidungen
 
 - 08.10.2026, Victor: Einstieg nach Essensart (Buffet, Fingerfood, Frühstück) wie relaxx-catering; Grill und Spanferkel entfallen.

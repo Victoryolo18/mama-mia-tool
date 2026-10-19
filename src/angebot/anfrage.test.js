@@ -4,6 +4,7 @@ import { berechneAngebot, aktiverStil } from './angebotspreis.js';
 import { kundenMail, janaMail } from './mail.js';
 import { lieferpreis } from './lieferung.js';
 import { vorwahlAusLink } from './anlaesse.js';
+import { mitFirmenVorteil, vorteilProzent } from './firmenVorteil.js';
 
 /* Ein Buffet "Genuss" wie im Katalog: 1 Vorspeise, 2 Hauptgerichte, Brot inklusive, Fingerfood dazu. */
 const gruppen = {
@@ -42,7 +43,11 @@ const eingabe = (mehr = {}) => ({
 
 function anfrage(mehr = {}, lieferzuschlag = 25) {
   const data = eingabe(mehr);
-  const ergebnis = berechneAngebot({ paket, bloecke, gruppen, gerichte, auswahl: data.auswahl, plusEins: data.plusEins, gaeste: data.gaeste, lieferzuschlag });
+  // Wie im Generator: der Firmen-Vorteil wird auf das Ergebnis angewendet, bevor es gezeigt und gespeichert wird.
+  const ergebnis = mitFirmenVorteil(
+    berechneAngebot({ paket, bloecke, gruppen, gerichte, auswahl: data.auswahl, plusEins: data.plusEins, gaeste: data.gaeste, lieferzuschlag }),
+    vorteilProzent(data),
+  );
   return baueAnfrage({ requestNumber: 'MM-26-1234', data, essensart, paket, stil, bloecke, gerichte, ergebnis });
 }
 
@@ -55,17 +60,33 @@ describe('baueAnfrage — was gespeichert wird', () => {
     expect(anfrage({ anlass: '' }).anlass).toBeNull();
   });
 
-  it('merkt den Firmen-Vorteil nur vor, ohne den Preis zu ändern (Firmenfeier an einem Montag, 30 Gäste)', () => {
-    const mit = anfrage({ anlass: 'firmenfeier', datum: '2026-10-19' });
-    expect(mit.angebot_snapshot.firmen_vorteil).toEqual({ prozent: 5, abgezogen: false });
-    expect(mit.gesamtpreis).toBe(anfrage().gesamtpreis);
+  const firma = { name: 'TEST Muster GmbH', adresse: 'Hauptstraße 1, 16767 Leegebruch', ust_id: 'DE123456789' };
+
+  it('zieht den Firmen-Vorteil mit Firmendaten ab: 5 % von 1.413 € Speisen (Firmenfeier an einem Montag, 30 Gäste)', () => {
+    const ohne = anfrage({ anlass: 'firmenfeier', datum: '2026-10-19' });
+    const mit = anfrage({ anlass: 'firmenfeier', datum: '2026-10-19', firma });
+    expect(mit.angebot_snapshot.firmen_vorteil).toEqual({ prozent: 5, betrag: 70.65, abgezogen: true });
+    expect(mit.angebot_snapshot.speisen_gesamt).toBe(1413);
+    expect(mit.gesamtpreis).toBe(1438 - 70.65);
+    expect(mit.angebot_snapshot.gesamt).toBe(mit.gesamtpreis);
+    expect(mit).toMatchObject({ firma_name: 'TEST Muster GmbH', firma_adresse: 'Hauptstraße 1, 16767 Leegebruch', firma_ust_id: 'DE123456789' });
+    expect(ohne.angebot_snapshot.firmen_vorteil).toBeNull();
+    expect(ohne.gesamtpreis).toBe(1438);
+    expect(janaMail(mit).html).toContain('TEST Muster GmbH');
     expect(janaMail(mit).html).toContain('Firmen-Vorteil');
-    expect(kundenMail(mit).html).toContain('5 % auf die Speisen');
+    expect(kundenMail(mit).html).toContain('−70,65');
+  });
+
+  it('speichert Firmendaten auch ohne Vorteil, etwa bei der Weihnachtsfeier', () => {
+    const w = anfrage({ anlass: 'weihnachtsfeier', datum: '2026-12-03', firma });
+    expect(w.firma_name).toBe('TEST Muster GmbH');
+    expect(w.angebot_snapshot.firmen_vorteil).toBeNull();
+    expect(anfrage().firma_name).toBeNull();
   });
 
   it('merkt keinen Firmen-Vorteil vor bei privatem Anlass oder am Samstag', () => {
     expect(anfrage().angebot_snapshot.firmen_vorteil).toBeNull();
-    const samstag = anfrage({ anlass: 'firmenfeier', datum: '2026-10-24' });
+    const samstag = anfrage({ anlass: 'firmenfeier', datum: '2026-10-24', firma });
     expect(samstag.angebot_snapshot.firmen_vorteil).toBeNull();
     expect(janaMail(samstag).html).not.toContain('Firmen-Vorteil');
     expect(kundenMail(samstag).html).not.toContain('Firmen-Vorteil');

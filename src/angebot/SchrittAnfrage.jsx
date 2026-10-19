@@ -3,7 +3,8 @@ import { C, S } from "../theme.js";
 import { formatPreis } from "./angebotspreis.js";
 import { ANLAESSE } from "./anlaesse.js";
 import { LIEFER_LABELS, istLieferart } from "./lieferung.js";
-import { FIRMEN_VORTEIL, firmenVorteilBedingungen, firmenVorteilMoeglich } from "./firmenVorteil.js";
+import { FIRMA_GRENZEN, FIRMEN_VORTEIL, firmaAbfrage, firmenVorteilBedingungen, firmenVorteilMoeglich, pruefeFirma } from "./firmenVorteil.js";
+import { MWST_PROZENT, mwstAus } from "./mwst.js";
 import { ERNAEHRUNG, ernaehrungAusEingabe, ernaehrungText } from "./ernaehrung.js";
 
 /* ── 📞 KONTAKT-METHODEN ── */
@@ -16,7 +17,13 @@ export const KONTAKT_OPTIONEN = [
 /* Schritt "Anfrage": Zusammenfassung links, Kontakt rechts.
    Rechnet nichts selbst: `ergebnis` ist dasselbe Ergebnis, das auch gespeichert wird. */
 export default function SchrittAnfrage({ data, update, onSubmit, submitting, schritt, essensart, paket, stil, bloecke, gerichte, ergebnis, lieferInfo, sendeFehler }) {
-  const canSubmit = data.name.trim().length >= 2 && data.kontaktdaten.trim().length >= 5;
+  // Bei Firmenanlässen mit Vorteil ist die Firma Pflicht, bei der Weihnachtsfeier freiwillig; Eingetipptes muss stimmen.
+  const firmaArt = firmaAbfrage(data.anlass);
+  const firmaPruefung = firmaArt ? pruefeFirma(data.firma) : { wert: null };
+  const firmaOk = !firmaPruefung.fehler && (firmaArt !== "pflicht" || !!firmaPruefung.wert);
+  const canSubmit = data.name.trim().length >= 2 && data.kontaktdaten.trim().length >= 5 && firmaOk;
+  const setFirma = (feld, wert) => update("firma", { ...data.firma, [feld]: wert });
+  const steuer = mwstAus(ergebnis.gesamt);
   const istLieferung = istLieferart(data.lieferung);
   const lieferzoneUnbekannt = istLieferung && !lieferInfo.bekannt;
   const gaeste = Number(data.gaeste) || 0;
@@ -116,6 +123,12 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
                 <span style={S.summaryBreakdownValue}>{formatPreis(malGaeste(a.proPerson))}</span>
               </div>
             ))}
+            {ergebnis.firmenVorteil && (
+              <div style={S.summaryBreakdownRow}>
+                <span style={{ ...S.summaryBreakdownLabel, color: C.gold, opacity: 1 }}>Firmen-Vorteil −{ergebnis.firmenVorteil.prozent} % auf die Speisen</span>
+                <span style={{ ...S.summaryBreakdownValue, color: C.gold }}>−{formatPreis(ergebnis.firmenVorteil.betrag)}</span>
+              </div>
+            )}
             {istLieferung && (
               <div style={S.summaryBreakdownRow}>
                 <span style={S.summaryBreakdownLabel}>{LIEFER_LABELS[data.lieferung] || "Lieferung"}</span>
@@ -137,6 +150,8 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
               {lieferzoneUnbekannt && (
                 <div style={S.summaryPriceSmall}>zzgl. Liefergebühr</div>
               )}
+              <div style={S.summaryPriceSmall}>inkl. {MWST_PROZENT} % MwSt: {formatPreis(steuer.mwst)}</div>
+              {firmaArt && <div style={S.summaryPriceSmall}>netto: {formatPreis(steuer.netto)}</div>}
             </div>
             <div style={S.summaryPriceBig}>{formatPreis(ergebnis.gesamt)}</div>
           </div>
@@ -148,8 +163,9 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
 
           {firmenVorteilMoeglich(data) && (
             <div style={{ ...S.summaryNote, opacity: 1, fontStyle: "normal", fontSize: 13, color: C.gold, fontWeight: 600 }}>
-              Firmen-Vorteil {FIRMEN_VORTEIL.prozent} % auf die Speisen ({firmenVorteilBedingungen()}):
-              wird nach Prüfung im Angebot abgezogen, im Preis oben ist er noch nicht enthalten.
+              {ergebnis.firmenVorteil
+                ? `Firmen-Vorteil ${FIRMEN_VORTEIL.prozent} % (${firmenVorteilBedingungen()}) ist abgezogen. Ohne Rechnung an die Firma entfällt er.`
+                : `Firmen-Vorteil ${FIRMEN_VORTEIL.prozent} % auf die Speisen (${firmenVorteilBedingungen()}): Mit Ihren Firmendaten ziehe ich ihn direkt ab.`}
             </div>
           )}
         </div>
@@ -222,6 +238,59 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
               {ANLAESSE.map(a => <option key={a.slug} value={a.slug}>{a.label}</option>)}
             </select>
           </div>
+
+          {/* Firma: Pflicht bei Anlässen mit Firmen-Vorteil, bei der Weihnachtsfeier freiwillig. Ohne Firma kein Vorteil. */}
+          {firmaArt && (
+            <fieldset style={{ ...S.field, border: "none", padding: 0, margin: 0 }}>
+              <legend style={{ ...S.label, padding: 0 }}>
+                Rechnung an die Firma{" "}
+                {firmaArt === "pflicht"
+                  ? <span style={{ color: C.gold, fontSize: 11 }}>*</span>
+                  : <span style={{ fontWeight: 400, color: C.cappuccino, fontSize: 13 }}>(optional)</span>}
+              </legend>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <input
+                  type="text"
+                  aria-label="Firmenname"
+                  value={data.firma.name}
+                  onChange={(e) => setFirma("name", e.target.value)}
+                  placeholder="Firmenname"
+                  autoComplete="organization"
+                  maxLength={FIRMA_GRENZEN.name}
+                  style={S.input}
+                  className="mm-input"
+                />
+                <textarea
+                  aria-label="Rechnungsadresse"
+                  value={data.firma.adresse}
+                  onChange={(e) => setFirma("adresse", e.target.value)}
+                  placeholder={"Straße und Hausnummer\nPLZ und Ort"}
+                  autoComplete="street-address"
+                  rows={2}
+                  maxLength={FIRMA_GRENZEN.adresse}
+                  style={{ ...S.input, resize: "vertical", fontFamily: "inherit" }}
+                  className="mm-input"
+                />
+                <input
+                  type="text"
+                  aria-label="Umsatzsteuer-ID, optional"
+                  value={data.firma.ust_id}
+                  onChange={(e) => setFirma("ust_id", e.target.value)}
+                  placeholder="Umsatzsteuer-ID (optional)"
+                  maxLength={FIRMA_GRENZEN.ust_id}
+                  style={S.input}
+                  className="mm-input"
+                />
+              </div>
+              <div style={{ fontSize: 12, color: firmaPruefung.fehler ? "#C0392B" : C.cappuccino, marginTop: 6, lineHeight: 1.45 }}>
+                {firmaPruefung.fehler && (data.firma.name || data.firma.adresse || data.firma.ust_id)
+                  ? firmaPruefung.fehler
+                  : firmaArt === "pflicht"
+                    ? "Für Firmenanlässe stelle ich die Rechnung an die Firma. Bitte Firmenname und Rechnungsadresse angeben."
+                    : "Feiern Sie mit Ihrer Firma, stelle ich die Rechnung gern an die Firma."}
+              </div>
+            </fieldset>
+          )}
 
           {/* Besondere Ernährung — freiwillig. Vegan und glutenfrei kocht Jana auf Anfrage (mehr Aufwand). */}
           <fieldset style={{ ...S.field, border: "none", padding: 0, margin: 0 }}>

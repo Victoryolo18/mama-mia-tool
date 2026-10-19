@@ -5,6 +5,7 @@ import { formatPreis } from "./angebotspreis.js";
 import { anlassLabel } from "./anlaesse.js";
 import { LIEFER_LABELS, istLieferart } from "./lieferung.js";
 import { firmenVorteilBedingungen } from "./firmenVorteil.js";
+import { MWST_PROZENT } from "./mwst.js";
 import { brauchtAbsprache, ernaehrungText } from "./ernaehrung.js";
 
 // Kundeneingaben (Name, Kontakt, Freitext) landen in HTML-Mails. Ohne
@@ -27,6 +28,9 @@ const vorteil = (request) => request.angebot_snapshot?.firmen_vorteil ?? null;
 const ernaehrung = (request) => request.angebot_snapshot?.ernaehrung ?? null;
 
 const zeile = (label, wert) => `<p style="margin: 4px 0;"><strong>${label}:</strong> ${wert}</p>`;
+
+/* Firmenname und Rechnungsadresse in einer Zeile, die Adresse ohne Zeilenumbrüche. */
+const firmaText = (request) => [request.firma_name, request.firma_adresse].filter(Boolean).map((t) => esc(String(t).replace(/\s*\n\s*/g, ", "))).join(", ");
 
 /* Gerichtnamen und Bezeichnungen kommen aus dem Katalog, den Jana pflegt. Maskiert werden sie trotzdem. */
 function angebotZeilen(request) {
@@ -58,7 +62,9 @@ export function kundenMail(request) {
         ${angebotZeilen(request)}
         ${zeile("Datum", datumText(request.event_datum))}
         ${zeile("Gäste", `${request.gaeste} Personen`)}
-        ${vorteil(request) ? zeile("Firmen-Vorteil", `${vorteil(request).prozent} % auf die Speisen (${firmenVorteilBedingungen()}). Ich prüfe die Angaben und ziehe ihn im Angebot ab.`) : ""}
+        ${request.firma_name ? zeile("Rechnung an", firmaText(request)) : ""}
+        ${vorteil(request) ? zeile("Firmen-Vorteil", `${vorteil(request).prozent} % auf die Speisen abgezogen: −${formatPreis(vorteil(request).betrag)} (${firmenVorteilBedingungen()}). Ohne Rechnung an die Firma entfällt der Vorteil.`) : ""}
+        ${zeile("Geschätzter Preis", `${formatPreis(request.gesamtpreis)} inkl. ${MWST_PROZENT} % MwSt`)}
         ${ernaehrung(request) ? zeile("Besondere Ernährung", `${ernaehrungText(ernaehrung(request))}${brauchtAbsprache(ernaehrung(request)) ? ". Vegan und glutenfrei koche ich auf Anfrage; welche Gerichte das sein können und ob es etwas mehr kostet, bespreche ich mit Ihnen." : ""}`) : ""}
       </div>
       <p>Bei Rückfragen erreichen Sie mich unter:<br>
@@ -91,6 +97,8 @@ export function janaMail(request, jetzt = new Date()) {
         <h3 style="margin: 0 0 12px; color: #5C2818;">Kunde</h3>
         ${zeile("Name", esc(request.customer_name) || "—")}
         ${zeile("Bevorzugt", esc(request.customer_contact_preference))}
+        ${request.firma_name ? zeile("Firma", firmaText(request)) : ""}
+        ${request.firma_ust_id ? zeile("USt-ID", esc(request.firma_ust_id)) : ""}
         <p style="margin: 4px 0;">${kontaktInfo}</p>
       </div>
       <div style="background: #FEF8E0; padding: 16px 20px; margin: 16px 0; border-radius: 8px;">
@@ -101,7 +109,7 @@ export function janaMail(request, jetzt = new Date()) {
         ${zeile("Ort", `${esc(request.plz) || "—"}${request.ortsteil ? ` ${esc(request.ortsteil)}` : ""} (${LIEFER_LABELS[request.lieferung] || esc(request.lieferung)})`)}
         ${zeile("Geschätzter Preis", `${formatPreis(request.gesamtpreis)}${lieferungOffen ? ' <span style="color: #B00020;">(zzgl. Lieferung — PLZ nicht im Liefergebiet hinterlegt, Preis auf Anfrage)</span>' : ""}`)}
         ${hatGetraenkeservice ? zeile("Getränkeservice", "Ja") : ""}
-        ${vorteil(request) ? zeile("Firmen-Vorteil", `möglich, ${vorteil(request).prozent} % auf die Speisen. Bitte Firma und Rechnungsadresse prüfen; im Preis oben ist er nicht abgezogen.`) : ""}
+        ${vorteil(request) ? zeile("Firmen-Vorteil", `${vorteil(request).prozent} % abgezogen, −${formatPreis(vorteil(request).betrag)}, im Preis oben schon enthalten. Bitte die Firma prüfen; stimmt etwas nicht, im CRM unter „Bearbeiten“ das Häkchen beim Firmen-Vorteil herausnehmen.`) : ""}
         ${ernaehrung(request) ? zeile("Besondere Ernährung", `${ernaehrungText(ernaehrung(request))}${brauchtAbsprache(ernaehrung(request)) ? ' <span style="color: #B00020;">(vegan oder glutenfrei: Gerichte und Aufpreis absprechen)</span>' : ""}`) : ""}
       </div>
       ${sonstigeZusatzwuensche ? `

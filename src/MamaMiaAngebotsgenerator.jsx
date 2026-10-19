@@ -7,7 +7,7 @@ import { aktiverStil, berechneAngebot } from "./angebot/angebotspreis.js";
 import { lieferpreis } from "./angebot/lieferung.js";
 import { vorwahlAusLink } from "./angebot/anlaesse.js";
 import { kleidAusPfad } from "./angebot/anlassKleider.js";
-import { firmenAnlass } from "./angebot/firmenVorteil.js";
+import { firmenAnlass, mitFirmenVorteil, vorteilProzent } from "./angebot/firmenVorteil.js";
 import { baueAnfrage } from "./angebot/anfrage.js";
 import { sendeMails } from "./angebot/mailversand.js";
 import SchrittEssensart from "./angebot/SchrittEssensart.jsx";
@@ -73,6 +73,7 @@ export default function MamaMiaAngebotsgenerator() {
     notizen: "",
     ernaehrung: { vegetarisch: "", vegan: "", glutenfrei: "" },
     anlass: null,
+    firma: { name: "", adresse: "", ust_id: "" },
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -160,11 +161,12 @@ export default function MamaMiaAngebotsgenerator() {
   /* Ein Preis für alle Schritte: Was hier herauskommt, zeigt die Leiste, die Zusammenfassung
      und die Mail, und genau das wird gespeichert. */
   const liefer = lieferpreis(data, dbLieferzonen, dbLieferorte);
+  // Der Firmen-Vorteil ist schon abgezogen, sobald Bedingungen und Firmendaten stimmen.
   const ergebnis = paket
-    ? berechneAngebot({
+    ? mitFirmenVorteil(berechneAngebot({
         paket, bloecke, gruppen: kataloge.gruppen, gerichte: gerichtKarte,
         auswahl: data.auswahl, plusEins: data.plusEins, gaeste: data.gaeste, lieferzuschlag: liefer.zuschlag,
-      })
+      }), vorteilProzent(data))
     : null;
 
   /* ── Submit (Supabase + E-Mail) ── */

@@ -8,13 +8,14 @@
      stehen pro Person in `menue_auswahl._upgrades`; `gesamtpreis` enthält alles samt Lieferung. */
 
 import { maxAuswahl } from "./angebotspreis.js";
-import { FIRMEN_VORTEIL, firmenVorteilMoeglich } from "./firmenVorteil.js";
+import { pruefeFirma } from "./firmenVorteil.js";
 import { ernaehrungAusEingabe } from "./ernaehrung.js";
 
 const cent = (euro) => Math.round(Number(euro) * 100);
 
 export function baueAnfrage({ requestNumber, data, essensart, paket, stil, bloecke, gerichte, ergebnis }) {
   const personen = Math.max(0, Math.floor(Number(data.gaeste) || 0));
+  const firma = pruefeFirma(data.firma).wert;
   const name = (id) => gerichte[id]?.name;
 
   const jeLabel = new Map();
@@ -49,6 +50,9 @@ export function baueAnfrage({ requestNumber, data, essensart, paket, stil, bloec
     customer_phone: data.kontaktart !== "email" ? data.kontaktdaten : null,
     customer_email: data.kontaktart === "email" ? data.kontaktdaten : null,
     customer_contact_preference: data.kontaktart,
+    firma_name: firma?.name ?? null,
+    firma_adresse: firma?.adresse ?? null,
+    firma_ust_id: firma?.ust_id ?? null,
     essensart: essensart.slug,
     stil: stil?.slug ?? null,
     anlass: data.anlass || null,
@@ -84,9 +88,9 @@ export function baueAnfrage({ requestNumber, data, essensart, paket, stil, bloec
       speisen_gesamt: ergebnis.speisenGesamt,
       lieferzuschlag: ergebnis.lieferzuschlag,
       gesamt: ergebnis.gesamt,
-      // Nur ein Hinweis für Jana: Der Preis oben enthält den Vorteil nicht, sie zieht ihn nach Prüfung ab.
-      firmen_vorteil: firmenVorteilMoeglich({ anlass: data.anlass, datum: data.datum, gaeste: personen })
-        ? { prozent: FIRMEN_VORTEIL.prozent, abgezogen: false }
+      // Abgezogener Firmen-Vorteil (aus mitFirmenVorteil): `gesamt` enthält ihn schon, `speisen_gesamt` nicht.
+      firmen_vorteil: ergebnis.firmenVorteil
+        ? { prozent: ergebnis.firmenVorteil.prozent, betrag: ergebnis.firmenVorteil.betrag, abgezogen: true }
         : null,
       // Wie viele Gäste vegetarisch, vegan oder glutenfrei essen; null, wenn der Kunde nichts angibt.
       ernaehrung: ernaehrungAusEingabe(data.ernaehrung, personen),
