@@ -9,12 +9,12 @@ const bloecke = [
 
 describe('paketMerkmale — Zeilen der Paket-Karte', () => {
   it('nennt erst die Wahl, dann was es auf Wunsch gibt', () => {
-    expect(paketMerkmale(bloecke)).toEqual(['4× Vorspeisen', '3× Desserts', 'Fingerfood dazu auf Wunsch']);
+    expect(paketMerkmale(bloecke)).toEqual(['4× Vorspeisen', '3× Desserts', 'Fingerfood (optional)']);
   });
 
   it('hängt bei Exklusiv Lieferung und Leistungen hinten an', () => {
-    const exklusiv = { lieferung_inklusive: true, leistungen: ['Persönliche Menüberatung mit Jana'] };
-    expect(paketMerkmale(bloecke.slice(1), exklusiv)).toEqual(['4× Vorspeisen', '3× Desserts', 'Lieferung inklusive', 'Persönliche Menüberatung mit Jana']);
+    const exklusiv = { lieferung_inklusive: true, leistungen: ['Menüberatung'] };
+    expect(paketMerkmale(bloecke.slice(1), exklusiv)).toEqual(['4× Vorspeisen', '3× Desserts', 'Lieferung inklusive', 'Menüberatung']);
   });
 
   it('zeigt bei den anderen Paketen keine Lieferzeile', () => {

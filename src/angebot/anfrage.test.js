@@ -283,7 +283,7 @@ describe('Paket mit Lieferung inklusive (Exklusiv, GEN-25)', () => {
     { reihenfolge: 1, aktiv: true, zuschlag: 0,  rueckholung_preis: 20, plz_liste: ['16767'], plz_pattern: null },
     { reihenfolge: 2, aktiv: true, zuschlag: 25, rueckholung_preis: 70, plz_liste: ['16515'], plz_pattern: null },
   ];
-  const exklusiv = { ...paket, id: 'p-exklusiv', name: 'Exklusiv', preis_pro_person: 65, lieferung_inklusive: true, leistungen: ['Persönliche Menüberatung mit Jana'] };
+  const exklusiv = { ...paket, id: 'p-exklusiv', name: 'Exklusiv', preis_pro_person: 65, lieferung_inklusive: true, leistungen: ['Menüberatung'] };
 
   it('kostet in jeder bekannten Zone 0 €, auch mit Rückholung', () => {
     expect(lieferpreis({ lieferung: 'nur_anlieferung', plz: '16515' }, zonen, [], exklusiv)).toMatchObject({ zuschlag: 0, inklusive: true });
@@ -305,7 +305,7 @@ describe('Paket mit Lieferung inklusive (Exklusiv, GEN-25)', () => {
     const r = baueAnfrage({ requestNumber: 'MM-26-1235', data, essensart, paket: exklusiv, stil, bloecke, gerichte, ergebnis, lieferungInklusive: liefer.inklusive });
     expect(r.lieferzuschlag).toBe(0);
     expect(r.angebot_snapshot.lieferung_inklusive).toBe(true);
-    expect(r.angebot_snapshot.paket.leistungen).toEqual(['Persönliche Menüberatung mit Jana']);
+    expect(r.angebot_snapshot.paket.leistungen).toEqual(['Menüberatung']);
     expect(janaMail(r).html).toContain('inklusive (Paket Exklusiv)');
     expect(kundenMail(r).html).toContain('inklusive (Paket Exklusiv)');
   });
