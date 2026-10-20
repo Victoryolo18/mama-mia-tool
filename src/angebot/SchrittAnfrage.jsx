@@ -40,6 +40,12 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
     update("firma", { ...data.firma, plz, ...(ort !== undefined ? { ort } : {}) });
   };
   const orte = orteZurPlz(plzOrte, data.firma.plz) ?? [];
+  // Mehrere Orte zur PLZ: Die Liste geht unter dem Feld von selbst auf, bis ein Ort gewählt ist (Victor, 20.10.2026).
+  const [ortListeZu, setOrtListeZu] = useState(false);
+  const ortGewaehlt = orte.includes(String(data.firma.ort ?? "").trim());
+  const ortListe = orte.length > 1 && !ortGewaehlt && !ortListeZu
+    ? orte.filter((o) => o.toLowerCase().startsWith(String(data.firma.ort ?? "").trim().toLowerCase()))
+    : [];
   const steuer = mwstAus(ergebnis.gesamt);
   const istLieferung = istLieferart(data.lieferung);
   const lieferzoneUnbekannt = istLieferung && !lieferInfo.bekannt;
@@ -289,19 +295,35 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
                     style={{ ...S.input, minWidth: 0 }}
                     className="mm-input"
                   />
-                  <input
-                    type="text"
-                    aria-label="Ort"
-                    value={data.firma.ort}
-                    onChange={(e) => setFirma("ort", e.target.value)}
-                    placeholder="Ort"
-                    autoComplete="address-level2"
-                    list={orte.length > 1 ? "mm-firma-orte" : undefined}
-                    maxLength={60}
-                    style={{ ...S.input, minWidth: 0 }}
-                    className="mm-input"
-                  />
-                  {orte.length > 1 && <datalist id="mm-firma-orte">{orte.map((o) => <option key={o} value={o} />)}</datalist>}
+                  <div style={{ position: "relative", minWidth: 0 }}>
+                    <input
+                      type="text"
+                      aria-label="Ort"
+                      value={data.firma.ort}
+                      onChange={(e) => { setOrtListeZu(false); setFirma("ort", e.target.value); }}
+                      onFocus={() => setOrtListeZu(false)}
+                      onKeyDown={(e) => { if (e.key === "Escape") setOrtListeZu(true); }}
+                      placeholder="Ort"
+                      autoComplete="address-level2"
+                      maxLength={60}
+                      aria-expanded={ortListe.length > 0}
+                      aria-controls="mm-firma-orte"
+                      style={{ ...S.input, width: "100%", minWidth: 0 }}
+                      className="mm-input"
+                    />
+                    {ortListe.length > 0 && (
+                      <ul id="mm-firma-orte" role="listbox" aria-label="Orte zu dieser Postleitzahl" style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, zIndex: 20, listStyle: "none", margin: 0, padding: 4, background: C.white, border: `1.5px solid ${C.gold}`, borderRadius: 12, boxShadow: "0 8px 24px rgba(28,16,8,.15)", maxHeight: 220, overflowY: "auto" }}>
+                        {ortListe.map((o) => (
+                          <li key={o} role="option" aria-selected="false">
+                            <button type="button" onClick={() => { setFirma("ort", o); setOrtListeZu(true); }} className="mm-btn-press"
+                              style={{ display: "block", width: "100%", textAlign: "left", padding: "10px 12px", border: "none", borderRadius: 8, background: "transparent", font: "inherit", fontSize: 15, color: C.ink, cursor: "pointer" }}>
+                              {o}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </div>
                 <input
                   type="text"
