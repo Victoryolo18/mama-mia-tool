@@ -2,16 +2,10 @@ import React from "react";
 import { C, S } from "../theme.js";
 import { formatPreis } from "./angebotspreis.js";
 import { firmenVorteilBedingungen } from "./firmenVorteil.js";
+import { paketMerkmale } from "./paketKarte.js";
 
 /* Schritt "Paket": die Pakete der gewählten Essensart, dahinter ihr Essensbild. */
 
-/** Was ein Paket enthält, als Zeilen für die Karte: erst die Wahl, dann Inklusive, dann was es auf Wunsch dazu gibt. */
-export function paketMerkmale(bloecke) {
-  const text = (b) => b.typ === "fix" ? `${b.label} inklusive`
-    : b.typ === "zusatz" ? `${b.label} auf Wunsch`
-    : `${b.max_auswahl}× ${b.label}`;
-  return ["wahl", "fix", "zusatz"].flatMap((typ) => bloecke.filter((b) => b.typ === typ).map(text));
-}
 
 /* Mit `kleid` (Aufruf über einen Anlass-Pfad) zeigt der Kopf Bild, Überschrift und Schmuck des Anlasses. */
 export default function SchrittPaket({ essensart, pakete, bloecke, gewaehlt, onWahl, schritt, kleid, vorteil }) {
@@ -61,12 +55,12 @@ export default function SchrittPaket({ essensart, pakete, bloecke, gewaehlt, onW
       </div>
 
       <div
-        style={{ ...S.grid, gridTemplateColumns: "repeat(3, 1fr)", gap: 20, ...(mitBild ? { marginTop: -80, padding: "0 16px" } : {}) }}
-        className="mm-grid-3 mm-paket-grid"
+        style={{ ...S.grid, gridTemplateColumns: `repeat(${pakete.length > 3 ? 4 : 3}, 1fr)`, gap: 20, ...(mitBild ? { marginTop: -80, padding: "0 16px" } : {}) }}
+        className={`${pakete.length > 3 ? "mm-grid-4" : "mm-grid-3"} mm-paket-grid`}
       >
         {pakete.map((p, i) => {
           const hervor = !!p.hervorgehoben;
-          const merkmale = paketMerkmale(bloecke.filter((b) => b.paket_id === p.id));
+          const merkmale = paketMerkmale(bloecke.filter((b) => b.paket_id === p.id), p);
           return (
             <button
               key={p.id}

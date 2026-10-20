@@ -180,6 +180,16 @@ Fertig, wenn:
 - [x] Gespeicherte Anfragen behalten ihren Prozentsatz; der Trigger läuft nur beim Anlegen.
 Nicht dabei: andere Anlässe für den Vorteil einstellbar machen.
 
+### GEN-25 Viertes Buffet-Paket „Exklusiv“ als Preisanker
+Victor, 20.10.2026: Neben Premium (45 €) ein Paket für 65 €, das kaum jemand nimmt, Premium aber vernünftig aussehen lässt. Inhalt wie Premium, dazu ein Dessert mehr und zwei Fingerfood-Sorten inklusive (als Upgrade +11,20 €), Lieferung inklusive in jeder Zone und eine persönliche Menüberatung mit Jana. Nur beim Buffet.
+Baut auf: GEN-24
+Fertig, wenn:
+- [x] Migration 19 legt die Spalten `lieferung_inklusive` und `leistungen` an und das Paket Exklusiv mit den Blöcken des aktuellen Premium, Desserts +1, „2× Fingerfood“ statt „Fingerfood dazu“; sie prüft sich am Ende selbst.
+- [x] Bei Exklusiv kostet die Lieferung in jeder bekannten Zone 0 €, auch mit Rückholung; eine unbekannte Zone bleibt „auf Anfrage“; die anderen Pakete rechnen wie bisher (Tests `lieferpreis` mit Exklusiv).
+- [x] Die Zusammenfassung zeigt „inklusive“, beide Mails die Zeile „Lieferung: inklusive (Paket Exklusiv)“; der Snapshot hält `lieferung_inklusive` und die Leistungen fest (Test `baueAnfrage`).
+- [x] Die Karte zeigt nach den Gerichten „Lieferung inklusive“ und die Leistungen (Test `paketMerkmale`). Vier Karten stehen am PC nebeneinander, am Tablet zu zweit, am Handy untereinander.
+Nicht dabei: Fingerfood und Frühstück; die Preisprüfung in der Datenbank prüft den Lieferpreis weiterhin nicht.
+
 ## Entscheidungen
 
 - 08.10.2026, Victor: Einstieg nach Essensart (Buffet, Fingerfood, Frühstück) wie relaxx-catering; Grill und Spanferkel entfallen.

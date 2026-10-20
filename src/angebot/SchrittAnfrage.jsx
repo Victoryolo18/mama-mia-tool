@@ -151,7 +151,7 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
                   {lieferzoneUnbekannt
                     ? "auf Anfrage"
                     : ergebnis.lieferzuschlag === 0
-                      ? "kostenlos"
+                      ? (paket.lieferung_inklusive ? "inklusive" : "kostenlos")
                       : formatPreis(ergebnis.lieferzuschlag)
                   }
                 </span>

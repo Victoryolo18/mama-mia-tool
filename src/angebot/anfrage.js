@@ -9,6 +9,7 @@
 
 import { maxAuswahl } from "./angebotspreis.js";
 import { pruefeFirmaEingabe } from "./firmenVorteil.js";
+import { istLieferart } from "./lieferung.js";
 
 const cent = (euro) => Math.round(Number(euro) * 100);
 
@@ -16,6 +17,7 @@ export function baueAnfrage({ requestNumber, data, essensart, paket, stil, bloec
   const personen = Math.max(0, Math.floor(Number(data.gaeste) || 0));
   const firma = pruefeFirmaEingabe(data.firma).wert;
   const name = (id) => gerichte[id]?.name;
+  const lieferungInklusive = !!paket.lieferung_inklusive && istLieferart(data.lieferung) && ergebnis.lieferzuschlag === 0;
 
   const jeLabel = new Map();
   const snapshotBloecke = [];
@@ -77,7 +79,10 @@ export function baueAnfrage({ requestNumber, data, essensart, paket, stil, bloec
       version: 1,
       essensart: { slug: essensart.slug, label: essensart.label },
       stil: stil ? { slug: stil.slug, label: stil.label } : null,
-      paket: { id: paket.id, name: paket.name, preis_pro_person: ergebnis.paketProPerson },
+      paket: {
+        id: paket.id, name: paket.name, preis_pro_person: ergebnis.paketProPerson,
+        ...(paket.leistungen?.length ? { leistungen: [...paket.leistungen] } : {}),
+      },
       gaeste: personen,
       bloecke: snapshotBloecke,
       aufpreise: ergebnis.aufpreise.map((a) => ({
@@ -86,6 +91,8 @@ export function baueAnfrage({ requestNumber, data, essensart, paket, stil, bloec
       pro_person: ergebnis.proPerson,
       speisen_gesamt: ergebnis.speisenGesamt,
       lieferzuschlag: ergebnis.lieferzuschlag,
+      // Nur bei einem Paket mit Lieferung inklusive (Exklusiv): Die 0 € ist dann kein kostenloses Kerngebiet.
+      ...(lieferungInklusive ? { lieferung_inklusive: true } : {}),
       gesamt: ergebnis.gesamt,
       // Abgezogener Firmen-Vorteil (aus mitFirmenVorteil): `gesamt` enthält ihn schon, `speisen_gesamt` nicht.
       firmen_vorteil: ergebnis.firmenVorteil

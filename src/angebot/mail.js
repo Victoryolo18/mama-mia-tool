@@ -61,6 +61,7 @@ export function kundenMail(request) {
         ${zeile("Gäste", `${request.gaeste} Personen`)}
         ${request.firma_name ? zeile("Rechnung an", firmaText(request)) : ""}
         ${vorteil(request) ? zeile("Firmen-Vorteil", `${vorteil(request).prozent} % auf die Speisen abgezogen: −${formatPreis(vorteil(request).betrag)}. Ohne Rechnung an die Firma entfällt der Vorteil.`) : ""}
+        ${request.angebot_snapshot?.lieferung_inklusive ? zeile("Lieferung", `inklusive (Paket ${esc(request.paket)})`) : ""}
         ${zeile("Geschätzter Preis", `${formatPreis(request.gesamtpreis)} inkl. ${MWST_PROZENT} % MwSt`)}
       </div>
       <p>Bei Rückfragen erreichen Sie mich unter:<br>
@@ -103,6 +104,7 @@ export function janaMail(request, jetzt = new Date()) {
         ${zeile("Gäste", request.gaeste)}
         ${zeile("Datum", datumText(request.event_datum))}
         ${zeile("Ort", `${esc(request.plz) || "—"}${request.ortsteil ? ` ${esc(request.ortsteil)}` : ""} (${LIEFER_LABELS[request.lieferung] || esc(request.lieferung)})`)}
+        ${request.angebot_snapshot?.lieferung_inklusive ? zeile("Lieferung", `inklusive (Paket ${esc(request.paket)})`) : ""}
         ${zeile("Geschätzter Preis", `${formatPreis(request.gesamtpreis)}${lieferungOffen ? ' <span style="color: #B00020;">(zzgl. Lieferung — PLZ nicht im Liefergebiet hinterlegt, Preis auf Anfrage)</span>' : ""}`)}
         ${hatGetraenkeservice ? zeile("Getränkeservice", "Ja") : ""}
         ${vorteil(request) ? zeile("Firmen-Vorteil", `${vorteil(request).prozent} % abgezogen, −${formatPreis(vorteil(request).betrag)}, im Preis oben schon enthalten. Bitte die Firma prüfen; stimmt etwas nicht, im CRM unter „Bearbeiten“ das Häkchen beim Firmen-Vorteil herausnehmen.`) : ""}

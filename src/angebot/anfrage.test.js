@@ -277,3 +277,42 @@ describe('aktiverStil', () => {
     expect(aktiverStil([], null)).toBeNull();
   });
 });
+
+describe('Paket mit Lieferung inklusive (Exklusiv, GEN-25)', () => {
+  const zonen = [
+    { reihenfolge: 1, aktiv: true, zuschlag: 0,  rueckholung_preis: 20, plz_liste: ['16767'], plz_pattern: null },
+    { reihenfolge: 2, aktiv: true, zuschlag: 25, rueckholung_preis: 70, plz_liste: ['16515'], plz_pattern: null },
+  ];
+  const exklusiv = { ...paket, id: 'p-exklusiv', name: 'Exklusiv', preis_pro_person: 65, lieferung_inklusive: true, leistungen: ['Persönliche Menüberatung mit Jana'] };
+
+  it('kostet in jeder bekannten Zone 0 €, auch mit Rückholung', () => {
+    expect(lieferpreis({ lieferung: 'nur_anlieferung', plz: '16515' }, zonen, [], exklusiv)).toMatchObject({ zuschlag: 0, inklusive: true });
+    expect(lieferpreis({ lieferung: 'anlieferung_rueckholung', plz: '16515' }, zonen, [], exklusiv)).toMatchObject({ zuschlag: 0, inklusive: true });
+  });
+
+  it('lässt eine unbekannte Zone "auf Anfrage"', () => {
+    expect(lieferpreis({ lieferung: 'nur_anlieferung', plz: '80331' }, zonen, [], exklusiv)).toMatchObject({ zuschlag: null, inklusive: false });
+  });
+
+  it('ändert an den anderen Paketen nichts', () => {
+    expect(lieferpreis({ lieferung: 'anlieferung_rueckholung', plz: '16515' }, zonen, [], paket)).toMatchObject({ zuschlag: 70, inklusive: false });
+  });
+
+  it('hält im Snapshot fest, dass die Lieferung inklusive war, und welche Leistungen das Paket hatte', () => {
+    const data = eingabe({ plz: '16515' });
+    const liefer = lieferpreis(data, zonen, [], exklusiv);
+    const ergebnis = berechneAngebot({ paket: exklusiv, bloecke, gruppen, gerichte, auswahl: data.auswahl, plusEins: data.plusEins, gaeste: data.gaeste, lieferzuschlag: liefer.zuschlag });
+    const r = baueAnfrage({ requestNumber: 'MM-26-1235', data, essensart, paket: exklusiv, stil, bloecke, gerichte, ergebnis });
+    expect(r.lieferzuschlag).toBe(0);
+    expect(r.angebot_snapshot.lieferung_inklusive).toBe(true);
+    expect(r.angebot_snapshot.paket.leistungen).toEqual(['Persönliche Menüberatung mit Jana']);
+    expect(janaMail(r).html).toContain('inklusive (Paket Exklusiv)');
+    expect(kundenMail(r).html).toContain('inklusive (Paket Exklusiv)');
+  });
+
+  it('schreibt bei anderen Paketen nichts davon in den Snapshot', () => {
+    const s = anfrage().angebot_snapshot;
+    expect(s).not.toHaveProperty('lieferung_inklusive');
+    expect(s.paket).not.toHaveProperty('leistungen');
+  });
+});

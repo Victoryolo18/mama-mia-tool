@@ -166,7 +166,7 @@ export default function MamaMiaAngebotsgenerator() {
 
   /* Ein Preis für alle Schritte: Was hier herauskommt, zeigt die Leiste, die Zusammenfassung
      und die Mail, und genau das wird gespeichert. */
-  const liefer = lieferpreis(data, dbLieferzonen, dbLieferorte);
+  const liefer = lieferpreis(data, dbLieferzonen, dbLieferorte, paket);
   // Der Firmen-Vorteil ist schon abgezogen, sobald Anlass, Tag und Personenzahl zur Regel passen.
   const ergebnis = paket
     ? mitFirmenVorteil(berechneAngebot({
@@ -244,9 +244,12 @@ export default function MamaMiaAngebotsgenerator() {
         @media (min-width: 641px) {
           .mm-summary-card { position: sticky; top: 100px; }
         }
+        @media (max-width: 960px) {
+          .mm-grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+        }
         @media (max-width: 640px) {
           .mm-grid-2 { grid-template-columns: 1fr !important; }
-          .mm-grid-3 { grid-template-columns: 1fr !important; }
+          .mm-grid-3, .mm-grid-4 { grid-template-columns: 1fr !important; }
           .mm-paket-grid { padding: 0 !important; }
           .mm-hero-title { font-size: 36px !important; }
           .mm-hero-sub   { font-size: 16px !important; }

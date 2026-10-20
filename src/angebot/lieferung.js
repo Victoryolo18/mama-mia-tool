@@ -79,15 +79,19 @@ export function getLieferzuschlag(plz, lieferzonen, lieferorte, ortsteil) {
     "Lieferung kostenlos" (Kerngebiet) — und genau das stand dadurch in
     Mamas Anfrageliste, obwohl der Kunde "auf Anfrage" gesehen hat.
     Aufgefallen an 16798 (Fuerstenberg) und 16565 (Lehnitz).
-    @returns { info, zuschlag } — `info` wie getLieferzuschlag, `zuschlag` Zahl oder null */
-export function lieferpreis({ lieferung, plz, ortsteil }, lieferzonen, lieferorte) {
+    Enthält das Paket die Lieferung (`lieferung_inklusive`, Paket Exklusiv), kostet sie in jeder bekannten
+    Zone 0 € und `inklusive` ist true. Eine unbekannte Zone bleibt "auf Anfrage": Wie weit Jana fährt,
+    entscheidet sie selbst.
+    @returns { info, zuschlag, inklusive } — `info` wie getLieferzuschlag, `zuschlag` Zahl oder null */
+export function lieferpreis({ lieferung, plz, ortsteil }, lieferzonen, lieferorte, paket = null) {
   if (!istLieferart(lieferung)) {
-    return { info: { zuschlag: 0, rueckholungPreis: 0, bekannt: true }, zuschlag: 0 };
+    return { info: { zuschlag: 0, rueckholungPreis: 0, bekannt: true }, zuschlag: 0, inklusive: false };
   }
   const info = getLieferzuschlag(plz, lieferzonen, lieferorte, ortsteil);
-  if (!info.bekannt) return { info, zuschlag: null };
+  if (!info.bekannt) return { info, zuschlag: null, inklusive: false };
+  if (paket?.lieferung_inklusive) return { info, zuschlag: 0, inklusive: true };
   const zuschlag = lieferung === "anlieferung_rueckholung"
     ? (info.rueckholungPreis ?? info.zuschlag ?? 0)
     : (info.zuschlag ?? 0);
-  return { info, zuschlag };
+  return { info, zuschlag, inklusive: false };
 }
