@@ -234,7 +234,7 @@ describe('Vorwahl aus dem Link', () => {
   const essensarten = [{ slug: 'buffet' }, { slug: 'fingerfood' }, { slug: 'fruehstueck' }];
 
   it('wählt die Essensart aus ?essensart= vor', () => {
-    expect(vorwahlAusLink('?essensart=fingerfood', essensarten)).toEqual({ essensart: 'fingerfood', anlass: null });
+    expect(vorwahlAusLink('?essensart=fingerfood', essensarten)).toEqual({ essensart: 'fingerfood', anlass: null, paketId: null });
   });
 
   it('ignoriert eine Essensart, die es nicht gibt', () => {
@@ -242,15 +242,23 @@ describe('Vorwahl aus dem Link', () => {
   });
 
   it('übernimmt die bisherigen Anlass-Links der Website als freiwilligen Anlass', () => {
-    expect(vorwahlAusLink('?anlass=hochzeit', essensarten)).toEqual({ essensart: null, anlass: 'hochzeit' });
+    expect(vorwahlAusLink('?anlass=hochzeit', essensarten)).toEqual({ essensart: null, anlass: 'hochzeit', paketId: null });
   });
 
   it('führt den alten Link ?anlass=fruehstueck zur Essensart Frühstück', () => {
-    expect(vorwahlAusLink('?anlass=fruehstueck', essensarten)).toEqual({ essensart: 'fruehstueck', anlass: null });
+    expect(vorwahlAusLink('?anlass=fruehstueck', essensarten)).toEqual({ essensart: 'fruehstueck', anlass: null, paketId: null });
+  });
+
+  it('wählt mit ?paket= das Paket samt Essensart vor, aber nur ein bekanntes und passendes', () => {
+    const pakete = [{ id: 'p-genuss', essensart: 'buffet' }, { id: 'p-ff6', essensart: 'fingerfood' }];
+    expect(vorwahlAusLink('?paket=p-genuss', essensarten, pakete)).toEqual({ essensart: 'buffet', anlass: null, paketId: 'p-genuss' });
+    expect(vorwahlAusLink('?essensart=buffet&paket=p-genuss&anlass=hochzeit', essensarten, pakete)).toEqual({ essensart: 'buffet', anlass: 'hochzeit', paketId: 'p-genuss' });
+    expect(vorwahlAusLink('?essensart=buffet&paket=p-ff6', essensarten, pakete).paketId).toBeNull();
+    expect(vorwahlAusLink('?paket=gibtsnicht', essensarten, pakete).paketId).toBeNull();
   });
 
   it('kommt ohne Angaben im Link zurecht', () => {
-    expect(vorwahlAusLink('', essensarten)).toEqual({ essensart: null, anlass: null });
+    expect(vorwahlAusLink('', essensarten)).toEqual({ essensart: null, anlass: null, paketId: null });
   });
 });
 

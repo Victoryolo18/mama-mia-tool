@@ -118,13 +118,14 @@ export default function MamaMiaAngebotsgenerator() {
       setDbLieferorte(orte);
       setDbZusatzwuensche(zusatz);
       const ausPfad = kleidAusPfad(window.location.pathname, kat.essensarten);
-      const vorwahl = ausPfad ?? vorwahlAusLink(window.location.search, kat.essensarten);
+      const vorwahl = ausPfad ?? vorwahlAusLink(window.location.search, kat.essensarten, kat.pakete);
       if (ausPfad) {
         setKleid(ausPfad.kleid);
         document.title = `${ausPfad.kleid.titel} · Angebot · Mama Mia Events & Catering`;
       }
-      setData(d => ({ ...d, essensart: vorwahl.essensart, anlass: vorwahl.anlass }));
-      if (vorwahl.essensart) setStep(2);
+      setData(d => ({ ...d, essensart: vorwahl.essensart, anlass: vorwahl.anlass, paketId: vorwahl.paketId ?? null }));
+      if (vorwahl.paketId) setStep(3);
+      else if (vorwahl.essensart) setStep(2);
       setKataloge(kat);
     }
     init().catch((e) => {

@@ -24,12 +24,15 @@ export const anlassLabel = (slug) => ANLAESSE.find((a) => a.slug === slug)?.labe
 /** Liest die Vorwahl aus dem Link. `?essensart=fingerfood` wählt die Essensart vor.
     Die bisherigen Links der Website (`?anlass=hochzeit`) füllen den freiwilligen Anlass;
     `?anlass=fruehstueck` war früher ein Anlass und ist jetzt die Essensart Frühstück.
+    `?paket=<id>` (Paket-Karten der Website) wählt das Paket samt Essensart vor; der Generator beginnt dann bei den Gerichten.
     Unbekannte Werte werden ignoriert. */
-export function vorwahlAusLink(suche, essensarten) {
+export function vorwahlAusLink(suche, essensarten, pakete = []) {
   const params = new URLSearchParams(suche || "");
   const kennt = (slug) => essensarten.some((e) => e.slug === slug);
   const anlass = params.get("anlass");
   let essensart = params.get("essensart");
   if (!kennt(essensart)) essensart = anlass === "fruehstueck" && kennt("fruehstueck") ? "fruehstueck" : null;
-  return { essensart, anlass: anlassLabel(anlass) ? anlass : null };
+  const paket = pakete.find((p) => p.id === params.get("paket") && kennt(p.essensart) && (!essensart || p.essensart === essensart)) ?? null;
+  if (paket) essensart = paket.essensart;
+  return { essensart, anlass: anlassLabel(anlass) ? anlass : null, paketId: paket?.id ?? null };
 }
