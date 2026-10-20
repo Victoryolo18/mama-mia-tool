@@ -302,7 +302,7 @@ describe('Paket mit Lieferung inklusive (Exklusiv, GEN-25)', () => {
     const data = eingabe({ plz: '16515' });
     const liefer = lieferpreis(data, zonen, [], exklusiv);
     const ergebnis = berechneAngebot({ paket: exklusiv, bloecke, gruppen, gerichte, auswahl: data.auswahl, plusEins: data.plusEins, gaeste: data.gaeste, lieferzuschlag: liefer.zuschlag });
-    const r = baueAnfrage({ requestNumber: 'MM-26-1235', data, essensart, paket: exklusiv, stil, bloecke, gerichte, ergebnis });
+    const r = baueAnfrage({ requestNumber: 'MM-26-1235', data, essensart, paket: exklusiv, stil, bloecke, gerichte, ergebnis, lieferungInklusive: liefer.inklusive });
     expect(r.lieferzuschlag).toBe(0);
     expect(r.angebot_snapshot.lieferung_inklusive).toBe(true);
     expect(r.angebot_snapshot.paket.leistungen).toEqual(['Persönliche Menüberatung mit Jana']);

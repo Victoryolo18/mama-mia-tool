@@ -184,7 +184,7 @@ export default function MamaMiaAngebotsgenerator() {
       const { data: requestNumber, error: numErr } = await supabase.rpc("generate_request_number");
       if (numErr) throw numErr;
 
-      const anfrage = baueAnfrage({ requestNumber, data, essensart, paket, stil, bloecke, gerichte: gerichtKarte, ergebnis });
+      const anfrage = baueAnfrage({ requestNumber, data, essensart, paket, stil, bloecke, gerichte: gerichtKarte, ergebnis, lieferungInklusive: liefer.inklusive });
       const { error: insertErr } = await supabase.from("requests").insert(anfrage);
       if (insertErr) throw insertErr;
       setAngebotsId(requestNumber);

@@ -9,15 +9,14 @@
 
 import { maxAuswahl } from "./angebotspreis.js";
 import { pruefeFirmaEingabe } from "./firmenVorteil.js";
-import { istLieferart } from "./lieferung.js";
 
 const cent = (euro) => Math.round(Number(euro) * 100);
 
-export function baueAnfrage({ requestNumber, data, essensart, paket, stil, bloecke, gerichte, ergebnis }) {
+/** `lieferungInklusive`: Das Paket enthält die Lieferung und sie kostet deshalb 0 € (lieferpreis(…).inklusive). */
+export function baueAnfrage({ requestNumber, data, essensart, paket, stil, bloecke, gerichte, ergebnis, lieferungInklusive = false }) {
   const personen = Math.max(0, Math.floor(Number(data.gaeste) || 0));
   const firma = pruefeFirmaEingabe(data.firma).wert;
   const name = (id) => gerichte[id]?.name;
-  const lieferungInklusive = !!paket.lieferung_inklusive && istLieferart(data.lieferung) && ergebnis.lieferzuschlag === 0;
 
   const jeLabel = new Map();
   const snapshotBloecke = [];
