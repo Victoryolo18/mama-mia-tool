@@ -4,7 +4,7 @@ import { formatPreis } from "./angebotspreis.js";
 import { anlassLabel } from "./anlaesse.js";
 import { LIEFER_LABELS, istLieferart } from "./lieferung.js";
 import { FIRMA_GRENZEN, firmaAbfrage, pruefeFirmaEingabe } from "./firmenVorteil.js";
-import { ladePlzOrte, orteZurPlz, ortVorschlag } from "./plzOrte.js";
+import { ladePlzOrte, orteZurPlz, ortZurPlz } from "./plzOrte.js";
 import { reportError } from "../errorLog.js";
 import { MWST_PROZENT, mwstAus } from "./mwst.js";
 
@@ -34,10 +34,10 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
   const firmaOk = !firmaPruefung.fehler && (firmaArt !== "pflicht" || !!firmaPruefung.wert);
   const canSubmit = data.name.trim().length >= 2 && data.kontaktdaten.trim().length >= 5 && firmaOk;
   const setFirma = (feld, wert) => update("firma", { ...data.firma, [feld]: wert });
-  // Postleitzahl eintippen: Gibt es genau einen Ort, trägt er sich ein.
+  // Postleitzahl eintippen: Gibt es genau einen Ort, steht er im Feld; bei mehreren wählt der Kunde.
   const setPlz = (plz) => {
-    const ort = ortVorschlag(plzOrte, plz, data.firma.ort, data.firma.plz);
-    update("firma", { ...data.firma, plz, ...(ort ? { ort } : {}) });
+    const ort = ortZurPlz(plzOrte, plz, data.firma.ort);
+    update("firma", { ...data.firma, plz, ...(ort !== undefined ? { ort } : {}) });
   };
   const orte = orteZurPlz(plzOrte, data.firma.plz) ?? [];
   const steuer = mwstAus(ergebnis.gesamt);

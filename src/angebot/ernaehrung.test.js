@@ -4,11 +4,12 @@ import { aufAnfrage, aufAnfrageIn, brauchtAbsprache, ernaehrungText } from "./er
 describe("aufAnfrage", () => {
   it("nennt, was ein Gericht auf Anfrage sein kann, vegan vor glutenfrei", () => {
     const g = { name: "Kartoffelsalat", vegetarisch: true, vegan_moeglich: true, glutenfrei_moeglich: true };
-    expect(aufAnfrage(g).map((a) => a.kurz)).toEqual(["VG", "GF"]);
+    expect(aufAnfrage(g).map((a) => a.slug)).toEqual(["vegan", "glutenfrei"]);
   });
 
-  it("sagt bei einem Gericht, das schon vegan ist, nicht noch einmal „vegan auf Anfrage“", () => {
-    expect(aufAnfrage({ vegan: true, vegan_moeglich: true, glutenfrei_moeglich: true }).map((a) => a.slug)).toEqual(["glutenfrei"]);
+  it("zeigt auch bei einem Gericht, das schon vegan ist, „vegan (auf Anfrage)“", () => {
+    expect(aufAnfrage({ vegan: true }).map((a) => a.slug)).toEqual(["vegan"]);
+    expect(aufAnfrage({ vegan: true, vegan_moeglich: true, glutenfrei_moeglich: true }).map((a) => a.slug)).toEqual(["vegan", "glutenfrei"]);
   });
 
   it("zeigt ohne Häkchen nichts, auch bei alten Daten ohne die Felder", () => {

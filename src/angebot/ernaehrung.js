@@ -6,11 +6,12 @@
    Wer ein Gericht so möchte, schreibt es in die Anmerkungen. Die Zahl der Gäste je Ernährung fragt der Generator
    seit dem 19.10.2026 nicht mehr ab (Victor: zu mühsam); ältere Anfragen haben sie noch im Snapshot (`ernaehrung`),
    das CRM zeigt sie dort weiter an.
-   Ein Gericht, das schon vegan ist (`vegan`), braucht keinen Hinweis "vegan möglich". */
+   Auch ein Gericht, das schon vegan ist (`vegan`), zeigt "vegan (auf Anfrage)": Niemand soll annehmen, er bekomme
+   vegan, ohne es in die Anmerkungen zu schreiben (Victor, 20.10.2026). */
 
 export const AUF_ANFRAGE = [
-  { slug: "vegan",      kurz: "VG", label: "vegan auf Anfrage",      feld: "vegan_moeglich" },
-  { slug: "glutenfrei", kurz: "GF", label: "glutenfrei auf Anfrage", feld: "glutenfrei_moeglich" },
+  { slug: "vegan",      label: "Vegan",      felder: ["vegan_moeglich", "vegan"] },
+  { slug: "glutenfrei", label: "Glutenfrei", felder: ["glutenfrei_moeglich"] },
 ];
 
 export const ERNAEHRUNG = [
@@ -21,7 +22,7 @@ export const ERNAEHRUNG = [
 
 /** Was dieses Gericht auf Anfrage sein kann, in fester Reihenfolge. */
 export function aufAnfrage(gericht) {
-  return AUF_ANFRAGE.filter((a) => gericht?.[a.feld] && !(a.slug === "vegan" && gericht.vegan));
+  return AUF_ANFRAGE.filter((a) => a.felder.some((feld) => gericht?.[feld]));
 }
 
 /** Die Hinweise, die in einer Liste von Gerichten vorkommen (für die Legende). */

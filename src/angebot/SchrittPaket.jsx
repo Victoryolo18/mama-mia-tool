@@ -45,7 +45,6 @@ export default function SchrittPaket({ essensart, pakete, bloecke, gewaehlt, onW
             {vorteil && (
               <p style={{ ...S.heroSub, color: C.gold, fontSize: 14, fontWeight: 600, margin: "16px auto 0", maxWidth: 520, padding: "10px 14px", borderRadius: 12, background: "rgba(28,16,8,.62)" }}>
                 Firmen-Vorteil: {vorteil.prozent} % auf die Speisen, {firmenVorteilBedingungen(vorteil)}.
-                Ich ziehe ihn direkt im Preis ab.
               </p>
             )}
           </>

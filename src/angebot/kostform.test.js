@@ -1,8 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { KOSTFORMEN, kostform, kostformenIn } from "./kostform.js";
+import { SYMBOLE } from "./symbole.js";
 
 describe("kostform", () => {
-  it("folgt dem Häkchen aus dem CRM; vegan zählt als vegetarisch, ohne eigenen Punkt", () => {
+  it("folgt dem Häkchen aus dem CRM; vegan zählt als vegetarisch, ohne eigene Kostform", () => {
     expect(kostform({ name: "Obstspieße", vegetarisch: true, vegan: true })).toBe("vegetarisch");
     expect(kostform({ name: "Obstplatte", vegetarisch: false, vegan: true })).toBe("vegetarisch");
     expect(KOSTFORMEN.map((k) => k.slug)).not.toContain("vegan");
@@ -33,7 +34,8 @@ describe("kostformenIn", () => {
     expect(kostformenIn([])).toEqual([]);
   });
 
-  it("hat drei Kostformen mit eigener Farbe", () => {
-    expect(new Set(KOSTFORMEN.map((k) => k.farbe)).size).toBe(3);
+  it("hat drei Kostformen, jede mit eigenem Symbol", () => {
+    expect(KOSTFORMEN).toHaveLength(3);
+    for (const k of KOSTFORMEN) expect(SYMBOLE[k.slug], k.slug).toBeTruthy();
   });
 });

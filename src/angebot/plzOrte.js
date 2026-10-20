@@ -18,12 +18,13 @@ export function orteZurPlz(plzOrte, plz) {
   return plzOrte && Object.hasOwn(plzOrte, plz) ? plzOrte[plz] : null;
 }
 
-/** Ort, der sich beim Eintippen der Postleitzahl von selbst einträgt: nur bei genau einem Ort
-    und wenn das Feld leer ist oder noch einen Vorschlag einer anderen Postleitzahl enthält. */
-export function ortVorschlag(plzOrte, plz, ortBisher, plzBisher) {
+/** Was im Feld "Ort" stehen soll, wenn die Postleitzahl vollständig ist:
+    - genau ein Ort: dieser, auch wenn vorher etwas anderes drinstand
+    - mehrere Orte: was drinsteht, wenn es einer davon ist; sonst leer, damit der Kunde wählt
+    - unbekannte oder Großkunden-Postleitzahl, unvollständige Eingabe: unverändert (undefined) */
+export function ortZurPlz(plzOrte, plz, ortBisher) {
   const orte = orteZurPlz(plzOrte, plz);
-  if (!orte || orte.length !== 1) return null;
-  const bisher = String(ortBisher ?? "").trim();
-  const warVorschlag = (orteZurPlz(plzOrte, plzBisher) ?? []).includes(bisher);
-  return !bisher || warVorschlag ? orte[0] : null;
+  if (!orte || orte.length === 0) return undefined;
+  if (orte.length === 1) return orte[0];
+  return orte.includes(String(ortBisher ?? "").trim()) ? undefined : "";
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { ladePlzOrte, orteZurPlz, ortVorschlag } from "./plzOrte.js";
+import { ladePlzOrte, orteZurPlz, ortZurPlz } from "./plzOrte.js";
 
 describe("Postleitzahlen (GeoNames)", () => {
   it("kennt alle deutschen Postleitzahlen mit ihren Orten", async () => {
@@ -18,21 +18,24 @@ describe("Postleitzahlen (GeoNames)", () => {
   });
 });
 
-describe("ortVorschlag", () => {
-  const plzOrte = { "16767": ["Germendorf", "Leegebruch"], "16727": ["Velten"], "14469": ["Potsdam"] };
+describe("ortZurPlz", () => {
+  const plzOrte = { "16767": ["Germendorf", "Leegebruch"], "16727": ["Velten"], "14469": ["Potsdam"], "10875": [] };
 
-  it("trägt den Ort ein, wenn es genau einen gibt und das Feld leer ist", () => {
-    expect(ortVorschlag(plzOrte, "16727", "", "")).toBe("Velten");
+  it("trägt bei genau einem Ort diesen ein, auch wenn vorher ein anderer drinstand (Victor, 20.10.2026)", () => {
+    expect(ortZurPlz(plzOrte, "16727", "")).toBe("Velten");
+    expect(ortZurPlz(plzOrte, "16727", "Leegebruch")).toBe("Velten");
+    expect(ortZurPlz(plzOrte, "14469", "Velten")).toBe("Potsdam");
   });
 
-  it("ersetzt einen früheren Vorschlag, aber nie, was der Kunde selbst geschrieben hat", () => {
-    expect(ortVorschlag(plzOrte, "14469", "Velten", "16727")).toBe("Potsdam");
-    expect(ortVorschlag(plzOrte, "14469", "Golm", "16727")).toBe(null);
+  it("lässt bei mehreren Orten einen passenden stehen und leert einen unpassenden", () => {
+    expect(ortZurPlz(plzOrte, "16767", "Leegebruch")).toBe(undefined);
+    expect(ortZurPlz(plzOrte, "16767", "Velten")).toBe("");
   });
 
-  it("schlägt nichts vor bei mehreren Orten oder unbekannter Postleitzahl", () => {
-    expect(ortVorschlag(plzOrte, "16767", "", "")).toBe(null);
-    expect(ortVorschlag(plzOrte, "99999", "", "")).toBe(null);
-    expect(ortVorschlag(null, "16727", "", "")).toBe(null);
+  it("ändert nichts bei unvollständiger, unbekannter oder Großkunden-Postleitzahl", () => {
+    expect(ortZurPlz(plzOrte, "1676", "Leegebruch")).toBe(undefined);
+    expect(ortZurPlz(plzOrte, "99999", "Leegebruch")).toBe(undefined);
+    expect(ortZurPlz(plzOrte, "10875", "Stuttgart")).toBe(undefined);
+    expect(ortZurPlz(null, "16727", "")).toBe(undefined);
   });
 });

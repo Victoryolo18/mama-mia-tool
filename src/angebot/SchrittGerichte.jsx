@@ -5,6 +5,7 @@ import {
 } from "./angebotspreis.js";
 import { KOSTFORMEN, kostform, kostformenIn } from "./kostform.js";
 import { aufAnfrage, aufAnfrageIn } from "./ernaehrung.js";
+import { symbolSvg } from "./symbole.js";
 
 /* Schritt "Gerichte": Stil-Kacheln oben, darunter die Blöcke des Pakets.
    Hält selbst keine Auswahl; die liegt beim Aufrufer, damit der Preis überall derselbe ist.
@@ -16,30 +17,25 @@ const UNTERGRUPPEN = [
 ];
 const AB_SO_VIELEN_EINKLAPPEN = 6;
 
-/* Kostform als kleiner farbiger Punkt vor dem Namen; was die Farben heißen, steht in der Legende darüber. */
-function Punkt({ farbe }) {
-  return <span aria-hidden="true" style={{ width: 9, height: 9, borderRadius: "50%", background: farbe, boxShadow: "inset 0 0 0 1px rgba(28,16,8,.2)", flexShrink: 0, marginRight: 7 }} />;
+const nurVorlesen = { position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" };
+
+/* Symbol im Kreis (symbole.js): Keule, Fisch, Blatt, zwei Blätter, durchgestrichene Ähre.
+   Die Zeichnungen sind feste Texte aus dem Code, keine Eingaben; deshalb als fertiges SVG eingesetzt. */
+function Symbol({ name, groesse = 18 }) {
+  return <span aria-hidden="true" style={{ display: "inline-flex", flexShrink: 0, lineHeight: 0 }} dangerouslySetInnerHTML={{ __html: symbolSvg(name, groesse) }} />;
 }
 
 function Kostform({ gericht }) {
   const k = KOSTFORMEN.find((x) => x.slug === kostform(gericht));
   return (
-    <>
-      <Punkt farbe={k.farbe} />
-      <span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>{k.label}: </span>
-    </>
-  );
-}
-
-/* "VG" und "GF" hinter dem Namen: Das Gericht gibt es auf Anfrage vegan bzw. glutenfrei. */
-function Kuerzel({ children }) {
-  return (
-    <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: ".5px", color: C.cappuccino, border: `1px solid ${C.border}`, borderRadius: 4, padding: "1px 3px", lineHeight: 1.2, flexShrink: 0 }}>
-      {children}
+    <span style={{ display: "inline-flex", marginRight: 7 }}>
+      <Symbol name={k.slug} />
+      <span style={nurVorlesen}>{k.label}: </span>
     </span>
   );
 }
 
+/* Hinter dem Namen: Das Gericht gibt es auf Anfrage vegan bzw. glutenfrei. */
 function AufAnfrage({ gericht }) {
   const da = aufAnfrage(gericht);
   if (da.length === 0) return null;
@@ -47,28 +43,30 @@ function AufAnfrage({ gericht }) {
     <span style={{ display: "inline-flex", gap: 3, marginLeft: 6, verticalAlign: "middle" }}>
       {da.map((a) => (
         <span key={a.slug} style={{ display: "inline-flex" }}>
-          <span aria-hidden="true"><Kuerzel>{a.kurz}</Kuerzel></span>
-          <span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>, {a.label}</span>
+          <Symbol name={a.slug} groesse={16} />
+          <span style={nurVorlesen}>, {a.label} auf Anfrage</span>
         </span>
       ))}
     </span>
   );
 }
 
+/* Was die Symbole heißen. Vegan und Glutenfrei mit deutlichem „auf Anfrage“: Niemand soll glauben, er
+   bekomme es, ohne es in die Anmerkungen zu schreiben (Victor, 20.10.2026). */
 function Legende({ gerichte }) {
   const da = kostformenIn(gerichte);
   const anfrage = aufAnfrageIn(gerichte);
-  if (da.length < 2 && anfrage.length === 0) return null;
+  if (da.length === 0 && anfrage.length === 0) return null;
   return (
-    <div aria-hidden="true" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 16px", fontSize: 12, color: C.inkSoft, margin: "-6px 0 18px" }}>
-      {da.length >= 2 && da.map((k) => (
-        <span key={k.slug} style={{ display: "inline-flex", alignItems: "center" }}>
-          <Punkt farbe={k.farbe} />{k.label}
+    <div aria-hidden="true" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "8px 16px", fontSize: 12, color: C.inkSoft, margin: "-6px 0 18px" }}>
+      {da.map((k) => (
+        <span key={k.slug} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <Symbol name={k.slug} />{k.label}
         </span>
       ))}
       {anfrage.map((a) => (
-        <span key={a.slug} style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-          <Kuerzel>{a.kurz}</Kuerzel>{a.label}
+        <span key={a.slug} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <Symbol name={a.slug} />{a.label}<strong style={{ color: C.burgundy }}>(auf Anfrage)</strong>
         </span>
       ))}
     </div>
