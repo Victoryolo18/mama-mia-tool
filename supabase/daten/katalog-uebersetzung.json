@@ -1,5 +1,5 @@
 {
-  "_hinweis": "Übersetzung der Katalogtexte (I18N-1). Schlüssel ist der deutsche Text, Wert [Englisch, Russisch]. Die Migration I18N-2 schreibt daraus die Spalten _en und _ru. Keine Gedankenstriche.",
+  "_hinweis": "Übersetzung der Katalogtexte (I18N-1). Schlüssel ist der deutsche Text, Wert [Englisch, Russisch]. Die Migration I18N-2 schreibt daraus die Spalten _en und _ru. Keine Gedankenstriche. Stand der Migration Teil 1; spätere Korrekturen (Teil 2, CRM) stehen nur in der Datenbank.",
   "essensarten": {
     "Frühstück": ["Breakfast", "Завтрак"],
     "Kalt-warmes Buffet": ["Hot & cold buffet", "Буфет с холодными и горячими блюдами"],
