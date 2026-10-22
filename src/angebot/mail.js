@@ -24,6 +24,9 @@ const datumText = (datum) => datum
 
 const vorteil = (request) => request.angebot_snapshot?.firmen_vorteil ?? null;
 
+// Sprache des Kunden, wenn nicht Deutsch (Spalte requests.sprache, I18N-3). Die Mail an Jana bleibt deutsch.
+const SPRACHE = { en: "Englisch", ru: "Russisch" };
+
 const zeile = (label, wert) => `<p style="margin: 4px 0;"><strong>${label}:</strong> ${wert}</p>`;
 
 /* Firmenname und Rechnungsadresse in einer Zeile, die Adresse ohne Zeilenumbrüche. */
@@ -94,6 +97,7 @@ export function janaMail(request, jetzt = new Date()) {
         <h3 style="margin: 0 0 12px; color: #5C2818;">Kunde</h3>
         ${zeile("Name", esc(request.customer_name) || "—")}
         ${zeile("Bevorzugt", esc(request.customer_contact_preference))}
+        ${SPRACHE[request.sprache] ? zeile("Sprache", `${SPRACHE[request.sprache]} (hat auf ${SPRACHE[request.sprache]} angefragt)`) : ""}
         ${request.firma_name ? zeile("Firma", firmaText(request)) : ""}
         ${request.firma_ust_id ? zeile("USt-ID", esc(request.firma_ust_id)) : ""}
         <p style="margin: 4px 0;">${kontaktInfo}</p>

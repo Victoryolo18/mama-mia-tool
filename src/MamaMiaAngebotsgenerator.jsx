@@ -9,13 +9,16 @@ import { vorwahlAusLink } from "./angebot/anlaesse.js";
 import { kleidAusPfad } from "./angebot/anlassKleider.js";
 import { firmenAnlass, ladeFirmenVorteil, mitFirmenVorteil, vorteilProzent } from "./angebot/firmenVorteil.js";
 import { baueAnfrage } from "./angebot/anfrage.js";
-import { sendeMails } from "./angebot/mailversand.js";
+import { sendeAnfrageMails } from "./angebot/mailsMehrsprachig.js";
+import { katalogeInSprache, spracheAusLink } from "./angebot/sprache.js";
+import { texte } from "./angebot/texte.js";
+import { Betont, SpracheKontext, useTexte } from "./angebot/Sprache.jsx";
 import SchrittEssensart from "./angebot/SchrittEssensart.jsx";
 import SchrittPaket from "./angebot/SchrittPaket.jsx";
 import SchrittGerichte from "./angebot/SchrittGerichte.jsx";
 import SchrittDetails from "./angebot/SchrittDetails.jsx";
 import SchrittExtras from "./angebot/SchrittExtras.jsx";
-import SchrittAnfrage, { KONTAKT_OPTIONEN } from "./angebot/SchrittAnfrage.jsx";
+import SchrittAnfrage from "./angebot/SchrittAnfrage.jsx";
 import Preisleiste from "./angebot/Preisleiste.jsx";
 
 /* ════════════════════════════════════════════════════════════════
@@ -31,11 +34,12 @@ import Preisleiste from "./angebot/Preisleiste.jsx";
 
    Aufruf von der Website: `?essensart=buffet | fingerfood | fruehstueck`
    wählt die Essensart vor und überspringt den ersten Schritt.
+   Sprache: `?lang=en` oder `?lang=ru` zeigt alles auf Englisch bzw. Russisch (texte.js, sprache.js).
+   Gespeichert und an Jana geschickt wird trotzdem der deutsche Katalog; die Anfrage merkt sich die Sprache.
    Aufruf mit Anlass-Pfad (`/weihnachtsfeier`, `/weihnachtsfeier/fingerfood`): Anlass und
    Essensart sind vorbelegt, der Schritt "Paket" trägt das Kleid des Anlasses (anlassKleider.js).
    ══════════════════════════════════════════════════════════════════ */
 
-const SCHRITTE = ["Essensart", "Paket", "Menü", "Details", "Extras", "Anfrage"];
 const GRENZE_ORTE = 1000;
 
 /* Lieferzonen, Orte und Zusatzwünsche. Fällt eine der drei Listen aus, läuft der Generator
@@ -50,7 +54,16 @@ async function ladeListe(name, abfrage) {
   return data || [];
 }
 
+/* Startseite der Website in der Sprache des Kunden. */
+const STARTSEITE = { de: "https://mama-mia-events.de/", en: "https://mama-mia-events.de/en/", ru: "https://mama-mia-events.de/ru/" };
+
 export default function MamaMiaAngebotsgenerator() {
+  /* ── Sprache: steht mit dem Link fest ── */
+  const sprache = useMemo(() => spracheAusLink(window.location.search), []);
+  const t = useMemo(() => texte(sprache), [sprache]);
+  const SCHRITTE = t.schritte;
+  useEffect(() => { document.documentElement.lang = sprache; }, [sprache]);
+
   /* ── State ── */
   const [step, setStep] = useState(1);
   const [data, setData] = useState({
@@ -120,8 +133,9 @@ export default function MamaMiaAngebotsgenerator() {
       const ausPfad = kleidAusPfad(window.location.pathname, kat.essensarten);
       const vorwahl = ausPfad ?? vorwahlAusLink(window.location.search, kat.essensarten, kat.pakete);
       if (ausPfad) {
-        setKleid(ausPfad.kleid);
-        document.title = `${ausPfad.kleid.titel} · Angebot · Mama Mia Events & Catering`;
+        const kleidInSprache = { ...ausPfad.kleid, ...(sprache !== "de" ? t.kleid[ausPfad.anlass] : {}) };
+        setKleid(kleidInSprache);
+        document.title = `${kleidInSprache.titel} · ${t.angebot} · Mama Mia Events & Catering`;
       }
       setData(d => ({ ...d, essensart: vorwahl.essensart, anlass: vorwahl.anlass, paketId: vorwahl.paketId ?? null }));
       if (vorwahl.paketId) setStep(3);
@@ -142,7 +156,7 @@ export default function MamaMiaAngebotsgenerator() {
   const update = (key, value) => setData(d => ({ ...d, [key]: value }));
   const next = () => setStep(s => Math.min(s + 1, SCHRITTE.length));
   const prev = () => setStep(s => Math.max(s - 1, 1));
-  const schritt = `Schritt ${step} von ${SCHRITTE.length}`;
+  const schritt = t.schritt(step, SCHRITTE.length);
 
   /* Die Blöcke gehören zum Paket, die Pakete zur Essensart: Wer wechselt, wählt die Gerichte neu.
      Derselbe Klick noch einmal lässt die Auswahl stehen. */
@@ -155,25 +169,37 @@ export default function MamaMiaAngebotsgenerator() {
     setTimeout(next, 250);
   };
 
-  /* ── Abgeleitet aus Katalog und Auswahl ── */
-  const essensart = kataloge?.essensarten.find(e => e.slug === data.essensart) ?? null;
-  const paket = kataloge?.pakete.find(p => p.id === data.paketId && p.essensart === data.essensart) ?? null;
-  const pakete = useMemo(() => (kataloge?.pakete ?? []).filter(p => p.essensart === data.essensart), [kataloge, data.essensart]);
-  const bloecke = useMemo(() => (kataloge?.bloecke ?? []).filter(b => b.paket_id === data.paketId), [kataloge, data.paketId]);
-  const stile = useMemo(() => (kataloge?.stile ?? []).filter(s => s.essensart === data.essensart), [kataloge, data.essensart]);
-  const gerichtKarte = useMemo(() => Object.fromEntries((kataloge?.gerichte ?? []).map(g => [g.id, g])), [kataloge]);
-  const stil = aktiverStil(stile, data.stil);
+  /* ── Abgeleitet aus Katalog und Auswahl ──
+     Zweimal dasselbe: `kataloge` auf Deutsch zum Rechnen und Speichern, `anzeige` in der Sprache des Kunden.
+     Beide haben dieselben IDs; für Deutsch ist `anzeige` derselbe Katalog. */
+  const anzeige = useMemo(() => katalogeInSprache(kataloge, sprache), [kataloge, sprache]);
+  const auswahlAus = (kat) => {
+    if (!kat) return { essensart: null, paket: null, pakete: [], bloecke: [], stile: [], gerichtKarte: {}, stil: null };
+    const stile = kat.stile.filter(s => s.essensart === data.essensart);
+    return {
+      essensart: kat.essensarten.find(e => e.slug === data.essensart) ?? null,
+      paket: kat.pakete.find(p => p.id === data.paketId && p.essensart === data.essensart) ?? null,
+      pakete: kat.pakete.filter(p => p.essensart === data.essensart),
+      bloecke: kat.bloecke.filter(b => b.paket_id === data.paketId),
+      stile,
+      gerichtKarte: Object.fromEntries(kat.gerichte.map(g => [g.id, g])),
+      stil: aktiverStil(stile, data.stil),
+    };
+  };
+  const { essensart, paket, bloecke, gerichtKarte, stil } = useMemo(() => auswahlAus(kataloge), [kataloge, data.essensart, data.paketId, data.stil]);
+  const A = useMemo(() => auswahlAus(anzeige), [anzeige, data.essensart, data.paketId, data.stil]);
 
   /* Ein Preis für alle Schritte: Was hier herauskommt, zeigt die Leiste, die Zusammenfassung
      und die Mail, und genau das wird gespeichert. */
   const liefer = lieferpreis(data, dbLieferzonen, dbLieferorte, paket);
   // Der Firmen-Vorteil ist schon abgezogen, sobald Anlass, Tag und Personenzahl zur Regel passen.
-  const ergebnis = paket
-    ? mitFirmenVorteil(berechneAngebot({
-        paket, bloecke, gruppen: kataloge.gruppen, gerichte: gerichtKarte,
-        auswahl: data.auswahl, plusEins: data.plusEins, gaeste: data.gaeste, lieferzuschlag: liefer.zuschlag,
-      }), vorteilProzent(data, regel))
-    : null;
+  const rechne = (kat, a) => mitFirmenVorteil(berechneAngebot({
+    paket: a.paket, bloecke: a.bloecke, gruppen: kat.gruppen, gerichte: a.gerichtKarte,
+    auswahl: data.auswahl, plusEins: data.plusEins, gaeste: data.gaeste, lieferzuschlag: liefer.zuschlag,
+  }), vorteilProzent(data, regel));
+  const ergebnis = paket ? rechne(kataloge, { paket, bloecke, gerichtKarte }) : null;
+  // Dieselben Zahlen, nur die Bezeichnungen der Aufpreise in der Sprache des Kunden.
+  const ergebnisAnzeige = paket ? (anzeige === kataloge ? ergebnis : rechne(anzeige, A)) : null;
 
   /* ── Submit (Supabase + E-Mail) ── */
   async function handleSubmit() {
@@ -184,14 +210,14 @@ export default function MamaMiaAngebotsgenerator() {
       const { data: requestNumber, error: numErr } = await supabase.rpc("generate_request_number");
       if (numErr) throw numErr;
 
-      const anfrage = baueAnfrage({ requestNumber, data, essensart, paket, stil, bloecke, gerichte: gerichtKarte, ergebnis, lieferungInklusive: liefer.inklusive });
+      const anfrage = baueAnfrage({ requestNumber, data, essensart, paket, stil, bloecke, gerichte: gerichtKarte, ergebnis, lieferungInklusive: liefer.inklusive, sprache });
       const { error: insertErr } = await supabase.from("requests").insert(anfrage);
       if (insertErr) throw insertErr;
       setAngebotsId(requestNumber);
 
       // E-Mails versenden (Fehler hier blockieren das Submit nicht: die Anfrage ist gespeichert)
       try {
-        await sendeMails(anfrage);
+        await sendeAnfrageMails(anfrage, { t, essensart: A.essensart, stil: A.stil, paket: A.paket, aufpreise: ergebnisAnzeige.aufpreise });
       } catch (emailErr) {
         reportError("send_email", emailErr, { request_number: requestNumber });
       }
@@ -212,8 +238,7 @@ export default function MamaMiaAngebotsgenerator() {
   if (ladeFehler) return (
     <div style={{ ...S.root, alignItems: "center", justifyContent: "center", padding: 24, textAlign: "center" }}>
       <p style={{ fontSize: 18, color: C.burgundy, maxWidth: 460, lineHeight: 1.5 }}>
-        Das Angebot konnte gerade nicht geladen werden. Bitte laden Sie die Seite neu.
-        Klappt es weiterhin nicht, erreichen Sie mich unter{" "}
+        {t.ladeFehler}{" "}
         <a href="tel:01739344723" style={{ color: C.burgundy, fontWeight: 700 }}>0173 9344723</a>.
       </p>
     </div>
@@ -221,7 +246,7 @@ export default function MamaMiaAngebotsgenerator() {
 
   if (!kataloge) return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#FAF7F2", fontFamily: "'DM Sans', sans-serif", color: "#A88968", fontSize: 18 }}>
-      Lade Mama Mia …
+      {t.laden}
     </div>
   );
 
@@ -229,6 +254,7 @@ export default function MamaMiaAngebotsgenerator() {
   const sichtbar = !essensart ? 1 : !paket ? Math.min(step, 2) : step;
 
   return (
+    <SpracheKontext.Provider value={t}>
     <div style={S.root}>
       <style>{`
         @keyframes fadeUp {
@@ -271,7 +297,7 @@ export default function MamaMiaAngebotsgenerator() {
           </div>
           {!submitted && sichtbar > 1 && (
             <button onClick={prev} style={S.backBtn} className="mm-btn-press">
-              ← Zurück
+              {t.zurueck}
             </button>
           )}
         </div>
@@ -315,12 +341,12 @@ export default function MamaMiaAngebotsgenerator() {
       {/* Body */}
       <main style={S.main}>
         {submitted ? (
-          <SuccessScreen angebotsId={angebotsId} kontaktart={data.kontaktart} />
+          <SuccessScreen angebotsId={angebotsId} kontaktart={data.kontaktart} startseite={STARTSEITE[sprache]} />
         ) : (
           <>
             {sichtbar === 1 && (
               <SchrittEssensart
-                essensarten={kataloge.essensarten}
+                essensarten={anzeige.essensarten}
                 gewaehlt={data.essensart}
                 onWahl={waehleEssensart}
                 schritt={schritt}
@@ -328,9 +354,9 @@ export default function MamaMiaAngebotsgenerator() {
             )}
             {sichtbar === 2 && (
               <SchrittPaket
-                essensart={essensart}
-                pakete={pakete}
-                bloecke={kataloge.bloecke}
+                essensart={A.essensart}
+                pakete={A.pakete}
+                bloecke={anzeige.bloecke}
                 gewaehlt={data.paketId}
                 onWahl={waehlePaket}
                 schritt={schritt}
@@ -340,11 +366,11 @@ export default function MamaMiaAngebotsgenerator() {
             )}
             {sichtbar === 3 && (
               <SchrittGerichte
-                paket={paket}
-                bloecke={bloecke}
-                gruppen={kataloge.gruppen}
-                stile={stile}
-                gerichte={kataloge.gerichte}
+                paket={A.paket}
+                bloecke={A.bloecke}
+                gruppen={anzeige.gruppen}
+                stile={A.stile}
+                gerichte={anzeige.gerichte}
                 stilSlug={data.stil}
                 onStil={(slug) => update("stil", slug)}
                 auswahl={data.auswahl}
@@ -354,12 +380,12 @@ export default function MamaMiaAngebotsgenerator() {
                 schritt={schritt}
               >
                 <div style={{ ...S.menueKategorie, marginTop: 24, paddingTop: 24, borderTop: `2px dashed ${C.border}` }}>
-                  <label style={S.menueKatLabel} htmlFor="mm-anmerkungen">Anmerkungen (optional)</label>
+                  <label style={S.menueKatLabel} htmlFor="mm-anmerkungen">{t.anmerkungenOptional}</label>
                   <textarea
                     id="mm-anmerkungen"
                     value={data.zusatzwuensche}
                     onChange={e => update("zusatzwuensche", e.target.value)}
-                    placeholder="Allergien, Gerichte vegan oder glutenfrei, besondere Wünsche…"
+                    placeholder={t.anmerkungenPlatzhalter}
                     rows={3}
                     maxLength={2000}
                     style={{ ...S.input, resize: "vertical", fontFamily: "inherit", marginTop: 8 }}
@@ -395,15 +421,16 @@ export default function MamaMiaAngebotsgenerator() {
                 onSubmit={handleSubmit}
                 submitting={submitting}
                 schritt={schritt}
-                essensart={essensart}
-                paket={paket}
-                stil={stil}
-                bloecke={bloecke}
-                gerichte={gerichtKarte}
-                ergebnis={ergebnis}
+                essensart={A.essensart}
+                paket={A.paket}
+                stil={A.stil}
+                bloecke={A.bloecke}
+                gerichte={A.gerichtKarte}
+                ergebnis={ergebnisAnzeige}
                 lieferInfo={liefer.info}
                 sendeFehler={sendeFehler}
                 regel={regel}
+                zusatzwuensche={dbZusatzwuensche}
               />
             )}
           </>
@@ -411,7 +438,7 @@ export default function MamaMiaAngebotsgenerator() {
       </main>
 
       {!submitted && sichtbar === 3 && (
-        <Preisleiste paket={paket} ergebnis={ergebnis} onWeiter={next} />
+        <Preisleiste paket={A.paket} ergebnis={ergebnisAnzeige} onWeiter={next} />
       )}
 
       {/* Footer */}
@@ -419,45 +446,46 @@ export default function MamaMiaAngebotsgenerator() {
         <div style={S.footerText}>
           © {new Date().getFullYear()} Mama Mia Events &amp; Catering · Jana Ketelhohn · Leegebruch
           {' · '}
-          <a href="https://mama-mia-events.de/impressum" target="_blank" rel="noopener noreferrer" style={S.footerLink}>Impressum</a>
+          <a href="https://mama-mia-events.de/impressum" target="_blank" rel="noopener noreferrer" style={S.footerLink}>{t.impressum}</a>
           {' · '}
-          <a href="https://mama-mia-events.de/agb" target="_blank" rel="noopener noreferrer" style={S.footerLink}>AGB</a>
+          <a href="https://mama-mia-events.de/agb" target="_blank" rel="noopener noreferrer" style={S.footerLink}>{t.agb}</a>
           {' · '}
-          <a href="https://mama-mia-events.de/datenschutz" target="_blank" rel="noopener noreferrer" style={S.footerLink}>Datenschutz</a>
+          <a href="https://mama-mia-events.de/datenschutz" target="_blank" rel="noopener noreferrer" style={S.footerLink}>{t.datenschutz}</a>
+          {t.rechtDeutsch && ` ${t.rechtDeutsch}`}
         </div>
       </footer>
     </div>
+    </SpracheKontext.Provider>
   );
 }
 
 /* ════════════════════════════════════════════════════════════════
    ERFOLGSSEITE
    ══════════════════════════════════════════════════════════════════ */
-function SuccessScreen({ angebotsId, kontaktart }) {
-  const kontaktLabel = KONTAKT_OPTIONEN.find(k => k.id === kontaktart)?.label;
+function SuccessScreen({ angebotsId, kontaktart, startseite }) {
+  const t = useTexte();
   return (
     <div className="mm-fade" style={S.successWrap}>
       <div style={S.successCard}>
         <div style={S.successIcon}>✓</div>
         <h1 style={S.successTitle}>
-          <em style={S.italic}>Vielen Dank!</em>
+          <em style={S.italic}>{t.erfolgTitel}</em>
         </h1>
         <p style={S.successText}>
-          Ihre Anfrage ist bei mir eingegangen. Ich melde mich innerhalb von <strong>24 Stunden</strong> persönlich
-          per <strong>{kontaktLabel}</strong> bei Ihnen.
+          <Betont text={t.erfolgText(t.kontakt[kontaktart]?.label)} />
         </p>
 
         <div style={S.successIdBox}>
-          <div style={S.successIdLabel}>Ihre Anfrage-Nummer</div>
+          <div style={S.successIdLabel}>{t.anfrageNummer}</div>
           <div style={S.successIdNumber}>{angebotsId}</div>
         </div>
 
         <p style={S.successFooter}>
-          Mit Vorfreude auf Ihr Event,<br />
+          {t.gruss}<br />
           <em style={S.italic}>Jana Ketelhohn</em>
         </p>
 
-        <a href="/" style={S.successBackLink}>← Zurück zur Startseite</a>
+        <a href={startseite} style={S.successBackLink}>{t.zurStartseite}</a>
       </div>
     </div>
   );

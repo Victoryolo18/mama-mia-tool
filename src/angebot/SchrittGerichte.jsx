@@ -6,15 +6,14 @@ import {
 import { KOSTFORMEN, kostform, kostformenIn } from "./kostform.js";
 import { aufAnfrage, aufAnfrageIn } from "./ernaehrung.js";
 import { symbolSvg } from "./symbole.js";
+import { Betont, useTexte } from "./Sprache.jsx";
 
 /* Schritt "Gerichte": Stil-Kacheln oben, darunter die Blöcke des Pakets.
    Hält selbst keine Auswahl; die liegt beim Aufrufer, damit der Preis überall derselbe ist.
    `children` steht am Ende der Karte (im Generator: das Feld für Anmerkungen). */
 
-const UNTERGRUPPEN = [
-  ["suppen", "Suppen"], ["platten", "Platten"], ["haeppchen", "Häppchen"],
-  ["fleisch", "Fleisch"], ["fisch", "Fisch"], ["auflauf", "Aufläufe"], ["vegetarisch_oder_pasta", "Vegetarisch & Pasta"],
-];
+// Reihenfolge der Untergruppen; ihre Namen stehen in texte.js.
+const UNTERGRUPPEN = ["suppen", "platten", "haeppchen", "fleisch", "fisch", "auflauf", "vegetarisch_oder_pasta"];
 const AB_SO_VIELEN_EINKLAPPEN = 6;
 
 const nurVorlesen = { position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" };
@@ -26,17 +25,19 @@ function Symbol({ name, groesse = 18 }) {
 }
 
 function Kostform({ gericht }) {
+  const t = useTexte();
   const k = KOSTFORMEN.find((x) => x.slug === kostform(gericht));
   return (
     <span style={{ display: "inline-flex", marginRight: 7 }}>
       <Symbol name={k.slug} />
-      <span style={nurVorlesen}>{k.label}: </span>
+      <span style={nurVorlesen}>{t.kostform[k.slug]}: </span>
     </span>
   );
 }
 
 /* Hinter dem Namen: Das Gericht gibt es auf Anfrage vegan bzw. glutenfrei. */
 function AufAnfrage({ gericht }) {
+  const t = useTexte();
   const da = aufAnfrage(gericht);
   if (da.length === 0) return null;
   return (
@@ -44,7 +45,7 @@ function AufAnfrage({ gericht }) {
       {da.map((a) => (
         <span key={a.slug} style={{ display: "inline-flex" }}>
           <Symbol name={a.slug} groesse={16} />
-          <span style={nurVorlesen}>, {a.label} auf Anfrage</span>
+          <span style={nurVorlesen}>, {t.ernaehrung[a.slug]} {t.aufAnfrage}</span>
         </span>
       ))}
     </span>
@@ -54,6 +55,7 @@ function AufAnfrage({ gericht }) {
 /* Was die Symbole heißen. Vegan und Glutenfrei mit deutlichem „auf Anfrage“: Niemand soll glauben, er
    bekomme es, ohne es in die Anmerkungen zu schreiben (Victor, 20.10.2026). */
 function Legende({ gerichte }) {
+  const t = useTexte();
   const da = kostformenIn(gerichte);
   const anfrage = aufAnfrageIn(gerichte);
   if (da.length === 0 && anfrage.length === 0) return null;
@@ -61,24 +63,24 @@ function Legende({ gerichte }) {
     <div aria-hidden="true" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "8px 16px", fontSize: 12, color: C.inkSoft, margin: "-6px 0 18px" }}>
       {da.map((k) => (
         <span key={k.slug} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-          <Symbol name={k.slug} />{k.label}
+          <Symbol name={k.slug} />{t.kostform[k.slug]}
         </span>
       ))}
       {anfrage.map((a) => (
         <span key={a.slug} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-          <Symbol name={a.slug} />{a.label}<strong style={{ color: C.burgundy }}>(auf Anfrage)</strong>
+          <Symbol name={a.slug} />{t.ernaehrung[a.slug]}<strong style={{ color: C.burgundy }}>{t.aufAnfrageKlammer}</strong>
         </span>
       ))}
     </div>
   );
 }
 
-function nachUntergruppe(gerichte) {
+function nachUntergruppe(gerichte, t) {
   const teile = UNTERGRUPPEN
-    .map(([key, label]) => ({ key, label, gerichte: gerichte.filter((g) => g.unterkategorie === key) }))
-    .filter((t) => t.gerichte.length > 0);
-  const rest = gerichte.filter((g) => !UNTERGRUPPEN.some(([key]) => key === g.unterkategorie));
-  if (rest.length > 0) teile.push({ key: "", label: teile.length > 0 ? "Weitere" : "", gerichte: rest });
+    .map((key) => ({ key, label: t.untergruppen[key], gerichte: gerichte.filter((g) => g.unterkategorie === key) }))
+    .filter((teil) => teil.gerichte.length > 0);
+  const rest = gerichte.filter((g) => !UNTERGRUPPEN.includes(g.unterkategorie));
+  if (rest.length > 0) teile.push({ key: "", label: teile.length > 0 ? t.weitere : "", gerichte: rest });
   return teile;
 }
 
@@ -132,8 +134,9 @@ function GerichtKnopf({ gericht, an, gesperrt, rund, preis, onClick }) {
 }
 
 function StilLeiste({ stile, gewaehlt, onWahl }) {
+  const t = useTexte();
   return (
-    <div className="mm-stil-leiste" role="radiogroup" aria-label="Stil wählen">
+    <div className="mm-stil-leiste" role="radiogroup" aria-label={t.stilWaehlen}>
       {stile.map((s) => {
         const an = s.slug === gewaehlt.slug;
         return (
@@ -166,7 +169,7 @@ function StilLeiste({ stile, gewaehlt, onWahl }) {
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>✓</span>
             )}
-            <span lang="de" style={{
+            <span lang={t.sprache} style={{
               padding: "8px 6px", fontSize: 12, lineHeight: 1.25, textAlign: "center", width: "100%",
               overflowWrap: "anywhere", hyphens: "auto",
               fontWeight: an ? 700 : 600, color: an ? C.burgundy : C.inkSoft,
@@ -181,6 +184,7 @@ function StilLeiste({ stile, gewaehlt, onWahl }) {
 /* Stimmungsbilder und Gerichteliste. `memo`: Ein Klick auf eine Stil-Kachel umrandet zuerst nur die
    Kachel; diese Liste wird erst danach neu gezeichnet, wenn der Stil bei ihr ankommt. */
 const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil, auswahl, onAuswahl, plusEins, onPlusEins, children }) {
+  const t = useTexte();
   const [offen, setOffen] = useState({});
   const wahlGruppen = bloecke.filter((b) => b.typ === "wahl").flatMap((b) => b.gruppen);
   const feste = bloecke.filter((b) => b.typ === "fix");
@@ -212,13 +216,13 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
       )}
 
       <div style={S.menueCard}>
-        <div style={S.menueCardTitle}>Ihre Komponenten</div>
+        <div style={S.menueCardTitle}>{t.komponenten}</div>
         <Legende gerichte={gerichte.filter((g) => bloecke.some((b) => b.typ !== "fix" && b.gruppen.some((gr) => g.gruppen?.includes(gr))))} />
 
         {feste.length > 0 && (
           <div style={{ ...S.menueKategorie, borderBottom: `1px solid ${C.border}`, paddingBottom: 16, marginBottom: 20 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: "#4CAF50", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 10 }}>
-              Inklusive
+              {t.inklusive}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {feste.map((block) => {
@@ -288,24 +292,24 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
                 <div style={{ ...S.menueKatLabel, marginBottom: 4 }}>{block.label}</div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: zusatz ? C.cappuccino : erfuellt ? "#4CAF50" : C.gold }}>
                   {zusatz
-                    ? (gewaehlt.length > 0 ? `${gewaehlt.length} gewählt · + ${formatPreis(summe)} p. P.` : "Optional")
+                    ? (gewaehlt.length > 0 ? t.zusatzGewaehlt(gewaehlt.length, formatPreis(summe)) : t.optional)
                     : rund
-                      ? (erfuellt ? "✓ Ausgewählt" : "Bitte wählen")
-                      : `${gewaehlt.length} von ${max} ausgewählt`}
+                      ? (erfuellt ? t.ausgewaehlt : t.bitteWaehlen)
+                      : t.vonAusgewaehlt(gewaehlt.length, max)}
                 </div>
               </div>
 
               {zusatz ? (
                 <div style={{ fontSize: 13, color: C.inkSoft, marginBottom: 8 }}>
                   {liste.length === 1
-                    ? `Auf Wunsch dazu, ${formatPreis(abPreis)} pro Person.`
-                    : `Auf Wunsch dazu${Number.isFinite(max) ? (max === 1 ? " (eines)" : ` (bis zu ${max})`) : ""}, ${liste.some((g) => zusatzPreis(block, g, gruppen) !== abPreis) ? "ab " : "je "}${formatPreis(abPreis)} pro Person.`}
+                    ? t.zusatzEiner(formatPreis(abPreis))
+                    : t.zusatzMehrere(max, liste.some((g) => zusatzPreis(block, g, gruppen) !== abPreis), formatPreis(abPreis))}
                 </div>
               ) : !erfuellt && (
                 <div style={{ fontSize: 12, color: C.cappuccino, marginBottom: 6 }}>
                   {gewaehlt.length > max
-                    ? "Bitte ein Gericht abwählen."
-                    : fehlen === 1 ? "Bitte noch ein Gericht wählen." : `Bitte noch ${fehlen} Gerichte wählen.`}
+                    ? t.abwaehlen
+                    : t.nochGerichte(fehlen)}
                 </div>
               )}
 
@@ -316,11 +320,11 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
                   className="mm-btn-press"
                   style={{ background: "transparent", border: `1.5px solid ${C.gold}`, color: C.burgundy, borderRadius: 10, padding: "10px 16px", fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", width: "100%" }}
                 >
-                  {gewaehlt.length > 0 ? "Auswahl ändern" : `Alle ${liste.length} ansehen`} ▾
+                  {gewaehlt.length > 0 ? t.auswahlAendern : t.alleAnsehen(liste.length)} ▾
                 </button>
               ) : (
                 <div style={{ marginTop: 8 }}>
-                  {(zusatz ? [{ key: "", label: "", gerichte: liste }] : nachUntergruppe(liste)).map((teil, i, alle) => (
+                  {(zusatz ? [{ key: "", label: "", gerichte: liste }] : nachUntergruppe(liste, t)).map((teil, i, alle) => (
                     <div key={teil.key}>
                       {alle.length > 1 && teil.label && (
                         <div style={{ fontSize: 11, fontWeight: 700, color: C.cappuccino, textTransform: "uppercase", letterSpacing: 1, margin: "10px 0 6px" }}>
@@ -335,10 +339,10 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
                   {weitere.length > 0 && (
                     <div>
                       <div style={{ fontSize: 11, fontWeight: 700, color: C.cappuccino, textTransform: "uppercase", letterSpacing: 1, margin: "16px 0 4px" }}>
-                        Weitere {block.label}
+                        {t.weitereBlock(block.label)}
                       </div>
                       <div style={{ fontSize: 12, color: C.cappuccino, marginBottom: 6 }}>
-                        Diese Richtung hat weniger {block.label}, als Ihr Paket enthält. Den Rest wählen Sie hier.
+                        {t.wenigerAlsPaket(block.label)}
                       </div>
                       <div className="mm-dish-grid">{weitere.map(knopf)}</div>
                     </div>
@@ -349,7 +353,7 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
                       onClick={() => setOffen({ ...offen, [block.id]: false })}
                       style={{ marginTop: 10, fontSize: 12, color: C.cappuccino, background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit" }}
                     >
-                      Liste einklappen ▴
+                      {t.einklappen}
                     </button>
                   )}
                 </div>
@@ -363,26 +367,26 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
 
               {plusPreis !== null && !mitPlus && (
                 <div style={{ marginTop: 12 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: C.gold, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 4 }}>Optional</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: C.gold, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 4 }}>{t.optional}</div>
                   <button
                     type="button"
                     onClick={() => plusUmschalten(block)}
                     className="mm-btn-press"
                     style={{ background: "transparent", border: `1.5px solid ${C.gold}`, color: C.gold, borderRadius: 10, padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}
                   >
-                    + 1 {gruppen[block.gruppen[0]].label_einzahl} · {formatPreis(plusPreis)} p. P.
+                    {t.plusEins(gruppen[block.gruppen[0]].label_einzahl, formatPreis(plusPreis))}
                   </button>
                 </div>
               )}
               {plusPreis !== null && mitPlus && (
                 <div style={{ marginTop: 10, fontSize: 12, color: C.gold, fontStyle: "italic" }}>
-                  ✓ +1 {gruppen[block.gruppen[0]].label_einzahl} ({formatPreis(plusPreis)} p. P.) hinzugefügt
+                  {t.plusEinsDrin(gruppen[block.gruppen[0]].label_einzahl, formatPreis(plusPreis))}
                   <button
                     type="button"
                     onClick={() => plusUmschalten(block)}
                     style={{ marginLeft: 8, fontSize: 11, color: C.cappuccino, background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit" }}
                   >
-                    entfernen
+                    {t.entfernen}
                   </button>
                 </div>
               )}
@@ -400,6 +404,7 @@ export default function SchrittGerichte({
   paket, bloecke, gruppen, stile, gerichte,
   stilSlug, onStil, auswahl, onAuswahl, plusEins, onPlusEins, schritt, children,
 }) {
+  const t = useTexte();
   /* Die angeklickte Kachel wird sofort umrandet (`sofort`). Der Stil selbst geht als Übergang nach oben:
      Liste und Stimmungsbilder ziehen nach, ohne den Klick aufzuhalten. */
   const [sofort, setSofort] = useState(stilSlug);
@@ -427,14 +432,14 @@ export default function SchrittGerichte({
       `}</style>
 
       <div style={S.heroBlock}>
-        <div style={S.heroEyebrow}>{schritt} · {paket.name} · {formatPreis(paket.preis_pro_person)} pro Person</div>
+        <div style={S.heroEyebrow}>{t.menueEyebrow(schritt, paket.name, formatPreis(paket.preis_pro_person))}</div>
         <h1 style={S.heroTitle} className="mm-hero-title">
-          Ihr <em style={S.italic}>Menü</em>
+          <Betont text={t.menueTitel} />
         </h1>
         <p style={S.heroSub} className="mm-hero-sub">
           {stile.length > 1
-            ? "Wählen Sie eine Richtung oder stellen Sie frei zusammen."
-            : "Stellen Sie Ihre Lieblings-Komponenten zusammen."}
+            ? t.menueSubStile
+            : t.menueSubFrei}
         </p>
       </div>
 
