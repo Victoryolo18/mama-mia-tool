@@ -114,7 +114,7 @@ export function janaMail(request, jetzt = new Date()) {
         <strong>Zusatzwünsche:</strong> ${esc(sonstigeZusatzwuensche)}
       </div>` : ""}
       <p style="margin-top: 32px; font-size: 13px; color: #A88968;">
-        Direkt im CRM ansehen: <a href="https://mama-mia-crm.vercel.app/anfragen" style="color: #5C2818;">CRM öffnen</a> (neueste Anfrage steht oben)
+        Direkt im CRM ansehen: <a href="https://crm.mama-mia-events.de/anfragen" style="color: #5C2818;">CRM öffnen</a> (neueste Anfrage steht oben)
       </p>
     </div>
   `;
