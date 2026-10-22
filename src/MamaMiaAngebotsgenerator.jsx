@@ -62,7 +62,10 @@ export default function MamaMiaAngebotsgenerator() {
   const sprache = useMemo(() => spracheAusLink(window.location.search), []);
   const t = useMemo(() => texte(sprache), [sprache]);
   const SCHRITTE = t.schritte;
-  useEffect(() => { document.documentElement.lang = sprache; }, [sprache]);
+  useEffect(() => {
+    document.documentElement.lang = sprache;
+    if (sprache !== "de") document.title = `${t.seitenTitel} · Mama Mia Events & Catering`;
+  }, [sprache, t]);
 
   /* ── State ── */
   const [step, setStep] = useState(1);
