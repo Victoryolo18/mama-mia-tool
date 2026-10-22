@@ -20,6 +20,7 @@ const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
 const DEPLOY_HOOK = Deno.env.get("WEBSITE_DEPLOY_HOOK");
 
 const ALLOWED_ORIGINS = [
+  "https://crm.mama-mia-events.de",
   "https://mama-mia-crm.vercel.app",
   "https://angebot.mama-mia-events.de",
   "http://localhost:3000",
