@@ -1,17 +1,19 @@
 import React from "react";
 import { S } from "../theme.js";
+import { Betont, useTexte } from "./Sprache.jsx";
 
 /* Schritt "Essensart": Buffet, Fingerfood oder Frühstück. Karten wie bisher beim Anlass. */
 export default function SchrittEssensart({ essensarten, gewaehlt, onWahl, schritt }) {
+  const t = useTexte();
   return (
     <div className="mm-fade">
       <div style={S.heroBlock}>
         <div style={S.heroEyebrow}>{schritt}</div>
         <h1 style={S.heroTitle} className="mm-hero-title">
-          Was darf es <em style={S.italic}>sein</em>?
+          <Betont text={t.essensartTitel} />
         </h1>
         <p style={S.heroSub} className="mm-hero-sub">
-          Wählen Sie aus, wofür Sie ein Angebot wünschen.
+          {t.essensartSub}
         </p>
       </div>
 

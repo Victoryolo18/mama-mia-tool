@@ -12,8 +12,9 @@ import { pruefeFirmaEingabe } from "./firmenVorteil.js";
 
 const cent = (euro) => Math.round(Number(euro) * 100);
 
-/** `lieferungInklusive`: Das Paket enthält die Lieferung und sie kostet deshalb 0 € (lieferpreis(…).inklusive). */
-export function baueAnfrage({ requestNumber, data, essensart, paket, stil, bloecke, gerichte, ergebnis, lieferungInklusive = false }) {
+/** `sprache`: in der der Kunde angefragt hat (de, en, ru); alles andere bleibt deutsch.
+    `lieferungInklusive`: Das Paket enthält die Lieferung und sie kostet deshalb 0 € (lieferpreis(…).inklusive). */
+export function baueAnfrage({ requestNumber, data, essensart, paket, stil, bloecke, gerichte, ergebnis, lieferungInklusive = false, sprache = "de" }) {
   const personen = Math.max(0, Math.floor(Number(data.gaeste) || 0));
   const firma = pruefeFirmaEingabe(data.firma).wert;
   const name = (id) => gerichte[id]?.name;
@@ -46,6 +47,7 @@ export function baueAnfrage({ requestNumber, data, essensart, paket, stil, bloec
     request_number: requestNumber,
     source: "generator",
     status: "neu",
+    sprache,
     customer_name: data.name || null,
     customer_phone: data.kontaktart !== "email" ? data.kontaktdaten : null,
     customer_email: data.kontaktart === "email" ? data.kontaktdaten : null,

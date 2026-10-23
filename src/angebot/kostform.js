@@ -4,7 +4,7 @@
    Grundlage ist das Häkchen "vegetarisch", das Jana im CRM setzt; vegane Gerichte zählen als vegetarisch.
    Vegan ist keine eigene Kostform: Es steht als eigenes Symbol "vegan (auf Anfrage)" am Gericht (ernaehrung.js). Was kein Häkchen hat,
    enthält Fleisch oder Fisch. Fisch erkennt die Unterkategorie "fisch" oder der Name (Lachs, Garnelen,
-   Matjes …), weil Fisch-Häppchen und Fisch-Salate keine eigene Unterkategorie haben. */
+   Matjes …; immer der deutsche Name, auch wenn das Gericht übersetzt angezeigt wird), weil Fisch-Häppchen und Fisch-Salate keine eigene Unterkategorie haben. */
 export const KOSTFORMEN = [
   { slug: "fleisch",     label: "Fleisch" },
   { slug: "fisch",       label: "Fisch" },
@@ -16,7 +16,7 @@ const FISCH = /lachs|garnele|matjes|hering|thunfisch|forelle|scampi|krabbe|shrim
 /** "vegetarisch" | "fisch" | "fleisch" */
 export function kostform(gericht) {
   if (gericht.vegetarisch || gericht.vegan) return "vegetarisch";
-  if (gericht.unterkategorie === "fisch" || FISCH.test(gericht.name ?? "")) return "fisch";
+  if (gericht.unterkategorie === "fisch" || FISCH.test(gericht.name_de ?? gericht.name ?? "")) return "fisch";
   return "fleisch";
 }
 

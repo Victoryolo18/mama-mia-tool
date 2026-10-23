@@ -2,6 +2,7 @@ import React, { useRef } from "react";
 import { C, S } from "../theme.js";
 import { getLieferzuschlag, getOrtsteile, istLieferart } from "./lieferung.js";
 import { ANLAESSE } from "./anlaesse.js";
+import { Betont, useTexte } from "./Sprache.jsx";
 
 /* Ganzes Feld klickbar statt nur des winzigen nativen Kalender-/Uhr-Icons:
    Klick öffnet den Picker programmatisch über showPicker() (Fallback: .click()). */
@@ -44,6 +45,7 @@ function DateTimeField({ value, onChange, display, icon, type, min, hasValue }) 
 const GROSSE_FEIER_AB = 120;
 const HOECHSTENS = 250;
 export default function SchrittDetails({ data, update, next, schritt, mindestpersonen = 8, dbLieferzonen = [], dbLieferorte = [] }) {
+  const t = useTexte();
   /* Der Ortsteil bestimmt nur den Lieferpreis. Wer selbst abholt, soll
      nicht danach gefragt werden — und schon gar nicht daran haengenbleiben. */
   const istLieferungGewaehlt = istLieferart(data.lieferung);
@@ -53,8 +55,8 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
   const ortsteilNoetig = ortsteilInfo.auswahlNoetig && !data.ortsteil;
   const gaesteNum = Number(data.gaeste);
   const gaesteError = data.gaeste !== '' && data.gaeste !== null
-    ? gaesteNum < mindestpersonen ? `Mindestbestellung ab ${mindestpersonen} Personen`
-    : gaesteNum > HOECHSTENS ? "Für so große Feiern sprechen Sie mich bitte direkt an: 0173 9344723"
+    ? gaesteNum < mindestpersonen ? t.mindestbestellung(mindestpersonen)
+    : gaesteNum > HOECHSTENS ? t.zuGross
     : null
     : null;
   const gaesteValid = data.gaeste !== '' && data.gaeste !== null && gaesteNum >= mindestpersonen && gaesteNum <= HOECHSTENS;
@@ -65,14 +67,14 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
       <div style={S.heroBlock}>
         <div style={S.heroEyebrow}>{schritt}</div>
         <h1 style={S.heroTitle} className="mm-hero-title">
-          Erzählen Sie mir mehr über Ihr <em style={S.italic}>Event</em>
+          <Betont text={t.detailsTitel} />
         </h1>
       </div>
 
       <div style={S.formCard}>
         {/* Anlass */}
         <div style={S.field}>
-          <label style={S.label} htmlFor="mm-anlass">🎉 Was ist der Anlass?</label>
+          <label style={S.label} htmlFor="mm-anlass">{t.anlassFrage}</label>
           <select
             id="mm-anlass"
             value={data.anlass || ""}
@@ -80,39 +82,39 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
             style={{ ...S.input, cursor: "pointer", color: data.anlass ? C.ink : C.cappuccino }}
             className="mm-input"
           >
-            <option value="">Bitte auswählen…</option>
-            {ANLAESSE.map(a => <option key={a.slug} value={a.slug}>{a.label}</option>)}
+            <option value="">{t.bitteAuswaehlen}</option>
+            {ANLAESSE.map(a => <option key={a.slug} value={a.slug}>{t.anlass[a.slug] ?? a.label}</option>)}
           </select>
         </div>
 
         {/* Gästezahl */}
         <div style={S.field}>
-          <label style={S.label}>👥 Wie viele Gäste erwarten Sie?</label>
+          <label style={S.label}>{t.gaesteFrage}</label>
           <input
             type="number"
             min={mindestpersonen}
             max={HOECHSTENS}
             value={data.gaeste ?? ''}
             onChange={e => update("gaeste", e.target.value === '' ? '' : Number(e.target.value))}
-            placeholder="z.B. 25"
+            placeholder={t.gaestePlatzhalter}
             style={{ ...S.input, ...(gaesteError ? { borderColor: '#C0392B' } : {}) }}
             className="mm-input"
           />
           {gaesteError
             ? <div style={{ fontSize: 12, color: '#C0392B', marginTop: 4 }}>{gaesteError}</div>
             : gaesteNum > GROSSE_FEIER_AB
-              ? <div style={{ fontSize: 12, color: C.cappuccino, marginTop: 4 }}>Ab {GROSSE_FEIER_AB} Gästen stimme ich Menge und Ablauf persönlich mit Ihnen ab. Der Preis hier ist ein Richtwert.</div>
-              : <div style={{ fontSize: 12, color: C.cappuccino, marginTop: 4 }}>Mindestbestellung ab {mindestpersonen} Personen</div>
+              ? <div style={{ fontSize: 12, color: C.cappuccino, marginTop: 4 }}>{t.grosseFeier(GROSSE_FEIER_AB)}</div>
+              : <div style={{ fontSize: 12, color: C.cappuccino, marginTop: 4 }}>{t.mindestbestellung(mindestpersonen)}</div>
           }
         </div>
 
         {/* Datum */}
         <div style={S.field}>
-          <label style={S.label}>📅 Wunschdatum</label>
+          <label style={S.label}>{t.datumFrage}</label>
           <DateTimeField
             value={data.datum}
             onChange={e => update("datum", e.target.value)}
-            display={data.datum ? data.datum.split('-').reverse().join('.') : 'TT.MM.JJJJ'}
+            display={data.datum ? data.datum.split('-').reverse().join('.') : t.datumFormat}
             icon="📅"
             type="date"
             min={new Date().toISOString().split("T")[0]}
@@ -122,11 +124,11 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
 
         {/* Uhrzeit */}
         <div style={S.field}>
-          <label style={S.label}>🕐 Gewünschte Lieferzeit (ca.) <span style={{ fontWeight: 400, color: C.cappuccino, fontSize: 13 }}>(optional)</span></label>
+          <label style={S.label}>{t.zeitFrage} <span style={{ fontWeight: 400, color: C.cappuccino, fontSize: 13 }}>{t.optionalKlammer}</span></label>
           <DateTimeField
             value={data.uhrzeit}
             onChange={e => update("uhrzeit", e.target.value)}
-            display={data.uhrzeit ? `${data.uhrzeit} Uhr` : 'HH:MM'}
+            display={data.uhrzeit ? t.uhrzeit(data.uhrzeit) : t.zeitFormat}
             icon="🕐"
             type="time"
             hasValue={!!data.uhrzeit}
@@ -135,25 +137,25 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
 
         {/* Lieferung / Abholung */}
         <div style={S.field}>
-          <label style={S.label}>🚚 Wie möchten Sie das Catering erhalten?</label>
+          <label style={S.label}>{t.erhaltenFrage}</label>
           {(() => {
             const isDelivMode = istLieferart(data.lieferung);
             const zoneInfo = isDelivMode && data.plz?.length === 5
               ? getLieferzuschlag(data.plz, dbLieferzonen, dbLieferorte, data.ortsteil)
               : { zuschlag: null, rueckholungPreis: null, bekannt: false };
-            const fmtPreis = (p) => p != null ? (p === 0 ? "kostenlos" : `+${p} €`) : "Preis auf Anfrage";
+            const fmtPreis = (p) => p != null ? (p === 0 ? t.kostenlos : t.plusEuro(p)) : t.preisAufAnfrage;
             if (!isDelivMode) {
               return (
                 <div style={S.toggleGroup}>
                   <button type="button" onClick={() => update("lieferung", "selbstabholung")} className="mm-btn-press"
                     style={{ ...S.toggleBtn, ...(data.lieferung === "selbstabholung" ? S.toggleBtnActive : {}) }}>
-                    <div style={S.toggleLabel}>Selbstabholung</div>
-                    <div style={S.toggleDesc}>Ich hole das Catering selbst ab</div>
+                    <div style={S.toggleLabel}>{t.liefer.selbstabholung}</div>
+                    <div style={S.toggleDesc}>{t.selbstabholungDesc}</div>
                   </button>
                   <button type="button" onClick={() => update("lieferung", "nur_anlieferung")} className="mm-btn-press"
                     style={S.toggleBtn}>
-                    <div style={S.toggleLabel}>Lieferung</div>
-                    <div style={S.toggleDesc}>Bitte zu meiner Adresse liefern</div>
+                    <div style={S.toggleLabel}>{t.liefer.lieferung}</div>
+                    <div style={S.toggleDesc}>{t.lieferungDesc}</div>
                   </button>
                 </div>
               );
@@ -162,20 +164,20 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
               <div>
                 <button type="button" onClick={() => update("lieferung", "selbstabholung")}
                   style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: C.cappuccino, fontFamily: "inherit", padding: "0 0 10px", display: "flex", alignItems: "center", gap: 4 }}>
-                  ← Zurück zur Auswahl
+                  {t.zurueckAuswahl}
                 </button>
                 <div style={S.toggleGroup}>
                   <button type="button"
                     onClick={() => update("lieferung", "nur_anlieferung")} className="mm-btn-press"
                     style={{ ...S.toggleBtn, ...(["nur_anlieferung", "lieferung"].includes(data.lieferung) ? S.toggleBtnActive : {}) }}>
-                    <div style={S.toggleLabel}>📦 Nur Anlieferung</div>
-                    <div style={S.toggleDesc}>{zoneInfo.bekannt ? fmtPreis(zoneInfo.zuschlag) : "PLZ eingeben für Preis"}</div>
+                    <div style={S.toggleLabel}>{t.lieferSymbol.nur_anlieferung} {t.liefer.nur_anlieferung}</div>
+                    <div style={S.toggleDesc}>{zoneInfo.bekannt ? fmtPreis(zoneInfo.zuschlag) : t.plzFuerPreis}</div>
                   </button>
                   <button type="button"
                     onClick={() => update("lieferung", "anlieferung_rueckholung")} className="mm-btn-press"
                     style={{ ...S.toggleBtn, ...(data.lieferung === "anlieferung_rueckholung" ? S.toggleBtnActive : {}) }}>
-                    <div style={S.toggleLabel}>🔄 Anlieferung + Rückholung</div>
-                    <div style={S.toggleDesc}>{zoneInfo.bekannt ? fmtPreis(zoneInfo.rueckholungPreis) : "PLZ eingeben für Preis"}</div>
+                    <div style={S.toggleLabel}>{t.lieferSymbol.anlieferung_rueckholung} {t.liefer.anlieferung_rueckholung}</div>
+                    <div style={S.toggleDesc}>{zoneInfo.bekannt ? fmtPreis(zoneInfo.rueckholungPreis) : t.plzFuerPreis}</div>
                   </button>
                 </div>
               </div>
@@ -185,12 +187,12 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
 
         {/* PLZ */}
         <div style={S.field}>
-          <label style={S.label}>📍 Postleitzahl des Veranstaltungsorts</label>
+          <label style={S.label}>{t.plzFrage}</label>
           <input
             type="text"
             value={data.plz}
             onChange={e => { update("plz", e.target.value); if (data.ortsteil) update("ortsteil", ""); }}
-            placeholder="z.B. 16767"
+            placeholder={t.plzPlatzhalter}
             maxLength={5}
             style={S.input}
             className="mm-input"
@@ -202,14 +204,14 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
             Wensickendorf, obwohl die Fahrt viermal so lange dauert. */}
         {ortsteilInfo.auswahlNoetig && (
           <div style={S.field}>
-            <label style={S.label}>🏘️ Ortsteil</label>
+            <label style={S.label}>{t.ortsteil}</label>
             <select
               value={data.ortsteil || ""}
               onChange={e => update("ortsteil", e.target.value)}
               style={{ ...S.input, cursor: "pointer" }}
               className="mm-input"
             >
-              <option value="">Bitte auswählen…</option>
+              <option value="">{t.bitteAuswaehlen}</option>
               {ortsteilInfo.orte.map(o => (
                 <option key={o.id || o.ort} value={o.ort}>{o.ort}</option>
               ))}
@@ -227,7 +229,7 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
             marginTop: 12,
           }}
         >
-          Weiter zu Extras →
+          {t.weiterExtras}
         </button>
       </div>
     </div>

@@ -3,12 +3,15 @@ import { C, S } from "../theme.js";
 import { formatPreis } from "./angebotspreis.js";
 import { firmenVorteilBedingungen } from "./firmenVorteil.js";
 import { paketMerkmale } from "./paketKarte.js";
+import { Betont, useTexte } from "./Sprache.jsx";
+import { vorteilBedingungenInSprache } from "./texte.js";
 
 /* Schritt "Paket": die Pakete der gewählten Essensart, dahinter ihr Essensbild. */
 
 
 /* Mit `kleid` (Aufruf über einen Anlass-Pfad) zeigt der Kopf Bild, Überschrift und Schmuck des Anlasses. */
 export default function SchrittPaket({ essensart, pakete, bloecke, gewaehlt, onWahl, schritt, kleid, vorteil }) {
+  const t = useTexte();
   const bild = kleid?.bild ?? essensart.bild_url;
   const mitBild = !!bild;
   return (
@@ -34,21 +37,21 @@ export default function SchrittPaket({ essensart, pakete, bloecke, gewaehlt, onW
               <img src={kleid.schmuck} alt="" aria-hidden="true" style={{ display: "block", width: 180, maxWidth: "60%", height: "auto", margin: "4px auto 12px" }} />
             )}
             <p style={{ ...S.heroSub, color: C.cream }} className="mm-hero-sub">
-              {kleid.unterzeile} Wählen Sie ein Paket, die Gerichte stellen Sie danach selbst zusammen.
+              {kleid.unterzeile} {t.paketNachKleid}
             </p>
             {vorteil && (
               <p style={{ ...S.heroSub, color: C.gold, fontSize: 14, fontWeight: 600, margin: "16px auto 0", maxWidth: 520, padding: "10px 14px", borderRadius: 12, background: "rgba(28,16,8,.62)" }}>
-                Firmen-Vorteil: {vorteil.prozent} % auf die Speisen, {firmenVorteilBedingungen(vorteil)}.
+                {t.firmenVorteil(vorteil.prozent, vorteilBedingungenInSprache(vorteil, t, firmenVorteilBedingungen))}
               </p>
             )}
           </>
         ) : (
           <>
             <h1 style={{ ...S.heroTitle, ...(mitBild ? { color: C.cream } : {}) }} className="mm-hero-title">
-              Welches <em style={S.italic}>Paket</em> passt zu Ihnen?
+              <Betont text={t.paketTitel} />
             </h1>
             <p style={{ ...S.heroSub, ...(mitBild ? { color: C.cream } : {}) }} className="mm-hero-sub">
-              Alle Pakete sind individuell anpassbar — ein guter Ausgangspunkt.
+              {t.paketSub}
             </p>
           </>
         )}
@@ -60,7 +63,7 @@ export default function SchrittPaket({ essensart, pakete, bloecke, gewaehlt, onW
       >
         {pakete.map((p, i) => {
           const hervor = !!p.hervorgehoben;
-          const merkmale = paketMerkmale(bloecke.filter((b) => b.paket_id === p.id), p);
+          const merkmale = paketMerkmale(bloecke.filter((b) => b.paket_id === p.id), p, t);
           return (
             <button
               key={p.id}
@@ -91,7 +94,7 @@ export default function SchrittPaket({ essensart, pakete, bloecke, gewaehlt, onW
 
               <div style={S.paketPriceWrap}>
                 <span style={S.paketPrice}>{formatPreis(p.preis_pro_person)}</span>
-                <span style={S.paketPriceUnit}>pro Person</span>
+                <span style={S.paketPriceUnit}>{t.proPerson}</span>
               </div>
 
               <div style={S.divider} />
@@ -110,7 +113,7 @@ export default function SchrittPaket({ essensart, pakete, bloecke, gewaehlt, onW
                 background: hervor ? C.gold : C.burgundy,
                 color: hervor ? C.burgundy : C.cream,
               }}>
-                {p.name} wählen →
+                {t.paketWaehlen(p.name)}
               </div>
             </button>
           );
