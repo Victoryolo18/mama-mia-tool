@@ -299,10 +299,6 @@ export default function MamaMiaAngebotsgenerator() {
         .mm-card-hover { transition: all .25s cubic-bezier(.2,.8,.2,1); }
         .mm-card-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(92,40,24,.15); }
         .mm-btn-press:active { transform: scale(.97); }
-        /* Nach dem Antippen blieb auf manchen Handys ein dunkler Rahmen um Gerichte und Knöpfe stehen (Fokus).
-           Mit der Tastatur bleibt er sichtbar. */
-        button:focus:not(:focus-visible) { outline: none; }
-        button { -webkit-tap-highlight-color: transparent; }
         .mm-input:focus { outline: none; border-color: ${C.gold} !important; box-shadow: 0 0 0 3px ${C.gold}33; }
         .mm-leiste { position: sticky; bottom: 0; z-index: 10; }
         @media (min-width: 641px) {
