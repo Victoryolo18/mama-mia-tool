@@ -310,7 +310,7 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
               aria-label={block.label}
               style={{
                 ...S.menueKategorie,
-                scrollMarginTop: 90,
+                scrollMarginTop: 110,
                 ...(zusatz ? { borderTop: `2px dashed ${C.border}`, borderBottom: `2px dashed ${C.border}`, padding: "18px 0", margin: "24px 0" } : {}),
               }}
             >
