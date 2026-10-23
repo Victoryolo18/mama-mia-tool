@@ -80,10 +80,17 @@ function Legende({ gerichte, filter, onFilter }) {
       </button>
     );
   };
+  // Die Überschrift mit Trichter zeigt, dass man die Symbole antippen kann (Victor, 23.10.2026).
   return (
-    <div role="group" aria-label={t.filterAria} style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8, margin: "-6px 0 18px" }}>
-      {da.map((k) => knopf(k.slug, <><Symbol name={k.slug} />{t.kostform[k.slug]}</>))}
-      {anfrage.map((a) => knopf(a.slug, <><Symbol name={a.slug} />{t.ernaehrung[a.slug]}<strong style={{ color: C.burgundy }}>{t.aufAnfrageKlammer}</strong></>))}
+    <div role="group" aria-labelledby="mm-filter-titel" style={{ margin: "-6px 0 18px" }}>
+      <div id="mm-filter-titel" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 11, fontWeight: 700, color: C.gold, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 8 }}>
+        <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path d="M3 4h18l-7 8.5V19l-4 2v-8.5z" fill="currentColor" /></svg>
+        {t.filterTitel}
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8 }}>
+        {da.map((k) => knopf(k.slug, <><Symbol name={k.slug} />{t.kostform[k.slug]}</>))}
+        {anfrage.map((a) => knopf(a.slug, <><Symbol name={a.slug} />{t.ernaehrung[a.slug]}<strong style={{ color: C.burgundy }}>{t.aufAnfrageKlammer}</strong></>))}
+      </div>
     </div>
   );
 }
