@@ -3,7 +3,8 @@ import { C, S } from "../theme.js";
 import { formatPreis } from "./angebotspreis.js";
 import { useTexte } from "./Sprache.jsx";
 
-/* Leiste am unteren Rand des Schritts "Gerichte": Preis pro Person läuft mit, daneben geht es weiter. */
+/* Leiste am unteren Rand des Schritts "Gerichte": Preis pro Person läuft mit, daneben geht es weiter.
+   Fehlt noch etwas, bleibt der Knopf blass, führt aber zum ersten Teil, in dem etwas fehlt (GEN-28). */
 export default function Preisleiste({ paket, ergebnis, onWeiter }) {
   const t = useTexte();
   return (
@@ -21,7 +22,6 @@ export default function Preisleiste({ paket, ergebnis, onWeiter }) {
         </div>
         <button
           type="button"
-          disabled={!ergebnis.vollstaendig}
           onClick={onWeiter}
           className="mm-btn-press"
           style={{ ...S.primaryBtn, ...(ergebnis.vollstaendig ? {} : S.btnDisabled), width: "auto", flex: "1 1 220px", padding: "14px 20px" }}
