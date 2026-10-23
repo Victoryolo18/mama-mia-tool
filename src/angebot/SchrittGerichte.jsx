@@ -6,6 +6,7 @@ import {
 import { KOSTFORMEN, kostform, kostformenIn } from "./kostform.js";
 import { aufAnfrage, aufAnfrageIn } from "./ernaehrung.js";
 import { symbolSvg } from "./symbole.js";
+import { gefiltert, umschalten as filterUmschalten } from "./filter.js";
 import { Betont, useTexte } from "./Sprache.jsx";
 
 /* Schritt "Gerichte": Stil-Kacheln oben, darunter die Blöcke des Pakets.
@@ -52,25 +53,37 @@ function AufAnfrage({ gericht }) {
   );
 }
 
-/* Was die Symbole heißen. Vegan und Glutenfrei mit deutlichem „auf Anfrage“: Niemand soll glauben, er
+/* Was die Symbole heißen, zugleich der Filter (GEN-26): Antippen zeigt nur noch passende Gerichte, nochmal
+   antippen nimmt es zurück. Vegan und Glutenfrei mit deutlichem „auf Anfrage“: Niemand soll glauben, er
    bekomme es, ohne es in die Anmerkungen zu schreiben (Victor, 20.10.2026). */
-function Legende({ gerichte }) {
+function Legende({ gerichte, filter, onFilter }) {
   const t = useTexte();
   const da = kostformenIn(gerichte);
   const anfrage = aufAnfrageIn(gerichte);
   if (da.length === 0 && anfrage.length === 0) return null;
+  const knopf = (slug, inhalt) => {
+    const an = filter.includes(slug);
+    return (
+      <button
+        key={slug}
+        type="button"
+        aria-pressed={an}
+        onClick={() => onFilter(filterUmschalten(filter, slug))}
+        className="mm-btn-press"
+        style={{
+          display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 10px", borderRadius: 999,
+          border: `1.5px solid ${an ? C.gold : C.border}`, background: an ? C.creamSoft : "transparent",
+          fontSize: 12, color: C.inkSoft, fontFamily: "inherit", cursor: "pointer",
+        }}
+      >
+        {inhalt}
+      </button>
+    );
+  };
   return (
-    <div aria-hidden="true" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "8px 16px", fontSize: 12, color: C.inkSoft, margin: "-6px 0 18px" }}>
-      {da.map((k) => (
-        <span key={k.slug} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-          <Symbol name={k.slug} />{t.kostform[k.slug]}
-        </span>
-      ))}
-      {anfrage.map((a) => (
-        <span key={a.slug} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-          <Symbol name={a.slug} />{t.ernaehrung[a.slug]}<strong style={{ color: C.burgundy }}>{t.aufAnfrageKlammer}</strong>
-        </span>
-      ))}
+    <div role="group" aria-label={t.filterAria} style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8, margin: "-6px 0 18px" }}>
+      {da.map((k) => knopf(k.slug, <><Symbol name={k.slug} />{t.kostform[k.slug]}</>))}
+      {anfrage.map((a) => knopf(a.slug, <><Symbol name={a.slug} />{t.ernaehrung[a.slug]}<strong style={{ color: C.burgundy }}>{t.aufAnfrageKlammer}</strong></>))}
     </div>
   );
 }
@@ -186,6 +199,7 @@ function StilLeiste({ stile, gewaehlt, onWahl }) {
 const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil, auswahl, onAuswahl, plusEins, onPlusEins, children }) {
   const t = useTexte();
   const [offen, setOffen] = useState({});
+  const [filter, setFilter] = useState([]);
   const wahlGruppen = bloecke.filter((b) => b.typ === "wahl").flatMap((b) => b.gruppen);
   const feste = bloecke.filter((b) => b.typ === "fix");
 
@@ -217,7 +231,7 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
 
       <div style={S.menueCard}>
         <div style={S.menueCardTitle}>{t.komponenten}</div>
-        <Legende gerichte={gerichte.filter((g) => bloecke.some((b) => b.typ !== "fix" && b.gruppen.some((gr) => g.gruppen?.includes(gr))))} />
+        <Legende gerichte={gerichte.filter((g) => bloecke.some((b) => b.typ !== "fix" && b.gruppen.some((gr) => g.gruppen?.includes(gr))))} filter={filter} onFilter={setFilter} />
 
         {feste.length > 0 && (
           <div style={{ ...S.menueKategorie, borderBottom: `1px solid ${C.border}`, paddingBottom: 16, marginBottom: 20 }}>
@@ -263,6 +277,8 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
             : 0;
           const abPreis = zusatz ? Math.min(...liste.map((g) => zusatzPreis(block, g, gruppen))) : null;
           const fehlen = Math.max(0, block.min_auswahl + (mitPlus ? 1 : 0) - gewaehlt.length);
+          const sichtbar = gefiltert(liste, filter, gewaehlt);
+          const weitereSichtbar = gefiltert(weitere, filter, gewaehlt);
           const knopf = (g) => {
             const an = gewaehlt.includes(g.id);
             return (
@@ -324,7 +340,10 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
                 </button>
               ) : (
                 <div style={{ marginTop: 8 }}>
-                  {(zusatz ? [{ key: "", label: "", gerichte: liste }] : nachUntergruppe(liste, t)).map((teil, i, alle) => (
+                  {sichtbar.length === 0 && weitereSichtbar.length === 0 && (
+                    <div style={{ fontSize: 13, color: C.cappuccino, padding: "6px 0" }}>{t.keineGerichte}</div>
+                  )}
+                  {(zusatz ? [{ key: "", label: "", gerichte: sichtbar }] : nachUntergruppe(sichtbar, t)).map((teil, i, alle) => (
                     <div key={teil.key}>
                       {alle.length > 1 && teil.label && (
                         <div style={{ fontSize: 11, fontWeight: 700, color: C.cappuccino, textTransform: "uppercase", letterSpacing: 1, margin: "10px 0 6px" }}>
@@ -336,7 +355,7 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
                       </div>
                     </div>
                   ))}
-                  {weitere.length > 0 && (
+                  {weitereSichtbar.length > 0 && (
                     <div>
                       <div style={{ fontSize: 11, fontWeight: 700, color: C.cappuccino, textTransform: "uppercase", letterSpacing: 1, margin: "16px 0 4px" }}>
                         {t.weitereBlock(block.label)}
@@ -344,7 +363,7 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
                       <div style={{ fontSize: 12, color: C.cappuccino, marginBottom: 6 }}>
                         {t.wenigerAlsPaket(block.label)}
                       </div>
-                      <div className="mm-dish-grid">{weitere.map(knopf)}</div>
+                      <div className="mm-dish-grid">{weitereSichtbar.map(knopf)}</div>
                     </div>
                   )}
                   {zusatz && liste.length > AB_SO_VIELEN_EINKLAPPEN && (
