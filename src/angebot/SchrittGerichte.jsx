@@ -7,6 +7,7 @@ import { KOSTFORMEN, kostform, kostformenIn } from "./kostform.js";
 import { aufAnfrage, aufAnfrageIn } from "./ernaehrung.js";
 import { symbolSvg } from "./symbole.js";
 import { gefiltert, umschalten as filterUmschalten } from "./filter.js";
+import { blockAnker } from "./fehlendes.js";
 import { Betont, useTexte } from "./Sprache.jsx";
 
 /* Schritt "Gerichte": Stil-Kacheln oben, darunter die Blöcke des Pakets.
@@ -304,10 +305,12 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
           return (
             <div
               key={block.id}
+              id={blockAnker(block)}
               role="group"
               aria-label={block.label}
               style={{
                 ...S.menueKategorie,
+                scrollMarginTop: 110,
                 ...(zusatz ? { borderTop: `2px dashed ${C.border}`, borderBottom: `2px dashed ${C.border}`, padding: "18px 0", margin: "24px 0" } : {}),
               }}
             >

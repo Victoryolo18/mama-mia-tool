@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { reportError } from "./errorLog.js";
 import { supabase } from "./supabase.js";
 import { C, S } from "./theme.js";
@@ -20,6 +20,8 @@ import SchrittDetails from "./angebot/SchrittDetails.jsx";
 import SchrittExtras from "./angebot/SchrittExtras.jsx";
 import SchrittAnfrage from "./angebot/SchrittAnfrage.jsx";
 import Preisleiste from "./angebot/Preisleiste.jsx";
+import { blockAnker, ersterOffenerBlock } from "./angebot/fehlendes.js";
+import { schrittAusVerlauf, verlaufFuer } from "./angebot/verlauf.js";
 
 /* ════════════════════════════════════════════════════════════════
    MAMA MIA EVENTS & CATERING — ANGEBOTSGENERATOR
@@ -69,6 +71,7 @@ export default function MamaMiaAngebotsgenerator() {
 
   /* ── State ── */
   const [step, setStep] = useState(1);
+  const startRef = useRef(1);
   const [data, setData] = useState({
     essensart: null,
     paketId: null,
@@ -141,8 +144,10 @@ export default function MamaMiaAngebotsgenerator() {
         document.title = `${kleidInSprache.titel} · ${t.angebot} · Mama Mia Events & Catering`;
       }
       setData(d => ({ ...d, essensart: vorwahl.essensart, anlass: vorwahl.anlass, paketId: vorwahl.paketId ?? null }));
-      if (vorwahl.paketId) setStep(3);
-      else if (vorwahl.essensart) setStep(2);
+      const start = vorwahl.paketId ? 3 : vorwahl.essensart ? 2 : 1;
+      startRef.current = start;
+      setStep(start);
+      window.history.replaceState(verlaufFuer(window.history.state, start), "");
       setKataloge(kat);
     }
     init().catch((e) => {
@@ -157,8 +162,34 @@ export default function MamaMiaAngebotsgenerator() {
 
   /* ── Helper ── */
   const update = (key, value) => setData(d => ({ ...d, [key]: value }));
-  const next = () => setStep(s => Math.min(s + 1, SCHRITTE.length));
-  const prev = () => setStep(s => Math.max(s - 1, 1));
+  /* Jeder Schritt hat einen Eintrag im Browserverlauf (GEN-28): Die Zurück-Taste des Browsers geht einen
+     Schritt zurück statt aus dem Generator heraus, und der Pfeil oben macht dasselbe. */
+  const next = () => {
+    const n = Math.min(step + 1, SCHRITTE.length);
+    if (n === step) return;
+    window.history.pushState(verlaufFuer(window.history.state, n), "");
+    setStep(n);
+  };
+  const prev = () => {
+    if (step > startRef.current) return window.history.back();
+    // Vor dem Schritt, mit dem der Link begann, gibt es keinen Eintrag: Der Start rückt mit.
+    const n = Math.max(step - 1, 1);
+    startRef.current = n;
+    window.history.replaceState(verlaufFuer(window.history.state, n), "");
+    setStep(n);
+  };
+  useEffect(() => {
+    const zurueck = (e) => setStep(schrittAusVerlauf(e.state, startRef.current));
+    window.addEventListener("popstate", zurueck);
+    return () => window.removeEventListener("popstate", zurueck);
+  }, []);
+
+  /* "Auswahl vervollständigen" springt zum ersten Teil, in dem noch etwas fehlt (GEN-28). */
+  const weiterOderFehlendes = () => {
+    if (ergebnis.vollstaendig) return next();
+    const offen = ersterOffenerBlock(bloecke, data.auswahl, data.plusEins);
+    if (offen) document.getElementById(blockAnker(offen))?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   const schritt = t.schritt(step, SCHRITTE.length);
 
   /* Die Blöcke gehören zum Paket, die Pakete zur Essensart: Wer wechselt, wählt die Gerichte neu.
@@ -441,7 +472,7 @@ export default function MamaMiaAngebotsgenerator() {
       </main>
 
       {!submitted && sichtbar === 3 && (
-        <Preisleiste paket={A.paket} ergebnis={ergebnisAnzeige} onWeiter={next} />
+        <Preisleiste paket={A.paket} ergebnis={ergebnisAnzeige} onWeiter={weiterOderFehlendes} />
       )}
 
       {/* Footer */}
