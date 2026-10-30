@@ -109,15 +109,6 @@ export default function MamaMiaAngebotsgenerator() {
   // Firmen-Vorteil, wie Jana ihn im CRM eingestellt hat; null: ausgeschaltet oder nicht geladen.
   const [regel,            setRegel]            = useState(null);
 
-  /* ── Fonts laden ── */
-  useEffect(() => {
-    const link = document.createElement("link");
-    link.href = "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600;700&display=swap";
-    link.rel = "stylesheet";
-    document.head.appendChild(link);
-    return () => document.head.removeChild(link);
-  }, []);
-
   /* ── Beim Start: Kataloge, Lieferzonen, Zusatzwünsche; danach die Vorwahl aus dem Link ── */
   useEffect(() => {
     let aktuell = true;
