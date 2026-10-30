@@ -3,6 +3,10 @@ import ReactDOM from "react-dom/client";
 import MamaMiaAngebotsgenerator from "./MamaMiaAngebotsgenerator.jsx";
 import ErrorBoundary from "./ErrorBoundary.jsx";
 import Ansichtsrahmen from "./vorschau/Ansichtsrahmen.jsx";
+import Einwilligung from "./Einwilligung.jsx";
+import { SpracheKontext } from "./angebot/Sprache.jsx";
+import { spracheAusLink } from "./angebot/sprache.js";
+import { texte } from "./angebot/texte.js";
 
 const style = document.createElement("style");
 style.textContent = `
@@ -23,6 +27,10 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       ) : (
         <MamaMiaAngebotsgenerator />
       )}
+      {/* Banner neben dem Generator: auch beim Laden und bei Fehlern da. */}
+      <SpracheKontext.Provider value={texte(spracheAusLink(window.location.search))}>
+        <Einwilligung />
+      </SpracheKontext.Provider>
     </ErrorBoundary>
   </React.StrictMode>
 );
