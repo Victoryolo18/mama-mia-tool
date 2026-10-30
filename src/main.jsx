@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import MamaMiaAngebotsgenerator from "./MamaMiaAngebotsgenerator.jsx";
 import ErrorBoundary from "./ErrorBoundary.jsx";
+import "./schriften.css";
 import Ansichtsrahmen from "./vorschau/Ansichtsrahmen.jsx";
 import Einwilligung from "./Einwilligung.jsx";
 import { SpracheKontext } from "./angebot/Sprache.jsx";
