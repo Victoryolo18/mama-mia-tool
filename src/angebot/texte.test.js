@@ -47,7 +47,8 @@ describe("Wörterbuch des Generators", () => {
   });
 
   it("Russisch enthält keine lateinischen Wörter außer Namen und Beispielen", () => {
-    const erlaubt = /Mama Mia|WhatsApp|DE123456789|vash@email\.de|HH|MM|<\/?strong>/g;
+    // Cookie-Banner: Dienst- und Firmennamen sowie „cookie“ und „IP“ stehen wie auf der russischen Website.
+    const erlaubt = /Mama Mia|WhatsApp|DE123456789|vash@email\.de|HH|MM|<\/?strong>|Microsoft Clarity|Microsoft|Elfsight|Google|[Cc]ookies?|IP/g;
     for (const text of alleTexte(TEXTE.ru)) {
       expect(text.replace(erlaubt, ""), text).not.toMatch(/[A-Za-z]{2,}/);
     }

@@ -76,7 +76,7 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
 
       <div style={{ ...S.grid, gridTemplateColumns: "1.1fr 1fr", gap: 24 }} className="mm-grid-2">
         {/* Linke Seite: Zusammenfassung */}
-        <div style={S.summaryCard} className="mm-summary-card">
+        <div style={S.summaryCard} className="mm-summary-card" data-clarity-mask="True">
           <div style={S.summaryTitle}>{t.ihreAnfrage}</div>
 
           <SummaryRow label={t.zeile.essensart} value={essensart.label} />
@@ -191,7 +191,7 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
         </div>
 
         {/* Rechte Seite: Kontaktformular */}
-        <div style={S.formCard} className="mm-form-card">
+        <div style={S.formCard} className="mm-form-card" data-clarity-mask="True">
           {/* Name */}
           <div style={S.field}>
             <label style={S.label}>{t.ihrName} <span style={{ color: C.gold, fontSize: 11 }}>*</span></label>

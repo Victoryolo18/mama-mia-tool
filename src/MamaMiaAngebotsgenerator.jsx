@@ -20,6 +20,7 @@ import SchrittDetails from "./angebot/SchrittDetails.jsx";
 import SchrittExtras from "./angebot/SchrittExtras.jsx";
 import SchrittAnfrage from "./angebot/SchrittAnfrage.jsx";
 import Preisleiste from "./angebot/Preisleiste.jsx";
+import { OEFFNEN } from "./einwilligung.js";
 import { blockAnker, ersterOffenerBlock } from "./angebot/fehlendes.js";
 import { schrittAusVerlauf, verlaufFuer } from "./angebot/verlauf.js";
 
@@ -486,6 +487,8 @@ export default function MamaMiaAngebotsgenerator() {
           {' · '}
           <a href="https://mama-mia-events.de/datenschutz" target="_blank" rel="noopener noreferrer" style={S.footerLink}>{t.datenschutz}</a>
           {t.rechtDeutsch && ` ${t.rechtDeutsch}`}
+          {' · '}
+          <button type="button" data-einwilligung-oeffnen onClick={() => window.dispatchEvent(new Event(OEFFNEN))} style={S.footerKnopf}>{t.cookieBanner.fussLink}</button>
         </div>
       </footer>
     </div>
