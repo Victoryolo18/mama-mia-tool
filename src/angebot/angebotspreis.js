@@ -31,6 +31,15 @@ export function zusatzPreis(block, gericht, gruppen) {
   return istZahl(preis) ? Number(preis) : null;
 }
 
+/** Aufpreis eines Gerichts in einem Wahl-Block: Es ersetzt ein normales Gericht des Pakets und kostet
+    nur den Unterschied (Gänsekeule statt Hähnchen). null heißt: ohne Aufpreis im Paket enthalten.
+    Getrennt von `aufpreis_pro_person`, das nur für Zusatz-Blöcke gilt, sonst kostete ein Häppchen aus
+    "Fingerfood dazu" plötzlich auch im Fingerfood-Paket extra. */
+export function paketAufpreis(block, gericht) {
+  if (block.typ !== 'wahl' || !gericht) return null;
+  return istZahl(gericht.aufpreis_im_paket) && Number(gericht.aufpreis_im_paket) > 0 ? Number(gericht.aufpreis_im_paket) : null;
+}
+
 /** So viele Gerichte darf der Kunde in diesem Block wählen. Infinity = unbegrenzt (nur Zusatz). */
 export function maxAuswahl(block, mitPlusEins = false) {
   if (block.typ === 'fix') return 0;
@@ -112,6 +121,13 @@ export function berechneAngebot({ paket, bloecke, gruppen, gerichte, auswahl = {
       const preis = plusEinsPreis(block, gruppen);
       if (preis === null) throw new Error(`Block "${block.label}" bietet kein "+1" an`);
       aufpreise.push({ art: 'plus_eins', blockId: block.id, label: `+1 ${gruppen[block.gruppen[0]].label_einzahl}`, proPerson: preis });
+    }
+
+    if (block.typ === 'wahl') {
+      for (const id of gewaehlt) {
+        const preis = paketAufpreis(block, gerichte[id]);
+        if (preis !== null) aufpreise.push({ art: 'im_paket', blockId: block.id, gerichtId: id, label: gerichte[id].name, proPerson: preis });
+      }
     }
 
     if (block.typ === 'zusatz') {

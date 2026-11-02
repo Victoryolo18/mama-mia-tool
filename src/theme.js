@@ -409,6 +409,23 @@ export const S = {
     textAlign: "left",
     transition: "all .2s",
   },
+  // Kasten eines Highlights oben im Block (Saisongerichte, die Jana im CRM hervorhebt).
+  highlightKasten: {
+    background: `linear-gradient(135deg, ${C.burgundy}, ${C.burgundyDark})`,
+    border: `2px solid ${C.gold}`,
+    borderRadius: 16,
+    padding: "14px 14px 16px",
+    margin: "10px 0 14px",
+    boxShadow: `0 6px 20px ${C.burgundy}33`,
+  },
+  highlightTitel: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: C.goldSoft,
+    letterSpacing: "1.5px",
+    textTransform: "uppercase",
+    marginBottom: 10,
+  },
   menueWahlBtnActive: {
     background: C.white,
     borderColor: C.gold,
