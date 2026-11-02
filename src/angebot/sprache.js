@@ -41,5 +41,6 @@ export function katalogeInSprache(kataloge, sprache) {
     stile: kataloge.stile.map((s) => mitFeldern(s, ["label", "beschreibung"], sprache)),
     gruppen: Object.fromEntries(Object.entries(kataloge.gruppen).map(([slug, g]) => [slug, mitFeldern(g, ["label", "label_einzahl"], sprache)])),
     gerichte: kataloge.gerichte.map((g) => mitFeldern(g, ["name"], sprache)),
+    highlights: (kataloge.highlights ?? []).map((h) => mitFeldern(h, ["titel"], sprache)),
   };
 }

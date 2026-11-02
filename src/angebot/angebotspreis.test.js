@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  berechneAngebot, blockErfuellt, formatPreis, gerichteFuerBlock, maxAuswahl, weitereGerichte, plusEinsPreis, zusatzPreis,
+  berechneAngebot, blockErfuellt, formatPreis, gerichteFuerBlock, maxAuswahl, paketAufpreis, weitereGerichte, plusEinsPreis, zusatzPreis,
 } from './angebotspreis.js';
 
 /* Beispieldaten in der Form der Tabellen gruppen, paket_gruppen und gerichte.
@@ -147,6 +147,26 @@ describe('blockErfuellt und maxAuswahl', () => {
     expect(blockErfuellt(brunch, ['a', 'b'])).toBe(false);
   });
 
+  it('rechnet den Aufpreis eines Hauptgerichts im Paket pro Person (Gänsekeule statt Hähnchen)', () => {
+    const gans = gericht('g-gans', 'Gänsekeule', ['hauptgericht'], { aufpreis_im_paket: 5 });
+    const e = berechneAngebot({
+      paket: genuss, bloecke, gruppen, gerichte: { ...gerichte, 'g-gans': gans }, gaeste: 20,
+      auswahl: { ...voll, 'b-haupt': ['g-lachs', 'g-gans'] },
+    });
+    expect(e.aufpreise).toEqual([{ art: 'im_paket', blockId: 'b-haupt', gerichtId: 'g-gans', label: 'Gänsekeule', proPerson: 5 }]);
+    expect(e.proPerson).toBe(35);
+    expect(e.speisenGesamt).toBe(700);
+  });
+
+  it('lässt den Zusatz-Preis eines Gerichts in einem Wahl-Block außen vor', () => {
+    const e = berechneAngebot({
+      paket: genuss, bloecke: [{ ...vorspeisen, gruppen: ['fingerfood'] }], gruppen, gerichte, gaeste: 10,
+      auswahl: { 'b-vor': ['g-garnele', 'g-burger', 'g-platte'] },
+    });
+    expect(e.aufpreise).toEqual([]);
+    expect(e.proPerson).toBe(30);
+  });
+
   it('wertet einen festen Block immer als erfüllt', () => {
     expect(blockErfuellt(brot, [])).toBe(true);
   });
@@ -157,6 +177,15 @@ describe('plusEinsPreis und zusatzPreis', () => {
     expect(plusEinsPreis(dessert, gruppen)).toBe(4.2);
     expect(plusEinsPreis(fingerDazu, gruppen)).toBeNull();
     expect(plusEinsPreis({ ...dessert, gruppen: ['fruehstueck_herzhaft'] }, gruppen)).toBeNull();
+  });
+
+  it('kennt einen Aufpreis im Paket nur in Wahl-Blöcken und nur über 0 €', () => {
+    const gans = gericht('g-gans', 'Gänsekeule', ['hauptgericht'], { aufpreis_im_paket: 5 });
+    expect(paketAufpreis(haupt, gans)).toBe(5);
+    expect(paketAufpreis(fingerDazu, gans)).toBeNull();
+    expect(paketAufpreis(haupt, { ...gans, aufpreis_im_paket: 0 })).toBeNull();
+    expect(paketAufpreis(haupt, { ...gans, aufpreis_im_paket: null })).toBeNull();
+    expect(paketAufpreis(haupt, undefined)).toBeNull();
   });
 
   it('nimmt einen Aufpreis von 0 € ernst (kostenlose Zugabe ist erlaubt, wenn Jana sie so einträgt)', () => {

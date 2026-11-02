@@ -3,6 +3,7 @@ import { reportError } from "./errorLog.js";
 import { supabase } from "./supabase.js";
 import { C, S } from "./theme.js";
 import { ladeKataloge } from "./angebot/kataloge.js";
+import { berlinerDatum, ladeHighlights, mitHighlights } from "./angebot/highlights.js";
 import { aktiverStil, berechneAngebot } from "./angebot/angebotspreis.js";
 import { lieferpreis } from "./angebot/lieferung.js";
 import { vorwahlAusLink } from "./angebot/anlaesse.js";
@@ -117,13 +118,16 @@ export default function MamaMiaAngebotsgenerator() {
       .then((r) => { if (aktuell) setRegel(r); })
       .catch((e) => reportError("firmen_vorteil_laden", e));
     async function init() {
-      const [kat, zonen, orte, zusatz] = await Promise.all([
+      const [roh, saison, zonen, orte, zusatz] = await Promise.all([
         ladeKataloge(supabase),
+        // Ohne Highlights geht das Angebot trotzdem, nur ohne Kasten oben im Block.
+        ladeHighlights(supabase).catch((e) => { reportError("highlights_laden", e); return {}; }),
         ladeListe("lieferzonen", supabase.from("lieferzonen").select("*").eq("aktiv", true).order("reihenfolge").limit(100)),
         ladeListe("lieferorte", supabase.from("lieferorte").select("*").eq("aktiv", true).limit(GRENZE_ORTE)),
         ladeListe("zusatzwuensche", supabase.from("zusatzwuensche").select("*").eq("aktiv", true).order("reihenfolge").limit(100)),
       ]);
       if (!aktuell) return;
+      const kat = mitHighlights(roh, saison, berlinerDatum());
       if (orte.length >= GRENZE_ORTE) reportError("laden_lieferorte", new Error(`Ortsliste hat ${GRENZE_ORTE} oder mehr Zeilen; die Abfrage braucht Seiten.`));
       setDbLieferzonen(zonen);
       setDbLieferorte(orte);
@@ -397,6 +401,7 @@ export default function MamaMiaAngebotsgenerator() {
                 gruppen={anzeige.gruppen}
                 stile={A.stile}
                 gerichte={anzeige.gerichte}
+                highlights={anzeige.highlights}
                 stilSlug={data.stil}
                 onStil={(slug) => update("stil", slug)}
                 auswahl={data.auswahl}

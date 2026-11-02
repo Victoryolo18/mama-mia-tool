@@ -1,12 +1,13 @@
 import React, { memo, useEffect, useState, useTransition } from "react";
 import { C, S } from "../theme.js";
 import {
-  aktiverStil, blockErfuellt, formatPreis, gerichteFuerBlock, maxAuswahl, plusEinsPreis, weitereGerichte, zusatzPreis,
+  aktiverStil, blockErfuellt, formatPreis, gerichteFuerBlock, maxAuswahl, paketAufpreis, plusEinsPreis, weitereGerichte, zusatzPreis,
 } from "./angebotspreis.js";
 import { KOSTFORMEN, kostform, kostformenIn } from "./kostform.js";
 import { aufAnfrage, aufAnfrageIn } from "./ernaehrung.js";
 import { symbolSvg } from "./symbole.js";
 import { gefiltert, umschalten as filterUmschalten } from "./filter.js";
+import { highlightKaesten } from "./highlights.js";
 import { blockAnker } from "./fehlendes.js";
 import { Betont, useTexte } from "./Sprache.jsx";
 
@@ -204,7 +205,7 @@ function StilLeiste({ stile, gewaehlt, onWahl }) {
 
 /* Stimmungsbilder und Gerichteliste. `memo`: Ein Klick auf eine Stil-Kachel umrandet zuerst nur die
    Kachel; diese Liste wird erst danach neu gezeichnet, wenn der Stil bei ihr ankommt. */
-const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil, auswahl, onAuswahl, plusEins, onPlusEins, children }) {
+const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, highlights, stil, auswahl, onAuswahl, plusEins, onPlusEins, children }) {
   const t = useTexte();
   const [offen, setOffen] = useState({});
   const [filter, setFilter] = useState([]);
@@ -271,9 +272,13 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
         {bloecke.filter((b) => b.typ !== "fix").map((block) => {
           const gewaehlt = auswahl[block.id] ?? [];
           const mitPlus = !!plusEins[block.id];
-          const liste = gerichteFuerBlock(block, gerichte, { stil, gewaehlt, gruppen, wahlGruppen });
-          const weitere = weitereGerichte(block, gerichte, { stil, gewaehlt, gruppen, wahlGruppen, mitPlusEins: mitPlus });
-          if (liste.length === 0 && weitere.length === 0) return null;
+          // Ein Gericht im Highlight steht oben im Kasten, unabhängig vom Stil, und nicht noch einmal in der Liste.
+          const { kaesten, ids: imKasten } = highlightKaesten(highlights, gerichteFuerBlock(block, gerichte, { gruppen, wahlGruppen }));
+          const ohneKasten = (gs) => gs.filter((g) => !imKasten.has(g.id));
+          const liste = ohneKasten(gerichteFuerBlock(block, gerichte, { stil, gewaehlt, gruppen, wahlGruppen }));
+          const weitere = ohneKasten(weitereGerichte(block, gerichte, { stil, gewaehlt, gruppen, wahlGruppen, mitPlusEins: mitPlus }));
+          const angeboten = [...kaesten.flatMap((k) => k.gerichte), ...liste];
+          if (angeboten.length === 0 && weitere.length === 0) return null;
           const max = maxAuswahl(block, mitPlus);
           const erfuellt = blockErfuellt(block, gewaehlt, mitPlus);
           const zusatz = block.typ === "zusatz";
@@ -283,7 +288,7 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
           const summe = zusatz
             ? gewaehlt.reduce((s, id) => s + Math.round((zusatzPreis(block, gerichte.find((g) => g.id === id), gruppen) ?? 0) * 100), 0) / 100
             : 0;
-          const abPreis = zusatz ? Math.min(...liste.map((g) => zusatzPreis(block, g, gruppen))) : null;
+          const abPreis = zusatz ? Math.min(...angeboten.map((g) => zusatzPreis(block, g, gruppen))) : null;
           const fehlen = Math.max(0, block.min_auswahl + (mitPlus ? 1 : 0) - gewaehlt.length);
           const sichtbar = gefiltert(liste, filter, gewaehlt);
           const weitereSichtbar = gefiltert(weitere, filter, gewaehlt);
@@ -296,7 +301,7 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
                 an={an}
                 rund={rund && !zusatz}
                 gesperrt={!an && !rund && gewaehlt.length >= max}
-                preis={zusatz ? zusatzPreis(block, g, gruppen) : undefined}
+                preis={zusatz ? zusatzPreis(block, g, gruppen) : paketAufpreis(block, g) ?? undefined}
                 onClick={() => umschalten(block, g.id, max)}
               />
             );
@@ -327,9 +332,9 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
 
               {zusatz ? (
                 <div style={{ fontSize: 13, color: C.inkSoft, marginBottom: 8 }}>
-                  {liste.length === 1
+                  {angeboten.length === 1
                     ? t.zusatzEiner(formatPreis(abPreis))
-                    : t.zusatzMehrere(max, liste.some((g) => zusatzPreis(block, g, gruppen) !== abPreis), formatPreis(abPreis))}
+                    : t.zusatzMehrere(max, angeboten.some((g) => zusatzPreis(block, g, gruppen) !== abPreis), formatPreis(abPreis))}
                 </div>
               ) : !erfuellt && (
                 <div style={{ fontSize: 12, color: C.cappuccino, marginBottom: 6 }}>
@@ -338,6 +343,19 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
                     : t.nochGerichte(fehlen)}
                 </div>
               )}
+
+              {kaesten.map(({ highlight, gerichte: imHighlight }) => {
+                const sichtbarImKasten = gefiltert(imHighlight, filter, gewaehlt);
+                if (sichtbarImKasten.length === 0) return null;
+                return (
+                  <div key={highlight.id} className="mm-highlight" style={S.highlightKasten}>
+                    <div style={S.highlightTitel}>✦ {highlight.titel}</div>
+                    <div className={zusatz ? "mm-dish-grid mm-dish-grid-breit" : "mm-dish-grid"}>
+                      {sichtbarImKasten.map(knopf)}
+                    </div>
+                  </div>
+                );
+              })}
 
               {eingeklappt ? (
                 <button
@@ -350,7 +368,7 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
                 </button>
               ) : (
                 <div style={{ marginTop: 8 }}>
-                  {sichtbar.length === 0 && weitereSichtbar.length === 0 && (
+                  {sichtbar.length === 0 && weitereSichtbar.length === 0 && kaesten.length === 0 && (
                     <div style={{ fontSize: 13, color: C.cappuccino, padding: "6px 0" }}>{t.keineGerichte}</div>
                   )}
                   {(zusatz ? [{ key: "", label: "", gerichte: sichtbar }] : nachUntergruppe(sichtbar, t)).map((teil, i, alle) => (
@@ -430,7 +448,7 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, stil
 });
 
 export default function SchrittGerichte({
-  paket, bloecke, gruppen, stile, gerichte,
+  paket, bloecke, gruppen, stile, gerichte, highlights = [],
   stilSlug, onStil, auswahl, onAuswahl, plusEins, onPlusEins, schritt, children,
 }) {
   const t = useTexte();
@@ -485,6 +503,7 @@ export default function SchrittGerichte({
         bloecke={bloecke}
         gruppen={gruppen}
         gerichte={gerichte}
+        highlights={highlights}
         stil={stil}
         auswahl={auswahl}
         onAuswahl={onAuswahl}
