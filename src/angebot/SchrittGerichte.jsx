@@ -126,6 +126,7 @@ function Haken({ an, rund }) {
 }
 
 function GerichtKnopf({ gericht, an, gesperrt, rund, preis, onClick }) {
+  const t = useTexte();
   return (
     <button
       type="button"
@@ -149,7 +150,7 @@ function GerichtKnopf({ gericht, an, gesperrt, rund, preis, onClick }) {
         <span style={{ minWidth: 0, overflowWrap: "anywhere", WebkitTextStroke: an ? "0.5px currentColor" : undefined }}>{gericht.name}<AufAnfrage gericht={gericht} /></span>
       </span>
       {preis !== undefined && (
-        <span style={{ fontSize: 13, fontWeight: 700, color: C.gold, whiteSpace: "nowrap", flexShrink: 0 }}>+ {formatPreis(preis)}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: C.gold, whiteSpace: "nowrap", flexShrink: 0 }}>+ {formatPreis(preis)} {t.pP}</span>
       )}
     </button>
   );
