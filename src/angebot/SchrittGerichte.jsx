@@ -147,11 +147,15 @@ function GerichtKnopf({ gericht, an, gesperrt, rund, preis, onClick }) {
       <Haken an={an} rund={rund} />
       <span style={{ display: "flex", alignItems: "center", gap: 2, flex: 1, minWidth: 0 }}>
         <Kostform gericht={gericht} />
-        <span style={{ minWidth: 0, overflowWrap: "anywhere", WebkitTextStroke: an ? "0.5px currentColor" : undefined }}>{gericht.name}<AufAnfrage gericht={gericht} /></span>
+        {/* Umbrochen wird nur zwischen Wörtern; ein Wort wird nur geteilt, wenn es allein breiter ist als die Zeile.
+            Der Preis steht unter dem Namen, damit er ihn nicht zusammendrückt (Victor, 02.11.2026). */}
+        <span style={{ minWidth: 0, overflowWrap: "break-word", WebkitTextStroke: an ? "0.5px currentColor" : undefined }}>
+          {gericht.name}<AufAnfrage gericht={gericht} />
+          {preis !== undefined && (
+            <span style={{ display: "block", fontSize: 13, fontWeight: 700, color: C.gold, WebkitTextStroke: 0, marginTop: 2 }}>+ {formatPreis(preis)} {t.pP}</span>
+          )}
+        </span>
       </span>
-      {preis !== undefined && (
-        <span style={{ fontSize: 13, fontWeight: 700, color: C.gold, whiteSpace: "nowrap", flexShrink: 0 }}>+ {formatPreis(preis)} {t.pP}</span>
-      )}
     </button>
   );
 }
@@ -193,8 +197,8 @@ function StilLeiste({ stile, gewaehlt, onWahl }) {
               }}>✓</span>
             )}
             <span lang={t.sprache} style={{
-              padding: "8px 6px", fontSize: 12, lineHeight: 1.25, textAlign: "center", width: "100%",
-              overflowWrap: "anywhere", hyphens: "auto",
+              padding: "8px 4px", fontSize: 12, lineHeight: 1.25, textAlign: "center", width: "100%",
+              overflowWrap: "break-word",
               fontWeight: an ? 700 : 600, color: an ? C.burgundy : C.inkSoft,
             }}>{s.label}</span>
           </button>
@@ -239,7 +243,7 @@ const Komponenten = memo(function Komponenten({ bloecke, gruppen, gerichte, high
         </div>
       )}
 
-      <div style={S.menueCard}>
+      <div style={S.menueCard} className="mm-menue-karte">
         <div style={S.menueCardTitle}>{t.komponenten}</div>
         <Legende gerichte={gerichte.filter((g) => bloecke.some((b) => b.typ !== "fix" && b.gruppen.some((gr) => g.gruppen?.includes(gr))))} filter={filter} onFilter={setFilter} />
 
@@ -468,14 +472,25 @@ export default function SchrittGerichte({
   return (
     <div className="mm-fade">
       <style>{`
-        .mm-dish-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+        .mm-dish-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
         .mm-dish-grid-breit { grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); }
         .mm-dish-grid > button { min-width: 0; width: 100%; }
-        .mm-stil-leiste { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 10px; max-width: 960px; margin: 0 auto 14px; }
+        /* Jede Kachel so breit wie ihr längstes Wort, damit kein Wort zerbricht; das Bild bleibt gleich hoch. */
+        .mm-stil-leiste { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; max-width: 1160px; margin: 0 auto 14px; }
+        .mm-stil { flex: 0 0 auto; min-width: 104px; max-width: 180px; }
+        .mm-stil > span:first-child { aspect-ratio: auto !important; height: 78px; }
         @media (max-width: 640px) {
           .mm-dish-grid { grid-template-columns: 1fr !important; }
-          .mm-stil-leiste { display: flex; overflow-x: auto; scroll-snap-type: x proximity; padding: 4px 20px 12px; margin: 0 -20px 6px; -webkit-overflow-scrolling: touch; }
-          .mm-stil { flex: 0 0 108px; scroll-snap-align: start; }
+          .mm-stil-leiste { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scroll-snap-type: x proximity; padding: 4px 20px 12px; margin: 0 -20px 6px; -webkit-overflow-scrolling: touch; }
+          .mm-stil { min-width: 108px; scroll-snap-align: start; }
+        }
+        /* Schmale Handys: weniger Rand, damit lange Gerichtnamen in eine Zeile passen statt zu zerbrechen. */
+        @media (max-width: 400px) {
+          .mm-menue-karte { padding: 20px 14px !important; }
+          .mm-dish-grid > button { padding: 12px 12px !important; gap: 10px !important; }
+        }
+        @media (max-width: 340px) {
+          .mm-dish-grid > button { font-size: 14px !important; }
         }
       `}</style>
 
