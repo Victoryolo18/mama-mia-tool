@@ -11,3 +11,9 @@ export function schrittAusVerlauf(zustand, start) {
 export function verlaufFuer(zustand, schritt) {
   return { ...(zustand ?? {}), mmSchritt: schritt };
 }
+
+/** Kam der Besucher von der Website (mama-mia-events.de, nicht vom Generator selbst)? Dann führt der Pfeil in
+    Schritt 1 dorthin zurück, wo er war; sonst auf die Startseite der Website (Victor, 02.11.2026). */
+export function vonDerWebsite(referrer) {
+  return /^https:\/\/(www\.)?mama-mia-events\.de(\/|$)/.test(referrer ?? "");
+}

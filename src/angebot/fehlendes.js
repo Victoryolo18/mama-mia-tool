@@ -9,3 +9,32 @@ export function ersterOffenerBlock(bloecke, auswahl = {}, plusEins = {}) {
 
 /** Die Adresse im Dokument, unter der ein Block steht. */
 export const blockAnker = (block) => `mm-block-${block.id}`;
+
+/** Welche Pflichtangaben in "Details" fehlen, in der Reihenfolge der Seite. Leer: Es geht weiter.
+    Der Knopf bleibt antippbar und springt zur ersten Lücke, statt stumm grau zu bleiben (Victor, 02.11.2026). */
+export function fehlendeDetails(data, { mindestpersonen, hoechstens, ortsteilNoetig = false }) {
+  const gaeste = Number(data.gaeste);
+  const gaesteOk = data.gaeste !== "" && data.gaeste !== null && data.gaeste !== undefined && gaeste >= mindestpersonen && gaeste <= hoechstens;
+  return [
+    !data.anlass && "anlass",
+    !gaesteOk && "gaeste",
+    !data.datum && "datum",
+    !data.lieferung && "lieferung",
+    !data.plz && "plz",
+    ortsteilNoetig && "ortsteil",
+  ].filter(Boolean);
+}
+
+/** Welche Pflichtangaben vor dem Absenden fehlen, in der Reihenfolge der Seite. */
+export function fehlendeAnfrage(data, { firmaOk = true } = {}) {
+  return [
+    String(data.name ?? "").trim().length < 2 && "name",
+    String(data.kontaktdaten ?? "").trim().length < 5 && "kontaktdaten",
+    !firmaOk && "firma",
+  ].filter(Boolean);
+}
+
+/** Bringt das erste fehlende Feld in die Mitte des Bildschirms. */
+export function zeigeFeld(feld) {
+  document.getElementById(`mm-feld-${feld}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+}

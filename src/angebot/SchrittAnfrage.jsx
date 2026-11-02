@@ -10,6 +10,7 @@ import { MWST_PROZENT, mwstAus } from "./mwst.js";
 import { Betont, useTexte } from "./Sprache.jsx";
 import { datumInSprache, firmaFehlerInSprache } from "./texte.js";
 import { lokal } from "./sprache.js";
+import { fehlendeAnfrage, zeigeFeld } from "./fehlendes.js";
 
 /* ── 📞 KONTAKT-METHODEN (Bezeichnung und Platzhalter in texte.js) ── */
 export const KONTAKT_OPTIONEN = [
@@ -38,7 +39,18 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
   const firmaPruefung = firmaArt ? pruefeFirmaEingabe(data.firma, plzOrte) : { wert: null };
   const firmaBegonnen = ["name", "strasse", "nr", "plz", "ort", "ust_id"].some((n) => String(data.firma[n] ?? "").trim());
   const firmaOk = !firmaPruefung.fehler && (firmaArt !== "pflicht" || !!firmaPruefung.wert);
-  const canSubmit = data.name.trim().length >= 2 && data.kontaktdaten.trim().length >= 5 && firmaOk;
+  const fehlende = fehlendeAnfrage(data, { firmaOk });
+  const canSubmit = fehlende.length === 0;
+  // Erst nach dem ersten Tippen auf "Absenden" wird markiert, was fehlt.
+  const [markieren, setMarkieren] = useState(false);
+  const fehlt = (feld) => markieren && fehlende.includes(feld);
+  const absenden = () => {
+    if (canSubmit) return onSubmit();
+    setMarkieren(true);
+    zeigeFeld(fehlende[0]);
+  };
+  const rot = (feld) => (fehlt(feld) ? { borderColor: "#C0392B" } : {});
+  const hinweis = (feld) => fehlt(feld) && <div role="alert" style={{ fontSize: 12, color: "#C0392B", marginTop: 4 }}>{t.bitteAusfuellen}</div>;
   const setFirma = (feld, wert) => update("firma", { ...data.firma, [feld]: wert });
   // Postleitzahl eintippen: Gibt es genau einen Ort, steht er im Feld; bei mehreren wählt der Kunde.
   const setPlz = (plz) => {
@@ -193,7 +205,7 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
         {/* Rechte Seite: Kontaktformular */}
         <div style={S.formCard} className="mm-form-card" data-clarity-mask="True">
           {/* Name */}
-          <div style={S.field}>
+          <div style={S.field} id="mm-feld-name">
             <label style={S.label}>{t.ihrName} <span style={{ color: C.gold, fontSize: 11 }}>*</span></label>
             <input
               type="text"
@@ -201,9 +213,10 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
               onChange={e => update("name", e.target.value)}
               placeholder={t.namePlatzhalter}
               maxLength={100}
-              style={S.input}
+              style={{ ...S.input, ...rot("name") }}
               className="mm-input"
             />
+            {hinweis("name")}
           </div>
 
           {/* Kontaktart */}
@@ -229,7 +242,7 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
           </div>
 
           {/* Kontaktdaten */}
-          <div style={S.field}>
+          <div style={S.field} id="mm-feld-kontaktdaten">
             <label style={S.label}>
               {t.kontakt[data.kontaktart]?.label}
             </label>
@@ -239,14 +252,15 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
               onChange={e => update("kontaktdaten", e.target.value)}
               placeholder={t.kontakt[data.kontaktart]?.platzhalter}
               maxLength={150}
-              style={S.input}
+              style={{ ...S.input, ...rot("kontaktdaten") }}
               className="mm-input"
             />
+            {hinweis("kontaktdaten")}
           </div>
 
           {/* Firma: Pflicht, sobald es den Firmen-Vorteil gibt; sonst bei Firmenanlässen und der Weihnachtsfeier freiwillig. */}
           {firmaArt && (
-            <fieldset style={{ ...S.field, border: "none", padding: 0, margin: 0 }}>
+            <fieldset id="mm-feld-firma" style={{ ...S.field, border: "none", padding: 0, margin: 0 }}>
               <legend style={{ ...S.label, padding: 0 }}>
                 {t.rechnungFirma}{" "}
                 {firmaArt === "pflicht"
@@ -341,9 +355,9 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
                   className="mm-input"
                 />
               </div>
-              {firmaPruefung.fehler && firmaBegonnen && (
+              {firmaPruefung.fehler && (firmaBegonnen || fehlt("firma")) ? (
                 <div style={{ fontSize: 12, color: "#C0392B", marginTop: 6, lineHeight: 1.45 }}>{firmaFehlerInSprache(firmaPruefung.fehler, t)}</div>
-              )}
+              ) : hinweis("firma")}
             </fieldset>
           )}
 
@@ -362,12 +376,12 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
           </div>
 
           <button
-            onClick={onSubmit}
-            disabled={!canSubmit || submitting}
+            onClick={absenden}
+            disabled={submitting}
             className="mm-btn-press"
             style={{
               ...S.primaryBtn,
-              ...(canSubmit && !submitting ? {} : S.btnDisabled),
+              ...(submitting ? S.btnDisabled : canSubmit ? {} : { ...S.btnDisabled, cursor: "pointer" }),
             }}
           >
             {submitting ? t.wirdGesendet : t.absenden}
