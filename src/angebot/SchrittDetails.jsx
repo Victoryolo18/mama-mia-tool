@@ -1,12 +1,21 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { C, S } from "../theme.js";
 import { getLieferzuschlag, getOrtsteile, istLieferart } from "./lieferung.js";
 import { ANLAESSE } from "./anlaesse.js";
 import { Betont, useTexte } from "./Sprache.jsx";
+import { fehlendeDetails, zeigeFeld } from "./fehlendes.js";
+
+const ROT = "#C0392B";
+
+/* Hinweis unter einem Pflichtfeld, das beim Tippen auf "Weiter" noch leer war. */
+function Fehlt({ an }) {
+  const t = useTexte();
+  return an ? <div role="alert" style={{ fontSize: 12, color: ROT, marginTop: 4 }}>{t.bitteAusfuellen}</div> : null;
+}
 
 /* Ganzes Feld klickbar statt nur des winzigen nativen Kalender-/Uhr-Icons:
    Klick öffnet den Picker programmatisch über showPicker() (Fallback: .click()). */
-function DateTimeField({ value, onChange, display, icon, type, min, hasValue }) {
+function DateTimeField({ value, onChange, display, icon, type, min, hasValue, fehlt = false }) {
   const inputRef = useRef(null);
   const openPicker = () => {
     if (!inputRef.current) return;
@@ -19,7 +28,7 @@ function DateTimeField({ value, onChange, display, icon, type, min, hasValue }) 
   return (
     <div
       onClick={openPicker}
-      style={{ ...S.input, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      style={{ ...S.input, ...(fehlt ? { borderColor: ROT } : {}), display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         color: hasValue ? C.ink : C.cappuccino, cursor: 'pointer', position: 'relative', userSelect: 'none' }}
     >
       <span>{display}</span>
@@ -59,8 +68,16 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
     : gaesteNum > HOECHSTENS ? t.zuGross
     : null
     : null;
-  const gaesteValid = data.gaeste !== '' && data.gaeste !== null && gaesteNum >= mindestpersonen && gaesteNum <= HOECHSTENS;
-  const canContinue = !!data.anlass && gaesteValid && data.datum && data.plz && data.lieferung && !ortsteilNoetig;
+  const fehlende = fehlendeDetails(data, { mindestpersonen, hoechstens: HOECHSTENS, ortsteilNoetig });
+  const canContinue = fehlende.length === 0;
+  // Erst nach dem ersten Tippen auf "Weiter" wird markiert, was fehlt; vorher wäre die Seite voller Rot.
+  const [markieren, setMarkieren] = useState(false);
+  const fehlt = (feld) => markieren && fehlende.includes(feld);
+  const weiter = () => {
+    if (canContinue) return next();
+    setMarkieren(true);
+    zeigeFeld(fehlende[0]);
+  };
 
   return (
     <div className="mm-fade">
@@ -73,22 +90,23 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
 
       <div style={S.formCard}>
         {/* Anlass */}
-        <div style={S.field}>
+        <div style={S.field} id="mm-feld-anlass">
           <label style={S.label} htmlFor="mm-anlass">{t.anlassFrage}</label>
           <select
             id="mm-anlass"
             value={data.anlass || ""}
             onChange={e => update("anlass", e.target.value || null)}
-            style={{ ...S.input, cursor: "pointer", color: data.anlass ? C.ink : C.cappuccino }}
+            style={{ ...S.input, cursor: "pointer", color: data.anlass ? C.ink : C.cappuccino, ...(fehlt("anlass") ? { borderColor: ROT } : {}) }}
             className="mm-input"
           >
             <option value="">{t.bitteAuswaehlen}</option>
             {ANLAESSE.map(a => <option key={a.slug} value={a.slug}>{t.anlass[a.slug] ?? a.label}</option>)}
           </select>
+          <Fehlt an={fehlt("anlass")} />
         </div>
 
         {/* Gästezahl */}
-        <div style={S.field}>
+        <div style={S.field} id="mm-feld-gaeste">
           <label style={S.label}>{t.gaesteFrage}</label>
           <input
             type="number"
@@ -97,11 +115,13 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
             value={data.gaeste ?? ''}
             onChange={e => update("gaeste", e.target.value === '' ? '' : Number(e.target.value))}
             placeholder={t.gaestePlatzhalter}
-            style={{ ...S.input, ...(gaesteError ? { borderColor: '#C0392B' } : {}) }}
+            style={{ ...S.input, ...(gaesteError || fehlt("gaeste") ? { borderColor: ROT } : {}) }}
             className="mm-input"
           />
           {gaesteError
-            ? <div style={{ fontSize: 12, color: '#C0392B', marginTop: 4 }}>{gaesteError}</div>
+            ? <div style={{ fontSize: 12, color: ROT, marginTop: 4 }}>{gaesteError}</div>
+            : fehlt("gaeste")
+              ? <Fehlt an />
             : gaesteNum > GROSSE_FEIER_AB
               ? <div style={{ fontSize: 12, color: C.cappuccino, marginTop: 4 }}>{t.grosseFeier(GROSSE_FEIER_AB)}</div>
               : <div style={{ fontSize: 12, color: C.cappuccino, marginTop: 4 }}>{t.mindestbestellung(mindestpersonen)}</div>
@@ -109,7 +129,7 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
         </div>
 
         {/* Datum */}
-        <div style={S.field}>
+        <div style={S.field} id="mm-feld-datum">
           <label style={S.label}>{t.datumFrage}</label>
           <DateTimeField
             value={data.datum}
@@ -119,7 +139,9 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
             type="date"
             min={new Date().toISOString().split("T")[0]}
             hasValue={!!data.datum}
+            fehlt={fehlt("datum")}
           />
+          <Fehlt an={fehlt("datum")} />
         </div>
 
         {/* Uhrzeit */}
@@ -136,7 +158,7 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
         </div>
 
         {/* Lieferung / Abholung */}
-        <div style={S.field}>
+        <div style={S.field} id="mm-feld-lieferung">
           <label style={S.label}>{t.erhaltenFrage}</label>
           {(() => {
             const isDelivMode = istLieferart(data.lieferung);
@@ -183,10 +205,11 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
               </div>
             );
           })()}
+          <Fehlt an={fehlt("lieferung")} />
         </div>
 
         {/* PLZ */}
-        <div style={S.field}>
+        <div style={S.field} id="mm-feld-plz">
           <label style={S.label}>{t.plzFrage}</label>
           <input
             type="text"
@@ -194,21 +217,22 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
             onChange={e => { update("plz", e.target.value); if (data.ortsteil) update("ortsteil", ""); }}
             placeholder={t.plzPlatzhalter}
             maxLength={5}
-            style={S.input}
+            style={{ ...S.input, ...(fehlt("plz") ? { borderColor: ROT } : {}) }}
             className="mm-input"
           />
+          <Fehlt an={fehlt("plz")} />
         </div>
 
         {/* Ortsteil — sobald unter der Postleitzahl mehrere Orte liegen.
             Ohne diese Frage wuerde Germendorf so viel zahlen wie
             Wensickendorf, obwohl die Fahrt viermal so lange dauert. */}
         {ortsteilInfo.auswahlNoetig && (
-          <div style={S.field}>
+          <div style={S.field} id="mm-feld-ortsteil">
             <label style={S.label}>{t.ortsteil}</label>
             <select
               value={data.ortsteil || ""}
               onChange={e => update("ortsteil", e.target.value)}
-              style={{ ...S.input, cursor: "pointer" }}
+              style={{ ...S.input, cursor: "pointer", ...(fehlt("ortsteil") ? { borderColor: ROT } : {}) }}
               className="mm-input"
             >
               <option value="">{t.bitteAuswaehlen}</option>
@@ -216,16 +240,17 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
                 <option key={o.id || o.ort} value={o.ort}>{o.ort}</option>
               ))}
             </select>
+            <Fehlt an={fehlt("ortsteil")} />
           </div>
         )}
 
         <button
-          onClick={next}
-          disabled={!canContinue}
+          onClick={weiter}
           className="mm-btn-press"
           style={{
             ...S.primaryBtn,
-            ...(canContinue ? {} : S.btnDisabled),
+            // Blass, solange etwas fehlt, aber antippbar: Dann springt die Seite zur Lücke.
+            ...(canContinue ? {} : { ...S.btnDisabled, cursor: "pointer" }),
             marginTop: 12,
           }}
         >

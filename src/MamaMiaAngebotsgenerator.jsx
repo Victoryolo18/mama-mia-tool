@@ -23,7 +23,7 @@ import SchrittAnfrage from "./angebot/SchrittAnfrage.jsx";
 import Preisleiste from "./angebot/Preisleiste.jsx";
 import { OEFFNEN } from "./einwilligung.js";
 import { blockAnker, ersterOffenerBlock } from "./angebot/fehlendes.js";
-import { schrittAusVerlauf, verlaufFuer } from "./angebot/verlauf.js";
+import { schrittAusVerlauf, verlaufFuer, vonDerWebsite } from "./angebot/verlauf.js";
 
 /* ════════════════════════════════════════════════════════════════
    MAMA MIA EVENTS & CATERING — ANGEBOTSGENERATOR
@@ -173,6 +173,11 @@ export default function MamaMiaAngebotsgenerator() {
     startRef.current = n;
     window.history.replaceState(verlaufFuer(window.history.state, n), "");
     setStep(n);
+  };
+  // Schritt 1: zurück auf die Website-Seite, von der der Kunde kam, sonst auf die Startseite.
+  const zurWebsite = () => {
+    if (vonDerWebsite(document.referrer) && window.history.length > 1) return window.history.back();
+    window.location.href = STARTSEITE[sprache];
   };
   useEffect(() => {
     const zurueck = (e) => setStep(schrittAusVerlauf(e.state, startRef.current));
@@ -325,8 +330,8 @@ export default function MamaMiaAngebotsgenerator() {
             <span style={S.logoMain}>Mama Mia</span>
             <span style={S.logoSub}>Events & Catering</span>
           </div>
-          {!submitted && sichtbar > 1 && (
-            <button onClick={prev} style={S.backBtn} className="mm-btn-press">
+          {!submitted && (
+            <button onClick={sichtbar > 1 ? prev : zurWebsite} style={S.backBtn} className="mm-btn-press">
               {t.zurueck}
             </button>
           )}
