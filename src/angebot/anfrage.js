@@ -67,10 +67,9 @@ export function baueAnfrage({ requestNumber, data, essensart, paket, stil, bloec
     ortsteil: data.ortsteil || null,
     lieferung: data.lieferung,
     menue_auswahl: menue,
-    zusatzwuensche: [
-      ...(data.extras || []),
-      ...(data.zusatzwuensche ? [data.zusatzwuensche] : []),
-    ].join("\n") || null,
+    // Je Zeile ein Extra (das CRM gibt jedem ein Preisfeld). Der freie Text steht getrennt in `nachricht`.
+    zusatzwuensche: (data.extras || []).join("\n") || null,
+    nachricht: String(data.zusatzwuensche ?? "").trim() || null,
     interne_notiz: data.notizen || null,
     preis_pro_person: ergebnis.paketProPerson,
     speisenpreis: (cent(ergebnis.paketProPerson) * personen) / 100,
