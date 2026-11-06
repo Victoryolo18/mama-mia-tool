@@ -81,9 +81,7 @@ export function kundenMail(request) {
 
 /** Benachrichtigung an Jana. `jetzt` nur für Tests einstellbar. */
 export function janaMail(request, jetzt = new Date()) {
-  const alleExtras = (request.zusatzwuensche || "").split("\n").filter(Boolean);
-  const hatGetraenkeservice = alleExtras.includes("Getränkeservice");
-  const sonstigeZusatzwuensche = alleExtras.filter((e) => e !== "Getränkeservice").join("\n");
+  const extras = (request.zusatzwuensche || "").split("\n").filter(Boolean);
   const kontaktInfo = request.customer_email
     ? `E-Mail: <a href="mailto:${encodeURIComponent(request.customer_email)}">${esc(request.customer_email)}</a>`
     : `Telefon: <a href="tel:${encodeURIComponent(request.customer_phone)}">${esc(request.customer_phone)}</a>`;
@@ -110,13 +108,11 @@ export function janaMail(request, jetzt = new Date()) {
         ${zeile("Ort", `${esc(request.plz) || "—"}${request.ortsteil ? ` ${esc(request.ortsteil)}` : ""} (${LIEFER_LABELS[request.lieferung] || esc(request.lieferung)})`)}
         ${request.angebot_snapshot?.lieferung_inklusive ? zeile("Lieferung", `inklusive (Paket ${esc(request.paket)})`) : ""}
         ${zeile("Geschätzter Preis", `${formatPreis(request.gesamtpreis)}${lieferungOffen ? ' <span style="color: #B00020;">(zzgl. Lieferung — PLZ nicht im Liefergebiet hinterlegt, Preis auf Anfrage)</span>' : ""}`)}
-        ${hatGetraenkeservice ? zeile("Getränkeservice", "Ja") : ""}
+        ${extras.length ? zeile("Extras", extras.map(esc).join(", ")) : ""}
         ${vorteil(request) ? zeile("Firmen-Vorteil", `${vorteil(request).prozent} % abgezogen, −${formatPreis(vorteil(request).betrag)}, im Preis oben schon enthalten. Bitte die Firma prüfen; stimmt etwas nicht, im CRM unter „Bearbeiten“ das Häkchen beim Firmen-Vorteil herausnehmen.`) : ""}
       </div>
-      ${sonstigeZusatzwuensche ? `
-      <div style="background: #FFF3E0; border-left: 4px solid #E07B00; padding: 12px 16px; margin: 16px 0; border-radius: 6px;">
-        <strong>Zusatzwünsche:</strong> ${esc(sonstigeZusatzwuensche)}
-      </div>` : ""}
+      ${request.nachricht ? `
+      <div style="background: #FFF3E0; border-left: 4px solid #E07B00; padding: 12px 16px; margin: 16px 0; border-radius: 6px; white-space: pre-wrap;"><strong>Anmerkungen:</strong> ${esc(request.nachricht)}</div>` : ""}
       <p style="margin-top: 32px; font-size: 13px; color: #A88968;">
         Direkt im CRM ansehen: <a href="https://crm.mama-mia-events.de/anfragen" style="color: #5C2818;">CRM öffnen</a> (neueste Anfrage steht oben)
       </p>

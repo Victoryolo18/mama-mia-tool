@@ -159,9 +159,15 @@ describe('baueAnfrage — was gespeichert wird', () => {
     expect(anfrage().angebot_snapshot).not.toHaveProperty('ernaehrung');
   });
 
-  it('hängt Extras und Anmerkung zeilenweise zusammen', () => {
-    expect(anfrage().zusatzwuensche).toBe('Getränkeservice\nBitte ohne Nüsse');
-    expect(anfrage({ extras: [], zusatzwuensche: '' }).zusatzwuensche).toBeNull();
+  it('legt Extras zeilenweise ab und die Anmerkung getrennt als Nachricht', () => {
+    expect(anfrage()).toMatchObject({ zusatzwuensche: 'Getränkeservice', nachricht: 'Bitte ohne Nüsse' });
+    expect(anfrage({ extras: [], zusatzwuensche: '  ' })).toMatchObject({ zusatzwuensche: null, nachricht: null });
+  });
+
+  it('macht aus einer mehrzeiligen Anmerkung keine Extras (sonst bekäme jede Zeile im CRM ein Preisfeld)', () => {
+    const a = anfrage({ extras: ['Dekoration'], zusatzwuensche: 'Hallo,\nbitte vegetarisch.\nDanke' });
+    expect(a.zusatzwuensche).toBe('Dekoration');
+    expect(a.nachricht).toBe('Hallo,\nbitte vegetarisch.\nDanke');
   });
 });
 
@@ -188,7 +194,8 @@ describe('Mails nach der Anfrage', () => {
     expect(html).toMatch(/1\.438\s€/);
     expect(html).not.toContain('1.438,00');
     expect(html).toContain('Mediterran');
-    expect(html).toContain('Getränkeservice');
+    expect(html).toMatch(/Extras:<\/strong> Getränkeservice/);
+    expect(html).toMatch(/Anmerkungen:<\/strong> Bitte ohne Nüsse/);
   });
 
   it('warnt Jana, wenn der Lieferpreis offen ist', () => {
