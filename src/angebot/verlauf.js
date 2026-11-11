@@ -17,3 +17,12 @@ export function verlaufFuer(zustand, schritt) {
 export function vonDerWebsite(referrer) {
   return /^https:\/\/(www\.)?mama-mia-events\.de(\/|$)/.test(referrer ?? "");
 }
+
+/** Sprung auf einen erledigten Schritt (Klick auf den Kreis oder das Logo). `zurueck`: so viele Einträge im
+    Browserverlauf zurück. Vor dem Schritt, mit dem der Link begann, gibt es keinen Eintrag: Dann landet der
+    Verlauf beim Start, und `ersetzen` nennt den Schritt, der dort eingetragen wird. `null`: kein Sprung. */
+export function sprungPlan(ziel, schritt, start) {
+  if (!Number.isInteger(ziel) || ziel < 1 || ziel >= schritt) return null;
+  const landung = Math.max(ziel, start);
+  return { zurueck: schritt - landung, ersetzen: ziel < start ? ziel : null };
+}
