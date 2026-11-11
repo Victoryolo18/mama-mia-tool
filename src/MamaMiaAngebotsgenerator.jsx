@@ -23,7 +23,7 @@ import SchrittAnfrage from "./angebot/SchrittAnfrage.jsx";
 import Preisleiste from "./angebot/Preisleiste.jsx";
 import { OEFFNEN } from "./einwilligung.js";
 import { blockAnker, ersterOffenerBlock } from "./angebot/fehlendes.js";
-import { schrittAusVerlauf, verlaufFuer, vonDerWebsite } from "./angebot/verlauf.js";
+import { schrittAusVerlauf, sprungPlan, verlaufFuer, vonDerWebsite } from "./angebot/verlauf.js";
 
 /* ════════════════════════════════════════════════════════════════
    MAMA MIA EVENTS & CATERING — ANGEBOTSGENERATOR
@@ -74,6 +74,7 @@ export default function MamaMiaAngebotsgenerator() {
   /* ── State ── */
   const [step, setStep] = useState(1);
   const startRef = useRef(1);
+  const ersetzenRef = useRef(null);
   const [data, setData] = useState({
     essensart: null,
     paketId: null,
@@ -169,10 +170,20 @@ export default function MamaMiaAngebotsgenerator() {
   const prev = () => {
     if (step > startRef.current) return window.history.back();
     // Vor dem Schritt, mit dem der Link begann, gibt es keinen Eintrag: Der Start rückt mit.
-    const n = Math.max(step - 1, 1);
+    neuerStart(Math.max(step - 1, 1));
+  };
+  const neuerStart = (n) => {
     startRef.current = n;
     window.history.replaceState(verlaufFuer(window.history.state, n), "");
     setStep(n);
+  };
+  /* Klick auf einen erledigten Schritt oder das Logo (Victor, 11.11.2026): zurück dorthin, die Eingaben bleiben. */
+  const springeZu = (ziel) => {
+    const plan = sprungPlan(ziel, step, startRef.current);
+    if (!plan) return;
+    if (plan.ersetzen && !plan.zurueck) return neuerStart(plan.ersetzen);
+    ersetzenRef.current = plan.ersetzen;
+    window.history.go(-plan.zurueck);
   };
   // Schritt 1: zurück auf die Website-Seite, von der der Kunde kam, sonst auf die Startseite.
   const zurWebsite = () => {
@@ -180,7 +191,16 @@ export default function MamaMiaAngebotsgenerator() {
     window.location.href = STARTSEITE[sprache];
   };
   useEffect(() => {
-    const zurueck = (e) => setStep(schrittAusVerlauf(e.state, startRef.current));
+    const zurueck = (e) => {
+      const ersetzen = ersetzenRef.current;
+      ersetzenRef.current = null;
+      if (ersetzen) {
+        startRef.current = ersetzen;
+        window.history.replaceState(verlaufFuer(e.state, ersetzen), "");
+        return setStep(ersetzen);
+      }
+      setStep(schrittAusVerlauf(e.state, startRef.current));
+    };
     window.addEventListener("popstate", zurueck);
     return () => window.removeEventListener("popstate", zurueck);
   }, []);
@@ -326,10 +346,15 @@ export default function MamaMiaAngebotsgenerator() {
       {/* Header */}
       <header style={S.header}>
         <div style={S.headerInner}>
-          <div style={S.logo}>
+          <button
+            type="button"
+            onClick={() => springeZu(1)}
+            disabled={submitted || sichtbar === 1}
+            style={{ ...S.logo, ...S.knopfOhneRahmen, textAlign: "left", cursor: submitted || sichtbar === 1 ? "default" : "pointer" }}
+          >
             <span style={S.logoMain}>Mama Mia</span>
             <span style={S.logoSub}>Events & Catering</span>
-          </div>
+          </button>
           {!submitted && (
             <button onClick={sichtbar > 1 ? prev : zurWebsite} style={S.backBtn} className="mm-btn-press">
               {t.zurueck}
@@ -348,13 +373,22 @@ export default function MamaMiaAngebotsgenerator() {
               const done   = sichtbar > num;
               return (
                 <div key={label} style={S.stepItem}>
-                  <div style={{
-                    ...S.stepCircle,
-                    ...(active ? S.stepCircleActive : {}),
-                    ...(done   ? S.stepCircleDone   : {}),
-                  }}>
+                  <button
+                    type="button"
+                    onClick={() => springeZu(num)}
+                    disabled={!done}
+                    aria-label={label}
+                    style={{
+                      ...S.stepCircle,
+                      ...(active ? S.stepCircleActive : {}),
+                      ...(done   ? S.stepCircleDone   : {}),
+                      padding: 0,
+                      fontFamily: "inherit",
+                      cursor: done ? "pointer" : "default",
+                    }}
+                  >
                     {done ? "✓" : num}
-                  </div>
+                  </button>
                   <div style={{
                     ...S.stepLabel,
                     color: active ? C.burgundy : C.cappuccino,

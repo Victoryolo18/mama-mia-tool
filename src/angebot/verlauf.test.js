@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { schrittAusVerlauf, verlaufFuer, vonDerWebsite } from "./verlauf.js";
+import { schrittAusVerlauf, sprungPlan, verlaufFuer, vonDerWebsite } from "./verlauf.js";
 
 describe("Verlauf", () => {
   it("liest den Schritt aus dem Eintrag", () => {
@@ -29,5 +29,22 @@ describe("vonDerWebsite", () => {
     expect(vonDerWebsite("https://mama-mia-events.de.example.com/")).toBe(false);
     expect(vonDerWebsite("")).toBe(false);
     expect(vonDerWebsite(undefined)).toBe(false);
+  });
+});
+
+describe("sprungPlan", () => {
+  it("geht so viele Einträge zurück, wie Schritte dazwischen liegen", () => {
+    expect(sprungPlan(2, 5, 1)).toEqual({ zurueck: 3, ersetzen: null });
+    expect(sprungPlan(1, 2, 1)).toEqual({ zurueck: 1, ersetzen: null });
+  });
+  it("vor dem Start des Links: zurück bis zum Start, dort den Zielschritt eintragen", () => {
+    expect(sprungPlan(1, 5, 3)).toEqual({ zurueck: 2, ersetzen: 1 });
+    expect(sprungPlan(2, 3, 3)).toEqual({ zurueck: 0, ersetzen: 2 });
+  });
+  it("springt nie nach vorn, nicht auf den eigenen Schritt und nicht ins Leere", () => {
+    expect(sprungPlan(5, 5, 1)).toBeNull();
+    expect(sprungPlan(6, 5, 1)).toBeNull();
+    expect(sprungPlan(0, 5, 1)).toBeNull();
+    expect(sprungPlan(undefined, 5, 1)).toBeNull();
   });
 });

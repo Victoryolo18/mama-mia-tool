@@ -43,6 +43,7 @@ export const S = {
     justifyContent: "space-between",
   },
   logo: { display: "flex", flexDirection: "column", lineHeight: 1.1 },
+  knopfOhneRahmen: { background: "none", border: "none", padding: 0, margin: 0, font: "inherit" },
   logoMain: {
     fontFamily: "'Playfair Display', serif",
     fontSize: 26,
