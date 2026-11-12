@@ -159,9 +159,21 @@ export function berechneAngebot({ paket, bloecke, gruppen, gerichte, auswahl = {
   };
 }
 
-/** 12.5 → "12,50 €", 25 → "25 €". Glatte Beträge stehen ohne ",00" da. */
+/** Rundet den Gesamtpreis auf ganze Euro ab (Victor, 12.11.2026): 1171,50 € werden 1171 €. Der Kunde zahlt nie
+    mehr, als er gesehen hat; die Cent fallen ohne eigene Zeile weg. `rundung` sind die weggefallenen Euro (0,50).
+    Gerundet wird nur das Ganze, nicht die Zeilen darüber. */
+export function aufEuroAbgerundet(ergebnis) {
+  if (!ergebnis || !istZahl(ergebnis.gesamt)) return ergebnis;
+  const gesamtCent = cent(ergebnis.gesamt);
+  const rest = ((gesamtCent % 100) + 100) % 100;
+  return { ...ergebnis, gesamt: euro(gesamtCent - rest), rundung: euro(rest) };
+}
+
+/** 12.5 → "12,50 €", 25 → "25 €", 1171 → "1171 €". Glatte Beträge ohne ",00", kein Tausenderpunkt (Victor, 12.11.2026). */
 export function formatPreis(betrag) {
   if (!istZahl(betrag)) return '—';
   const glatt = cent(betrag) % 100 === 0;
-  return Number(betrag).toLocaleString('de-DE', { style: 'currency', currency: 'EUR', minimumFractionDigits: glatt ? 0 : 2, maximumFractionDigits: 2 });
+  return Number(betrag).toLocaleString('de-DE', {
+    style: 'currency', currency: 'EUR', useGrouping: false, minimumFractionDigits: glatt ? 0 : 2, maximumFractionDigits: 2,
+  });
 }

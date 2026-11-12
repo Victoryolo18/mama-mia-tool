@@ -515,7 +515,7 @@ export const S = {
   },
 
   /* Toggle */
-  toggleGroup: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 },
+  toggleGroup: { display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 },
   toggleBtn: {
     background: C.creamSoft,
     borderWidth: 2,
@@ -527,6 +527,7 @@ export const S = {
     fontFamily: "inherit",
     textAlign: "left",
     transition: "all .2s",
+    minWidth: 0,
   },
   toggleBtnActive: {
     background: C.white,
@@ -538,6 +539,8 @@ export const S = {
     fontWeight: 700,
     color: C.burgundy,
     marginBottom: 4,
+    overflowWrap: "anywhere",
+    hyphens: "auto",
   },
   toggleDesc: {
     fontSize: 12,

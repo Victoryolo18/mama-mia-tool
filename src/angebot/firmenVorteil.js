@@ -92,7 +92,7 @@ export function firmenVorteilMoeglich({ anlass, datum, gaeste }, regel) {
     Firmenanlässen und der Weihnachtsfeier; sonst null. */
 export function firmaAbfrage(data, regel) {
   if (firmenVorteilMoeglich(data ?? {}, regel)) return "pflicht";
-  if (firmenAnlass(data?.anlass) || FIRMA_FREIWILLIG.includes(data?.anlass)) return "freiwillig";
+  if (firmenAnlass(data?.anlass) || FIRMA_FREIWILLIG.includes(data?.anlass) || data?.kundenart === "firma") return "freiwillig";
   return null;
 }
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  berechneAngebot, blockErfuellt, formatPreis, gerichteFuerBlock, maxAuswahl, paketAufpreis, weitereGerichte, plusEinsPreis, zusatzPreis,
+  aufEuroAbgerundet, berechneAngebot, blockErfuellt, formatPreis, gerichteFuerBlock, maxAuswahl, paketAufpreis, weitereGerichte, plusEinsPreis, zusatzPreis,
 } from './angebotspreis.js';
 
 /* Beispieldaten in der Form der Tabellen gruppen, paket_gruppen und gerichte.
@@ -260,17 +260,41 @@ describe('weitereGerichte', () => {
 describe('formatPreis', () => {
   it('schreibt Beträge mit zwei Nachkommastellen und Komma', () => {
     expect(formatPreis(3.5).replace(/\s/g, ' ')).toBe('3,50 €');
-    expect(formatPreis(1215.5).replace(/\s/g, ' ')).toBe('1.215,50 €');
+    expect(formatPreis(1215.5).replace(/\s/g, ' ')).toBe('1215,50 €');
+  });
+
+  it('schreibt vierstellige Beträge ohne Tausenderpunkt', () => {
+    expect(formatPreis(1171).replace(/\s/g, ' ')).toBe('1171 €');
+    expect(formatPreis(12345.6).replace(/\s/g, ' ')).toBe('12345,60 €');
   });
 
   it('lässt bei glatten Beträgen die Nachkommastellen weg', () => {
     expect(formatPreis(25).replace(/\s/g, ' ')).toBe('25 €');
-    expect(formatPreis(1215).replace(/\s/g, ' ')).toBe('1.215 €');
+    expect(formatPreis(1215).replace(/\s/g, ' ')).toBe('1215 €');
     expect(formatPreis(0).replace(/\s/g, ' ')).toBe('0 €');
     expect(formatPreis(24.9).replace(/\s/g, ' ')).toBe('24,90 €');
   });
 
   it('zeigt einen Strich, wenn kein Betrag da ist', () => {
     expect(formatPreis(null)).toBe('—');
+  });
+});
+
+describe('aufEuroAbgerundet', () => {
+  it('rundet den Gesamtpreis auf volle Euro ab und merkt sich die weggefallenen Cent', () => {
+    const r = aufEuroAbgerundet({ gesamt: 1171.5, speisenGesamt: 1146.5 });
+    expect(r.gesamt).toBe(1171);
+    expect(r.rundung).toBe(0.5);
+    expect(r.speisenGesamt).toBe(1146.5);
+  });
+
+  it('rundet nie auf, auch nicht bei 99 Cent', () => {
+    expect(aufEuroAbgerundet({ gesamt: 1367.99 }).gesamt).toBe(1367);
+    expect(aufEuroAbgerundet({ gesamt: 0.01 }).gesamt).toBe(0);
+  });
+
+  it('lässt glatte Beträge und ein fehlendes Ergebnis stehen', () => {
+    expect(aufEuroAbgerundet({ gesamt: 1438 })).toEqual({ gesamt: 1438, rundung: 0 });
+    expect(aufEuroAbgerundet(null)).toBeNull();
   });
 });

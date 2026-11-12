@@ -19,6 +19,26 @@ export const ANLAESSE = [
   { slug: "empfang", label: "Empfang und Business-Lunch" },
 ];
 
+/* Vorauswahl Privat oder Firma (Victor, 12.11.2026), damit die Liste kürzer wird. Jeder Anlass gehört fest zu genau
+   einer Seite: Weihnachtsfeier zu Firma, Sommerfest zu Privat. */
+export const KUNDENARTEN = ["privat", "firma"];
+const FIRMA = ["firmenfeier", "seminar", "weihnachtsfeier", "eroeffnung", "empfang"];
+
+/** Privat oder Firma eines Anlasses; null bei unbekanntem Anlass. */
+export const kundenartDesAnlasses = (slug) => (anlassLabel(slug) ? (FIRMA.includes(slug) ? "firma" : "privat") : null);
+
+/** Die Anlässe zur gewählten Art, in der Reihenfolge von ANLAESSE. Ohne Art alle. */
+export function anlaesseFuer(kundenart) {
+  if (!KUNDENARTEN.includes(kundenart)) return ANLAESSE;
+  return ANLAESSE.filter((a) => kundenartDesAnlasses(a.slug) === kundenart);
+}
+
+/** Privat oder Firma: die Wahl des Kunden, sonst aus dem Anlass (etwa aus einem Link); null, wenn noch offen. */
+export function kundenartVon(data) {
+  if (KUNDENARTEN.includes(data?.kundenart)) return data.kundenart;
+  return kundenartDesAnlasses(data?.anlass);
+}
+
 export const anlassLabel = (slug) => ANLAESSE.find((a) => a.slug === slug)?.label ?? null;
 
 /** Liest die Vorwahl aus dem Link. `?essensart=fingerfood` wählt die Essensart vor.

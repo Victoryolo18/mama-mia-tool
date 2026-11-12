@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { baueAnfrage } from './anfrage.js';
-import { berechneAngebot, aktiverStil } from './angebotspreis.js';
+import { berechneAngebot, aktiverStil, aufEuroAbgerundet } from './angebotspreis.js';
 import { kundenMail, janaMail } from './mail.js';
 import { lieferpreis } from './lieferung.js';
 import { vorwahlAusLink } from './anlaesse.js';
@@ -78,6 +78,21 @@ describe('baueAnfrage — was gespeichert wird', () => {
     expect(janaMail(mit).html).toContain('TEST Muster GmbH');
     expect(janaMail(mit).html).toContain('Firmen-Vorteil');
     expect(kundenMail(mit).html).toContain('−70,65');
+  });
+
+  it('speichert den abgerundeten Gesamtpreis und im Snapshot, wie viel abgerundet wurde', () => {
+    const data = eingabe({ anlass: 'firmenfeier', datum: '2026-10-19', firma });
+    const genau = mitFirmenVorteil(
+      berechneAngebot({ paket, bloecke, gruppen, gerichte, auswahl: data.auswahl, plusEins: data.plusEins, gaeste: data.gaeste, lieferzuschlag: 25 }),
+      vorteilProzent(data, regel),
+    );
+    const a = baueAnfrage({ requestNumber: 'MM-26-1234', data, essensart, paket, stil, bloecke, gerichte, ergebnis: aufEuroAbgerundet(genau) });
+    expect(genau.gesamt).toBe(1367.35);
+    expect(a.gesamtpreis).toBe(1367);
+    expect(a.angebot_snapshot.gesamt).toBe(1367);
+    expect(a.angebot_snapshot.rundung).toBe(0.35);
+    expect(kundenMail(a).html).toMatch(/1367\s€/);
+    expect(anfrage().angebot_snapshot).not.toHaveProperty('rundung');
   });
 
   it('nimmt den Prozentsatz, den Jana eingestellt hat, und hält ihn in der Anfrage fest', () => {
@@ -191,8 +206,8 @@ describe('Mails nach der Anfrage', () => {
   it('nennt Jana Essensart und Paket im Betreff und den Preis mit Cent', () => {
     const { subject, html } = janaMail(anfrage(), new Date('2026-10-08T12:00:00'));
     expect(subject).toBe('🔔 Neue Anfrage: TEST Erika — Kalt-warmes Buffet Genuss');
-    expect(html).toMatch(/1\.438\s€/);
-    expect(html).not.toContain('1.438,00');
+    expect(html).toMatch(/1438\s€/);
+    expect(html).not.toContain('1438,00');
     expect(html).toContain('Mediterran');
     expect(html).toMatch(/Extras:<\/strong> Getränkeservice/);
     expect(html).toMatch(/Anmerkungen:<\/strong> Bitte ohne Nüsse/);

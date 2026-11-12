@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 
 /* Google-Bewertung für das Abzeichen der Website (Migration website_1). Die Funktion ist für Unangemeldete offen,
    deshalb müssen ihre Grenzen und Rechte genau so stehen. */
-const sql = readFileSync(new URL("../../supabase/migrations/website_1_google_bewertung.sql", import.meta.url), "utf8");
+const sql = readFileSync(new URL("../../supabase/migrations/website_1_google_bewertung.sql", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 
 describe("Google-Bewertung in der Datenbank", () => {
   it("Unangemeldete lesen nur; ändern geht nur über die Funktion", () => {

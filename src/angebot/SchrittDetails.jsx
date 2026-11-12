@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { C, S } from "../theme.js";
 import { getLieferzuschlag, getOrtsteile, istLieferart } from "./lieferung.js";
-import { ANLAESSE } from "./anlaesse.js";
+import { KUNDENARTEN, anlaesseFuer, kundenartVon } from "./anlaesse.js";
 import { Betont, useTexte } from "./Sprache.jsx";
 import { fehlendeDetails, zeigeFeld } from "./fehlendes.js";
 
@@ -68,6 +68,12 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
     : gaesteNum > HOECHSTENS ? t.zuGross
     : null
     : null;
+  // Erst Privat oder Firma, dann die kürzere Liste. Passt der gewählte Anlass nicht mehr, ist er wieder offen.
+  const kundenart = kundenartVon(data);
+  const waehleKundenart = (art) => {
+    update("kundenart", art);
+    if (data.anlass && !anlaesseFuer(art).some((a) => a.slug === data.anlass)) update("anlass", null);
+  };
   const fehlende = fehlendeDetails(data, { mindestpersonen, hoechstens: HOECHSTENS, ortsteilNoetig });
   const canContinue = fehlende.length === 0;
   // Erst nach dem ersten Tippen auf "Weiter" wird markiert, was fehlt; vorher wäre die Seite voller Rot.
@@ -92,7 +98,16 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
         {/* Anlass */}
         <div style={S.field} id="mm-feld-anlass">
           <label style={S.label} htmlFor="mm-anlass">{t.anlassFrage}</label>
-          <select
+          <div style={{ ...S.toggleGroup, marginBottom: 10 }}>
+            {KUNDENARTEN.map((art) => (
+              <button key={art} type="button" className="mm-btn-press" aria-pressed={kundenart === art}
+                onClick={() => waehleKundenart(art)}
+                style={{ ...S.toggleBtn, ...(kundenart === art ? S.toggleBtnActive : {}) }}>
+                <div style={S.toggleLabel}>{t.kundenart[art]}</div>
+              </button>
+            ))}
+          </div>
+          {kundenart && <select
             id="mm-anlass"
             value={data.anlass || ""}
             onChange={e => update("anlass", e.target.value || null)}
@@ -100,8 +115,8 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
             className="mm-input"
           >
             <option value="">{t.bitteAuswaehlen}</option>
-            {ANLAESSE.map(a => <option key={a.slug} value={a.slug}>{t.anlass[a.slug] ?? a.label}</option>)}
-          </select>
+            {anlaesseFuer(kundenart).map(a => <option key={a.slug} value={a.slug}>{t.anlass[a.slug] ?? a.label}</option>)}
+          </select>}
           <Fehlt an={fehlt("anlass")} />
         </div>
 
