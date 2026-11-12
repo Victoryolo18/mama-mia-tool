@@ -4,7 +4,7 @@ import { supabase } from "./supabase.js";
 import { C, S } from "./theme.js";
 import { ladeKataloge } from "./angebot/kataloge.js";
 import { berlinerDatum, ladeHighlights, mitHighlights } from "./angebot/highlights.js";
-import { aktiverStil, berechneAngebot } from "./angebot/angebotspreis.js";
+import { aktiverStil, aufEuroAbgerundet, berechneAngebot } from "./angebot/angebotspreis.js";
 import { lieferpreis } from "./angebot/lieferung.js";
 import { vorwahlAusLink } from "./angebot/anlaesse.js";
 import { kleidAusPfad } from "./angebot/anlassKleider.js";
@@ -94,6 +94,7 @@ export default function MamaMiaAngebotsgenerator() {
     name: "",
     notizen: "",
     anlass: null,
+    kundenart: null,
     firma: { name: "", strasse: "", nr: "", plz: "", ort: "", ust_id: "" },
   });
   const [submitting, setSubmitting] = useState(false);
@@ -248,10 +249,11 @@ export default function MamaMiaAngebotsgenerator() {
      und die Mail, und genau das wird gespeichert. */
   const liefer = lieferpreis(data, dbLieferzonen, dbLieferorte, paket);
   // Der Firmen-Vorteil ist schon abgezogen, sobald Anlass, Tag und Personenzahl zur Regel passen.
-  const rechne = (kat, a) => mitFirmenVorteil(berechneAngebot({
+  // Danach wird das Ganze auf volle Euro abgerundet (aufEuroAbgerundet).
+  const rechne = (kat, a) => aufEuroAbgerundet(mitFirmenVorteil(berechneAngebot({
     paket: a.paket, bloecke: a.bloecke, gruppen: kat.gruppen, gerichte: a.gerichtKarte,
     auswahl: data.auswahl, plusEins: data.plusEins, gaeste: data.gaeste, lieferzuschlag: liefer.zuschlag,
-  }), vorteilProzent(data, regel));
+  }), vorteilProzent(data, regel)));
   const ergebnis = paket ? rechne(kataloge, { paket, bloecke, gerichtKarte }) : null;
   // Dieselben Zahlen, nur die Bezeichnungen der Aufpreise in der Sprache des Kunden.
   const ergebnisAnzeige = paket ? (anzeige === kataloge ? ergebnis : rechne(anzeige, A)) : null;

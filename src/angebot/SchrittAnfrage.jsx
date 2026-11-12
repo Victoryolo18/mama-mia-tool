@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { C, S } from "../theme.js";
 import { formatPreis } from "./angebotspreis.js";
-import { anlassLabel } from "./anlaesse.js";
+import { anlassLabel, kundenartVon } from "./anlaesse.js";
 import { LIEFER_LABELS, istLieferart } from "./lieferung.js";
 import { FIRMA_GRENZEN, firmaAbfrage, pruefeFirmaEingabe } from "./firmenVorteil.js";
 import { ladePlzOrte, orteZurPlz, ortZurPlz } from "./plzOrte.js";
@@ -28,6 +28,8 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
   // Gibt es den Firmen-Vorteil, ist die Firma Pflicht; bei anderen Firmenanlässen und der Weihnachtsfeier freiwillig.
   // Eingetipptes muss stimmen.
   const firmaArt = firmaAbfrage(data, regel);
+  // Firmen sehen den Nettopreis groß, alle anderen den Bruttopreis (Victor, 12.11.2026).
+  const firmenkunde = kundenartVon(data) === "firma";
   // Die Postleitzahlen kommen erst, wenn die Firmenfelder erscheinen; bis dahin gilt: fünf Ziffern.
   const [plzOrte, setPlzOrte] = useState(null);
   useEffect(() => {
@@ -191,9 +193,12 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
                 <div style={S.summaryPriceSmall}>{t.zzglLieferung}</div>
               )}
               <div style={S.summaryPriceSmall}>{t.mwst(MWST_PROZENT, formatPreis(steuer.mwst))}</div>
-              {firmaArt && <div style={S.summaryPriceSmall}>{t.netto(formatPreis(steuer.netto))}</div>}
+              <div style={S.summaryPriceSmall}>{firmenkunde ? t.brutto(formatPreis(ergebnis.gesamt)) : t.netto(formatPreis(steuer.netto))}</div>
             </div>
-            <div style={S.summaryPriceBig}>{formatPreis(ergebnis.gesamt)}</div>
+            <div style={{ textAlign: "right" }}>
+              <div style={S.summaryPriceBig}>{formatPreis(firmenkunde ? steuer.netto : ergebnis.gesamt)}</div>
+              <div style={{ ...S.summaryPriceSmall, marginTop: 4 }}>{firmenkunde ? t.marke.netto : t.marke.brutto}</div>
+            </div>
           </div>
 
           <div style={S.summaryNote}>

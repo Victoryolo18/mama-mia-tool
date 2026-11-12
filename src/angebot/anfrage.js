@@ -94,6 +94,9 @@ export function baueAnfrage({ requestNumber, data, essensart, paket, stil, bloec
       // Nur bei einem Paket mit Lieferung inklusive (Exklusiv): Die 0 € ist dann kein kostenloses Kerngebiet.
       ...(lieferungInklusive ? { lieferung_inklusive: true } : {}),
       gesamt: ergebnis.gesamt,
+      // Auf volle Euro abgerundet (aufEuroAbgerundet): so viel Euro fehlen `gesamt` gegenüber den Zeilen.
+      // Steht das Feld da (auch mit 0), rundet auch das CRM diese Anfrage beim Bearbeiten ab.
+      ...(typeof ergebnis.rundung === "number" ? { rundung: ergebnis.rundung } : {}),
       // Abgezogener Firmen-Vorteil (aus mitFirmenVorteil): `gesamt` enthält ihn schon, `speisen_gesamt` nicht.
       firmen_vorteil: ergebnis.firmenVorteil
         ? { prozent: ergebnis.firmenVorteil.prozent, betrag: ergebnis.firmenVorteil.betrag, abgezogen: true }
