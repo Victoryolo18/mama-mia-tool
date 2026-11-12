@@ -58,6 +58,8 @@ export function baueAnfrage({ requestNumber, data, essensart, paket, stil, bloec
     essensart: essensart.slug,
     stil: stil?.slug ?? null,
     anlass: data.anlass || null,
+    // Privat oder Firma; dieselbe Spalte füllt das Kontaktformular der Website ("geschaeftlich" heißt Firma).
+    event_art: data.kundenart === "firma" ? "geschaeftlich" : data.kundenart === "privat" ? "privat" : null,
     thema: stil?.label ?? null,
     paket: paket.name,
     gaeste: personen,

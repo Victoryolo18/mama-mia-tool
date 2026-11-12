@@ -59,6 +59,12 @@ describe('baueAnfrage — was gespeichert wird', () => {
     expect(anfrage()).toMatchObject({ essensart: 'buffet', stil: 'mediterran', thema: 'Mediterran', anlass: 'geburtstag', paket: 'Genuss' });
   });
 
+  it('speichert Privat oder Firma in event_art, wie das Kontaktformular', () => {
+    expect(anfrage({ kundenart: 'privat' }).event_art).toBe('privat');
+    expect(anfrage({ kundenart: 'firma' }).event_art).toBe('geschaeftlich');
+    expect(anfrage({ kundenart: null }).event_art).toBeNull();
+  });
+
   it('lässt den Anlass leer, wenn der Kunde keinen nennt', () => {
     expect(anfrage({ anlass: '' }).anlass).toBeNull();
   });

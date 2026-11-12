@@ -6,7 +6,7 @@ import { ladeKataloge } from "./angebot/kataloge.js";
 import { berlinerDatum, ladeHighlights, mitHighlights } from "./angebot/highlights.js";
 import { aktiverStil, aufEuroAbgerundet, berechneAngebot } from "./angebot/angebotspreis.js";
 import { lieferpreis } from "./angebot/lieferung.js";
-import { vorwahlAusLink } from "./angebot/anlaesse.js";
+import { kundenartVon, vorwahlAusLink } from "./angebot/anlaesse.js";
 import { kleidAusPfad } from "./angebot/anlassKleider.js";
 import { firmenAnlass, ladeFirmenVorteil, mitFirmenVorteil, vorteilProzent } from "./angebot/firmenVorteil.js";
 import { baueAnfrage } from "./angebot/anfrage.js";
@@ -267,7 +267,7 @@ export default function MamaMiaAngebotsgenerator() {
       const { data: requestNumber, error: numErr } = await supabase.rpc("generate_request_number");
       if (numErr) throw numErr;
 
-      const anfrage = baueAnfrage({ requestNumber, data, essensart, paket, stil, bloecke, gerichte: gerichtKarte, ergebnis, lieferungInklusive: liefer.inklusive, sprache });
+      const anfrage = baueAnfrage({ requestNumber, data: { ...data, kundenart: kundenartVon(data) }, essensart, paket, stil, bloecke, gerichte: gerichtKarte, ergebnis, lieferungInklusive: liefer.inklusive, sprache });
       const { error: insertErr } = await supabase.from("requests").insert(anfrage);
       if (insertErr) throw insertErr;
       setAngebotsId(requestNumber);
