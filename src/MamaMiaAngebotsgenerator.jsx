@@ -24,6 +24,7 @@ import Preisleiste from "./angebot/Preisleiste.jsx";
 import { OEFFNEN } from "./einwilligung.js";
 import { inklusiveNamen } from "./angebot/inklusive.js";
 import { gewaehltNachBlock, zusatzwuenscheInSprache } from "./angebot/auswahlAnzeige.js";
+import { EREIGNIS, melde } from "./messung.js";
 import { blockAnker, ersterFehlenderSchritt, ersterOffenerBlock } from "./angebot/fehlendes.js";
 import { schrittAusVerlauf, sprungPlan, verlaufFuer, vonDerWebsite } from "./angebot/verlauf.js";
 
@@ -156,6 +157,11 @@ export default function MamaMiaAngebotsgenerator() {
     });
     return () => { aktuell = false; };
   }, []);
+
+  /* Messung (Victor, 20.11.2026): erst nach dem Laden, damit ein Link mit Startschritt 3 nicht vorher "schritt_1" meldet. */
+  useEffect(() => { if (kataloge && !submitted) melde(EREIGNIS.schritt(step)); }, [step, kataloge, submitted]);
+  useEffect(() => { if (submitted) melde(EREIGNIS.gesendet); }, [submitted]);
+  useEffect(() => { if (sendeFehler) melde(EREIGNIS.fehler); }, [sendeFehler]);
 
   /* Jeder Schritt beginnt oben: Die Gerichte-Seite ist lang, die Stil-Kacheln stehen an ihrem Anfang. */
   useEffect(() => { window.scrollTo(0, 0); }, [step, submitted]);
