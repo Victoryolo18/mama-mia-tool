@@ -26,6 +26,9 @@ export function baueAnfrage({ requestNumber, data, essensart, paket, stil, bloec
     const mitPlus = !!data.plusEins?.[block.id];
     const ids = block.typ === "fix" ? [block.fix_gericht_id] : (data.auswahl?.[block.id] ?? []);
     const gewaehlt = ids.filter((id) => name(id)).map((id) => ({ id, name: name(id) }));
+    // Fester Teil, dessen Gericht nicht (mehr) aktiv ist: Der Kunde sah den Block mit ✓ und seinem Namen.
+    // So wird er auch gespeichert, statt still zu fehlen (Prüfung 21.11.2026).
+    if (block.typ === "fix" && gewaehlt.length === 0) gewaehlt.push({ id: block.fix_gericht_id ?? null, name: block.label });
     snapshotBloecke.push({ id: block.id, label: block.label, typ: block.typ, plus_eins: mitPlus, gerichte: gewaehlt });
 
     // Feste Bestandteile standen noch nie in `menue_auswahl`; sie stehen im Snapshot.
