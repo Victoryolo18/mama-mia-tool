@@ -16,7 +16,8 @@ const cent = (euro) => Math.round(Number(euro) * 100);
     `lieferungInklusive`: Das Paket enthält die Lieferung und sie kostet deshalb 0 € (lieferpreis(…).inklusive). */
 export function baueAnfrage({ requestNumber, data, essensart, paket, stil, bloecke, gerichte, ergebnis, lieferungInklusive = false, sprache = "de" }) {
   const personen = Math.max(0, Math.floor(Number(data.gaeste) || 0));
-  const firma = pruefeFirmaEingabe(data.firma).wert;
+  // Keine Firmendaten bei "Privat": Wer auf Privat zurückwechselt, sieht die Felder nicht mehr (Prüfung 21.11.2026).
+  const firma = data.kundenart === "privat" ? null : pruefeFirmaEingabe(data.firma).wert;
   const name = (id) => gerichte[id]?.name;
 
   const jeLabel = new Map();
@@ -71,8 +72,10 @@ export function baueAnfrage({ requestNumber, data, essensart, paket, stil, bloec
     menue_auswahl: menue,
     // Je Zeile ein Extra (das CRM gibt jedem ein Preisfeld). Der freie Text steht getrennt in `nachricht`.
     zusatzwuensche: (data.extras || []).join("\n") || null,
-    nachricht: String(data.zusatzwuensche ?? "").trim() || null,
-    interne_notiz: data.notizen || null,
+    // Beide Anmerkungsfelder des Kunden (beim Menü und im letzten Schritt, dort "Wünsche, Allergien…") gehen nach
+    // `nachricht`: die steht in Janas Mail und im CRM unter "Anmerkungen". Bis 21.11.2026 landete das zweite Feld
+    // in `interne_notiz`, Janas eigenem Feld, und fehlte in der Mail.
+    nachricht: [data.zusatzwuensche, data.notizen].map((x) => String(x ?? "").trim()).filter(Boolean).join("\n\n") || null,
     preis_pro_person: ergebnis.paketProPerson,
     speisenpreis: (cent(ergebnis.paketProPerson) * personen) / 100,
     lieferzuschlag: ergebnis.lieferzuschlag,

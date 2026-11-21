@@ -67,7 +67,7 @@ describe("Mails nennen die festen Teile", () => {
 describe("Zusammenfassung im Generator", () => {
   it("zeigt die festen Teile vor den gewählten Gerichten", () => {
     const s = fs.readFileSync("src/angebot/SchrittAnfrage.jsx", "utf8");
-    expect(s).toMatch(/const auswahl = \[inklusive, \.\.\.bloecke/);
+    expect(s).toMatch(/const auswahl = \[inklusive, \.\.\.gewaehltNachBlock\(/);
     const g = fs.readFileSync("src/MamaMiaAngebotsgenerator.jsx", "utf8");
     expect(g).toMatch(/inklusive: inklusiveNamen\(A\.bloecke, A\.gerichtKarte\)/);
   });

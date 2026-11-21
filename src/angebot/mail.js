@@ -19,9 +19,23 @@ export function esc(v) {
     .replace(/'/g, "&#39;");
 }
 
+// Mittag statt Mitternacht (UTC): Sonst zeigt ein Browser westlich von UTC den Vortag.
 const datumText = (datum) => datum
-  ? new Date(datum).toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" })
+  ? new Date(`${String(datum).slice(0, 10)}T12:00:00`).toLocaleDateString("de-DE", { day: "2-digit", month: "long", year: "numeric" })
   : "Datum offen";
+const datumUndZeit = (request) => `${datumText(request.event_datum)}${request.event_uhrzeit ? `, ${esc(String(request.event_uhrzeit).slice(0, 5))} Uhr` : ""}`;
+
+/** Gewählte Gerichte je Block aus dem Snapshot (feste Teile stehen unter "Inklusive"). */
+export function gewaehlteGerichte(snapshot) {
+  if (!Array.isArray(snapshot?.bloecke)) return [];
+  return snapshot.bloecke
+    .filter((b) => b?.typ !== "fix" && (b.gerichte || []).length > 0)
+    .map((b) => ({ label: b.label, namen: b.gerichte.map((g) => g?.name).filter(Boolean) }))
+    .filter((b) => b.namen.length > 0);
+}
+const gerichteZeilen = (bloecke) => bloecke.map((b) => zeile(esc(b.label), b.namen.map(esc).join(", "))).join("");
+const zusatzwuenscheAus = (request) => String(request.zusatzwuensche || "").split("\n").map((z) => z.trim()).filter(Boolean);
+const lieferungOffen = (request) => request.lieferzuschlag == null && istLieferart(request.lieferung);
 
 const vorteil = (request) => request.angebot_snapshot?.firmen_vorteil ?? null;
 
@@ -44,7 +58,8 @@ function angebotZeilen(request) {
     s.stil ? zeile("Stil", esc(s.stil.label)) : "",
     zeile("Paket", `${esc(s.paket.name)} (${formatPreis(s.paket.preis_pro_person)} p. P.)`),
     inklusive.length ? zeile("Inklusive", inklusive.map(esc).join(", ")) : "",
-    aufpreise ? zeile("Extras", aufpreise) : "",
+    gerichteZeilen(gewaehlteGerichte(s)),
+    aufpreise ? zeile("Aufpreise", aufpreise) : "",
     anlass ? zeile("Anlass", esc(anlass)) : "",
   ].join("");
 }
@@ -63,12 +78,13 @@ export function kundenMail(request) {
       <div style="background: #FEF8E0; border-left: 4px solid #C9A84C; padding: 16px 20px; margin: 24px 0; border-radius: 6px;">
         <h3 style="margin: 0 0 12px; color: #5C2818;">Ihre Anfrage</h3>
         ${angebotZeilen(request)}
-        ${zeile("Datum", datumText(request.event_datum))}
+        ${zeile("Datum", datumUndZeit(request))}
         ${zeile("Gäste", `${request.gaeste} Personen`)}
+        ${zusatzwuenscheAus(request).length ? zeile("Zusatzwünsche", `${zusatzwuenscheAus(request).map(esc).join(", ")} (Preis auf Anfrage)`) : ""}
         ${request.firma_name ? zeile("Rechnung an", firmaText(request)) : ""}
         ${vorteil(request) ? zeile("Firmen-Vorteil", `${vorteil(request).prozent} % auf die Speisen abgezogen: −${formatPreis(vorteil(request).betrag)}. Ohne Rechnung an die Firma entfällt der Vorteil.`) : ""}
         ${request.angebot_snapshot?.lieferung_inklusive ? zeile("Lieferung", `inklusive (Paket ${esc(request.paket)})`) : ""}
-        ${zeile("Geschätzter Preis", `${formatPreis(request.gesamtpreis)} inkl. ${MWST_PROZENT} % MwSt`)}
+        ${zeile("Geschätzter Preis", `${formatPreis(request.gesamtpreis)} inkl. ${MWST_PROZENT} % MwSt${lieferungOffen(request) ? ", zzgl. Liefergebühr" : ""}`)}
       </div>
       <p>Bei Rückfragen erreichen Sie mich unter:<br>
       📞 <a href="tel:01739344723" style="color: #5C2818;">0173 9344723</a><br>
@@ -88,8 +104,6 @@ export function janaMail(request, jetzt = new Date()) {
   const kontaktInfo = request.customer_email
     ? `E-Mail: <a href="mailto:${encodeURIComponent(request.customer_email)}">${esc(request.customer_email)}</a>`
     : `Telefon: <a href="tel:${encodeURIComponent(request.customer_phone)}">${esc(request.customer_phone)}</a>`;
-  const lieferungOffen = request.lieferzuschlag == null && istLieferart(request.lieferung);
-
   const html = `
     <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; color: #1C1008;">
       <h2 style="color: #5C2818;">🔔 Neue Anfrage über die Webseite</h2>
@@ -107,11 +121,11 @@ export function janaMail(request, jetzt = new Date()) {
         <h3 style="margin: 0 0 12px; color: #5C2818;">Event</h3>
         ${angebotZeilen(request)}
         ${zeile("Gäste", request.gaeste)}
-        ${zeile("Datum", datumText(request.event_datum))}
+        ${zeile("Datum", datumUndZeit(request))}
         ${zeile("Ort", `${esc(request.plz) || "—"}${request.ortsteil ? ` ${esc(request.ortsteil)}` : ""} (${LIEFER_LABELS[request.lieferung] || esc(request.lieferung)})`)}
         ${request.angebot_snapshot?.lieferung_inklusive ? zeile("Lieferung", `inklusive (Paket ${esc(request.paket)})`) : ""}
-        ${zeile("Geschätzter Preis", `${formatPreis(request.gesamtpreis)}${lieferungOffen ? ' <span style="color: #B00020;">(zzgl. Lieferung — PLZ nicht im Liefergebiet hinterlegt, Preis auf Anfrage)</span>' : ""}`)}
-        ${extras.length ? zeile("Extras", extras.map(esc).join(", ")) : ""}
+        ${zeile("Geschätzter Preis", `${formatPreis(request.gesamtpreis)}${lieferungOffen(request) ? ' <span style="color: #B00020;">(zzgl. Lieferung — PLZ nicht im Liefergebiet hinterlegt, Preis auf Anfrage)</span>' : ""}`)}
+        ${extras.length ? zeile("Zusatzwünsche", extras.map(esc).join(", ")) : ""}
         ${vorteil(request) ? zeile("Firmen-Vorteil", `${vorteil(request).prozent} % abgezogen, −${formatPreis(vorteil(request).betrag)}, im Preis oben schon enthalten. Bitte die Firma prüfen; stimmt etwas nicht, im CRM unter „Bearbeiten“ das Häkchen beim Firmen-Vorteil herausnehmen.`) : ""}
       </div>
       ${request.nachricht ? `

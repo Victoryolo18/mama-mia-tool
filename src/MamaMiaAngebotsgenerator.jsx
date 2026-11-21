@@ -5,7 +5,7 @@ import { C, S } from "./theme.js";
 import { ladeKataloge } from "./angebot/kataloge.js";
 import { berlinerDatum, ladeHighlights, mitHighlights } from "./angebot/highlights.js";
 import { aktiverStil, aufEuroAbgerundet, berechneAngebot } from "./angebot/angebotspreis.js";
-import { lieferpreis } from "./angebot/lieferung.js";
+import { getOrtsteile, istLieferart, lieferpreis } from "./angebot/lieferung.js";
 import { kundenartVon, vorwahlAusLink } from "./angebot/anlaesse.js";
 import { kleidAusPfad } from "./angebot/anlassKleider.js";
 import { firmenAnlass, ladeFirmenVorteil, mitFirmenVorteil, vorteilProzent } from "./angebot/firmenVorteil.js";
@@ -23,7 +23,8 @@ import SchrittAnfrage from "./angebot/SchrittAnfrage.jsx";
 import Preisleiste from "./angebot/Preisleiste.jsx";
 import { OEFFNEN } from "./einwilligung.js";
 import { inklusiveNamen } from "./angebot/inklusive.js";
-import { blockAnker, ersterOffenerBlock } from "./angebot/fehlendes.js";
+import { gewaehltNachBlock, zusatzwuenscheInSprache } from "./angebot/auswahlAnzeige.js";
+import { blockAnker, ersterFehlenderSchritt, ersterOffenerBlock } from "./angebot/fehlendes.js";
 import { schrittAusVerlauf, sprungPlan, verlaufFuer, vonDerWebsite } from "./angebot/verlauf.js";
 
 /* ════════════════════════════════════════════════════════════════
@@ -261,6 +262,10 @@ export default function MamaMiaAngebotsgenerator() {
 
   /* ── Submit (Supabase + E-Mail) ── */
   async function handleSubmit() {
+    // Über Browser-Vorwärts kommt man an den Prüfungen der Schritte vorbei: Fehlt etwas, zurück dorthin statt absenden.
+    const ortsteilNoetig = istLieferart(data.lieferung) && getOrtsteile(data.plz, dbLieferorte).auswahlNoetig && !data.ortsteil;
+    const fehlt = ersterFehlenderSchritt({ data, essensart, paket, ergebnis, mindestpersonen: essensart?.mindestpersonen ?? 8, ortsteilNoetig });
+    if (fehlt) return springeZu(fehlt);
     setSubmitting(true);
     setSendeFehler(false);
 
@@ -275,7 +280,8 @@ export default function MamaMiaAngebotsgenerator() {
 
       // E-Mails versenden (Fehler hier blockieren das Submit nicht: die Anfrage ist gespeichert)
       try {
-        await sendeAnfrageMails(anfrage, { t, essensart: A.essensart, stil: A.stil, paket: A.paket, aufpreise: ergebnisAnzeige.aufpreise, inklusive: inklusiveNamen(A.bloecke, A.gerichtKarte) });
+        await sendeAnfrageMails(anfrage, { t, essensart: A.essensart, stil: A.stil, paket: A.paket, aufpreise: ergebnisAnzeige.aufpreise, inklusive: inklusiveNamen(A.bloecke, A.gerichtKarte),
+          gerichte: gewaehltNachBlock(A.bloecke, data.auswahl, A.gerichtKarte), zusatzwuensche: zusatzwuenscheInSprache(data.extras, dbZusatzwuensche, t) });
       } catch (emailErr) {
         reportError("send_email", emailErr, { request_number: requestNumber });
       }
@@ -476,6 +482,7 @@ export default function MamaMiaAngebotsgenerator() {
                 mindestpersonen={essensart.mindestpersonen ?? 8}
                 dbLieferzonen={dbLieferzonen}
                 dbLieferorte={dbLieferorte}
+                paket={A.paket}
               />
             )}
             {sichtbar === 5 && (

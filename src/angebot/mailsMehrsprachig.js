@@ -5,6 +5,7 @@
    und Russisch von hier, mit den Namen aus dem übersetzten Katalog. Ohne React, ohne Datenbank. */
 
 import { esc, janaMail, kundenMail } from "./mail.js";
+import { istLieferart } from "./lieferung.js";
 import { sendeMail } from "./mailversand.js";
 import { formatPreis } from "./angebotspreis.js";
 import { MWST_PROZENT } from "./mwst.js";
@@ -13,14 +14,17 @@ import { datumInSprache } from "./texte.js";
 const zeile = (label, wert) => `<p style="margin: 4px 0;"><strong>${label}:</strong> ${wert}</p>`;
 
 /** Bestätigung an den Kunden auf Englisch oder Russisch.
-    `anzeige`: { t, essensart, stil, paket, aufpreise, inklusive } in der Sprache des Kunden (aus dem Generator). */
-export function kundenMailInSprache(request, { t, essensart, stil, paket, aufpreise = [], inklusive = [] }) {
+    `anzeige`: { t, essensart, stil, paket, aufpreise, inklusive, gerichte, zusatzwuensche } in der Sprache des Kunden
+    (aus dem Generator). `gerichte`: [{ label, namen }] je Block, `zusatzwuensche`: übersetzte Namen. */
+export function kundenMailInSprache(request, { t, essensart, stil, paket, aufpreise = [], inklusive = [], gerichte = [], zusatzwuensche = [] }) {
   const m = t.mail;
   const snapshot = request.angebot_snapshot ?? {};
   const vorteil = snapshot.firmen_vorteil;
   const firma = [request.firma_name, request.firma_adresse].filter(Boolean).map((x) => esc(String(x).replace(/\s*\n\s*/g, ", "))).join(", ");
   const extras = aufpreise.map((a) => `${esc(a.label)} (+ ${formatPreis(a.proPerson)} ${t.pP})`).join(", ");
   const anlass = request.anlass ? t.anlass[request.anlass] : null;
+  const lieferungOffen = request.lieferzuschlag == null && istLieferart(request.lieferung);
+  const uhrzeit = request.event_uhrzeit ? `, ${esc(t.uhrzeit(String(request.event_uhrzeit).slice(0, 5)))}` : "";
   const html = `
     <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; color: #1C1008;">
       <div style="text-align: center; padding: 32px 0; border-bottom: 2px solid #E8DCC4;">
@@ -36,14 +40,16 @@ export function kundenMailInSprache(request, { t, essensart, stil, paket, aufpre
         ${stil ? zeile(t.zeile.stil, esc(stil.label)) : ""}
         ${zeile(t.zeile.paket, `${esc(paket?.name)} (${formatPreis(snapshot.paket?.preis_pro_person)} ${t.pP})`)}
         ${inklusive.length ? zeile(t.inklusive, inklusive.map(esc).join(", ")) : ""}
+        ${gerichte.map((b) => zeile(esc(b.label), b.namen.map(esc).join(", "))).join("")}
         ${extras ? zeile(t.extras, extras) : ""}
         ${anlass ? zeile(t.zeile.anlass, esc(anlass)) : ""}
-        ${zeile(t.zeile.datum, datumInSprache(request.event_datum, t))}
+        ${zeile(t.zeile.datum, `${datumInSprache(request.event_datum, t)}${uhrzeit}`)}
         ${zeile(t.zeile.gaeste, t.personen(request.gaeste))}
+        ${zusatzwuensche.length ? zeile(m.zusatzwuensche, `${zusatzwuensche.map(esc).join(", ")} ${t.preisAufAnfrageKlammer}`) : ""}
         ${request.firma_name ? zeile(m.rechnungAn, firma) : ""}
         ${vorteil ? zeile(m.vorteil, m.vorteilText(vorteil.prozent, formatPreis(vorteil.betrag))) : ""}
         ${snapshot.lieferung_inklusive ? zeile(m.lieferung, m.lieferungInklusive(esc(paket?.name))) : ""}
-        ${zeile(m.preis, m.preisText(formatPreis(request.gesamtpreis), MWST_PROZENT))}
+        ${zeile(m.preis, `${m.preisText(formatPreis(request.gesamtpreis), MWST_PROZENT)}${lieferungOffen ? `, ${t.zzglLieferung}` : ""}`)}
       </div>
       <p>${m.rueckfragen}<br>
       📞 <a href="tel:01739344723" style="color: #5C2818;">0173 9344723</a><br>
