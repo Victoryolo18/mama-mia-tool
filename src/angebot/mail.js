@@ -5,6 +5,7 @@ import { formatPreis } from "./angebotspreis.js";
 import { anlassLabel } from "./anlaesse.js";
 import { LIEFER_LABELS, istLieferart } from "./lieferung.js";
 import { MWST_PROZENT } from "./mwst.js";
+import { inklusiveAusSnapshot } from "./inklusive.js";
 
 // Kundeneingaben (Name, Kontakt, Freitext) landen in HTML-Mails. Ohne
 // Maskierung koennte jemand ueber das Formular fremdes Markup in die
@@ -36,11 +37,13 @@ const firmaText = (request) => [request.firma_name, request.firma_adresse].filte
 function angebotZeilen(request) {
   const s = request.angebot_snapshot;
   const anlass = anlassLabel(request.anlass);
+  const inklusive = inklusiveAusSnapshot(s);
   const aufpreise = s.aufpreise.map((a) => `${esc(a.label)} (+ ${formatPreis(a.pro_person)} p. P.)`).join(", ");
   return [
     zeile("Essensart", esc(s.essensart.label)),
     s.stil ? zeile("Stil", esc(s.stil.label)) : "",
     zeile("Paket", `${esc(s.paket.name)} (${formatPreis(s.paket.preis_pro_person)} p. P.)`),
+    inklusive.length ? zeile("Inklusive", inklusive.map(esc).join(", ")) : "",
     aufpreise ? zeile("Extras", aufpreise) : "",
     anlass ? zeile("Anlass", esc(anlass)) : "",
   ].join("");

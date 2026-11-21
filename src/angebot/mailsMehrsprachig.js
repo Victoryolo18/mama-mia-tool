@@ -13,8 +13,8 @@ import { datumInSprache } from "./texte.js";
 const zeile = (label, wert) => `<p style="margin: 4px 0;"><strong>${label}:</strong> ${wert}</p>`;
 
 /** Bestätigung an den Kunden auf Englisch oder Russisch.
-    `anzeige`: { t, essensart, stil, paket, aufpreise } in der Sprache des Kunden (aus dem Generator). */
-export function kundenMailInSprache(request, { t, essensart, stil, paket, aufpreise = [] }) {
+    `anzeige`: { t, essensart, stil, paket, aufpreise, inklusive } in der Sprache des Kunden (aus dem Generator). */
+export function kundenMailInSprache(request, { t, essensart, stil, paket, aufpreise = [], inklusive = [] }) {
   const m = t.mail;
   const snapshot = request.angebot_snapshot ?? {};
   const vorteil = snapshot.firmen_vorteil;
@@ -35,6 +35,7 @@ export function kundenMailInSprache(request, { t, essensart, stil, paket, aufpre
         ${zeile(t.zeile.essensart, esc(essensart?.label))}
         ${stil ? zeile(t.zeile.stil, esc(stil.label)) : ""}
         ${zeile(t.zeile.paket, `${esc(paket?.name)} (${formatPreis(snapshot.paket?.preis_pro_person)} ${t.pP})`)}
+        ${inklusive.length ? zeile(t.inklusive, inklusive.map(esc).join(", ")) : ""}
         ${extras ? zeile(t.extras, extras) : ""}
         ${anlass ? zeile(t.zeile.anlass, esc(anlass)) : ""}
         ${zeile(t.zeile.datum, datumInSprache(request.event_datum, t))}
