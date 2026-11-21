@@ -134,7 +134,7 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
               {data.extras.map(e => (
                 <div key={e} style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "4px 0" }}>
                   <span style={{ color: C.gold, flexShrink: 0 }}>+</span>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: C.cream }}>{e === "Getränkeservice" ? t.getraenke : (extrasAnzeige[e] ?? e)}</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: C.cream }}>{extrasAnzeige[e] ?? e}</span>
                 </div>
               ))}
             </>

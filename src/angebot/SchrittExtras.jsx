@@ -26,20 +26,6 @@ export default function SchrittExtras({ data, update, next, schritt, zusatzwuens
         </p>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 600, margin: "0 auto" }}>
-        {/* Statische Option: Getränkeservice */}
-        {(() => {
-          const checked = selected.includes('Getränkeservice');
-          return (
-            <label style={{ display: "flex", alignItems: "flex-start", gap: 14, background: checked ? C.burgundy : C.cream, border: `2px solid ${checked ? C.gold : C.border}`, borderRadius: 10, padding: "14px 18px", cursor: "pointer", transition: "all .2s" }}>
-              <input type="checkbox" checked={checked} onChange={() => toggle('Getränkeservice')} style={{ marginTop: 3, accentColor: C.gold, width: 18, height: 18, flexShrink: 0 }} />
-              <div>
-                <div style={{ fontWeight: 600, color: checked ? C.cream : C.ink, fontSize: 15 }}>{t.getraenke}</div>
-                <div style={{ fontSize: 13, color: checked ? C.gold : C.cappuccino, marginTop: 2 }}>{t.getraenkeDesc}</div>
-                <div style={{ fontSize: 12, color: checked ? C.gold : C.cappuccino, marginTop: 4, fontStyle: 'italic' }}>{t.preisAufAnfrage}</div>
-              </div>
-            </label>
-          );
-        })()}
         {zusatzwuensche.map(z => {
           const checked = selected.includes(z.label);
           return (
