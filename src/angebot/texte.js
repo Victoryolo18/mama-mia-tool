@@ -400,6 +400,7 @@ const EN = {
     preisText: (preis, mwst) => `${preis} incl. ${mwst} % VAT`,
     rueckfragen: "If you have any questions, you can reach me at:",
     gruesse: "Warm regards,",
+    zusatzwuensche: "Additional requests",
   },
   anlass: {
     hochzeit: "Wedding", geburtstag: "Birthday", einschulung: "First day of school", individuell: "Private party",
@@ -628,6 +629,7 @@ const RU = {
     preisText: (preis, mwst) => `${preis} вкл. НДС ${mwst} %`,
     rueckfragen: "Если у вас есть вопросы, пишите или звоните:",
     gruesse: "С наилучшими пожеланиями,",
+    zusatzwuensche: "Дополнительные пожелания",
   },
   anlass: {
     hochzeit: "Свадьба", geburtstag: "День рождения", einschulung: "Первый раз в первый класс", individuell: "Частный праздник",
@@ -684,5 +686,6 @@ export function firmaFehlerInSprache(fehler, t) {
 
 /** Datum in der Sprache, wie im Generator angezeigt. */
 export function datumInSprache(datum, t) {
-  return datum ? new Date(datum).toLocaleDateString(t.locale, { day: "2-digit", month: "long", year: "numeric" }) : "—";
+  // Mittag statt Mitternacht (UTC): Sonst zeigt ein Browser westlich von UTC den Vortag.
+  return datum ? new Date(`${String(datum).slice(0, 10)}T12:00:00`).toLocaleDateString(t.locale, { day: "2-digit", month: "long", year: "numeric" }) : "—";
 }

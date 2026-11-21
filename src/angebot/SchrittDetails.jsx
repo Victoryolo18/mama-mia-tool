@@ -3,7 +3,8 @@ import { C, S } from "../theme.js";
 import { getLieferzuschlag, getOrtsteile, istLieferart } from "./lieferung.js";
 import { KUNDENARTEN, anlaesseFuer, kundenartVon } from "./anlaesse.js";
 import { Betont, useTexte } from "./Sprache.jsx";
-import { fehlendeDetails, zeigeFeld } from "./fehlendes.js";
+import { HOECHSTENS, fehlendeDetails, zeigeFeld } from "./fehlendes.js";
+import { berlinerDatum } from "./highlights.js";
 
 const ROT = "#C0392B";
 
@@ -52,8 +53,7 @@ function DateTimeField({ value, onChange, display, icon, type, min, hasValue, fe
 /* Bis hierhin rechnet der Generator wie gewohnt. Die Website sagt "bis etwa 120 Gäste, größere Feiern
    auf Anfrage": Darüber bleibt der Preis ein Richtwert, Jana stimmt Menge und Ablauf persönlich ab. */
 const GROSSE_FEIER_AB = 120;
-const HOECHSTENS = 250;
-export default function SchrittDetails({ data, update, next, schritt, mindestpersonen = 8, dbLieferzonen = [], dbLieferorte = [] }) {
+export default function SchrittDetails({ data, update, next, schritt, mindestpersonen = 8, dbLieferzonen = [], dbLieferorte = [], paket = null }) {
   const t = useTexte();
   /* Der Ortsteil bestimmt nur den Lieferpreis. Wer selbst abholt, soll
      nicht danach gefragt werden — und schon gar nicht daran haengenbleiben. */
@@ -152,7 +152,7 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
             display={data.datum ? data.datum.split('-').reverse().join('.') : t.datumFormat}
             icon="📅"
             type="date"
-            min={new Date().toISOString().split("T")[0]}
+            min={berlinerDatum()}
             hasValue={!!data.datum}
             fehlt={fehlt("datum")}
           />
@@ -180,7 +180,10 @@ export default function SchrittDetails({ data, update, next, schritt, mindestper
             const zoneInfo = isDelivMode && data.plz?.length === 5
               ? getLieferzuschlag(data.plz, dbLieferzonen, dbLieferorte, data.ortsteil)
               : { zuschlag: null, rueckholungPreis: null, bekannt: false };
-            const fmtPreis = (p) => p != null ? (p === 0 ? t.kostenlos : t.plusEuro(p)) : t.preisAufAnfrage;
+            // Paket mit Lieferung inklusive (Exklusiv): in jeder bekannten Zone 0 €, wie lieferpreis() rechnet.
+            const fmtPreis = (p) => paket?.lieferung_inklusive ? t.inklusiveKlein
+              : p == null ? t.preisAufAnfrage
+              : p === 0 ? t.kostenlos : t.plusEuro(p);
             if (!isDelivMode) {
               return (
                 <div style={S.toggleGroup}>

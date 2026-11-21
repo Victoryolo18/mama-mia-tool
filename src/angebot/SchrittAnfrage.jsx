@@ -12,6 +12,7 @@ import { datumInSprache, firmaFehlerInSprache } from "./texte.js";
 import { lokal } from "./sprache.js";
 import { fehlendeAnfrage, zeigeFeld } from "./fehlendes.js";
 import { inklusiveNamen } from "./inklusive.js";
+import { gewaehltNachBlock } from "./auswahlAnzeige.js";
 
 /* ── 📞 KONTAKT-METHODEN (Bezeichnung und Platzhalter in texte.js) ── */
 export const KONTAKT_OPTIONEN = [
@@ -74,10 +75,7 @@ export default function SchrittAnfrage({ data, update, onSubmit, submitting, sch
   const malGaeste = (proPerson) => Math.round(proPerson * 100) * gaeste / 100;
   // "Inklusive" zuerst: die festen Teile des Pakets, dann die gewählten Gerichte je Block.
   const inklusive = { id: "inklusive", label: t.inklusive, namen: inklusiveNamen(bloecke, gerichte) };
-  const auswahl = [inklusive, ...bloecke
-    .filter((b) => b.typ !== "fix")
-    .map((b) => ({ id: b.id, label: b.label, namen: (data.auswahl[b.id] ?? []).map((id) => gerichte[id]?.name).filter(Boolean) }))]
-    .filter((b) => b.namen.length > 0);
+  const auswahl = [inklusive, ...gewaehltNachBlock(bloecke, data.auswahl, gerichte)].filter((b) => b.namen.length > 0);
 
   return (
     <div className="mm-fade">

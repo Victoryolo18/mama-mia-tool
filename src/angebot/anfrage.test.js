@@ -205,7 +205,7 @@ describe('Mails nach der Anfrage', () => {
 
   it('lässt die Zeilen Extras und Anlass weg, wenn es keine gibt', () => {
     const { html } = kundenMail(anfrage({ anlass: '', auswahl: { 'b-vor': ['suppe'], 'b-haupt': ['gulasch', 'lachs'] }, plusEins: {} }));
-    expect(html).not.toContain('Extras:');
+    expect(html).not.toContain('Aufpreise:');
     expect(html).not.toContain('Anlass:');
   });
 
@@ -215,7 +215,7 @@ describe('Mails nach der Anfrage', () => {
     expect(html).toMatch(/1438\s€/);
     expect(html).not.toContain('1438,00');
     expect(html).toContain('Mediterran');
-    expect(html).toMatch(/Extras:<\/strong> Getränkeservice/);
+    expect(html).toMatch(/Zusatzwünsche:<\/strong> Getränkeservice/);
     expect(html).toMatch(/Anmerkungen:<\/strong> Bitte ohne Nüsse/);
   });
 
@@ -342,5 +342,46 @@ describe('Paket mit Lieferung inklusive (Exklusiv, GEN-25)', () => {
     const s = anfrage().angebot_snapshot;
     expect(s).not.toHaveProperty('lieferung_inklusive');
     expect(s.paket).not.toHaveProperty('leistungen');
+  });
+});
+
+/* Prüfung 21.11.2026: Allergien aus dem letzten Schritt landeten in Janas interner Notiz und fehlten in der Mail. */
+describe('Anmerkungen, Firma, Mails (Prüfung 21.11.2026)', () => {
+  it('speichert beide Anmerkungsfelder in nachricht, nichts in interne_notiz', () => {
+    const a = anfrage({ zusatzwuensche: 'Bitte ohne Nüsse', notizen: 'Ein Gast hat Zöliakie' });
+    expect(a.nachricht).toBe('Bitte ohne Nüsse\n\nEin Gast hat Zöliakie');
+    expect(a).not.toHaveProperty('interne_notiz');
+    expect(anfrage({ zusatzwuensche: '', notizen: '  Laktosefrei  ' }).nachricht).toBe('Laktosefrei');
+    expect(anfrage({ zusatzwuensche: '', notizen: '' }).nachricht).toBeNull();
+  });
+
+  it('Janas Mail zeigt die Allergie aus dem letzten Schritt', () => {
+    const { html } = janaMail(anfrage({ notizen: 'Ein Gast hat Zöliakie' }));
+    expect(html).toContain('Ein Gast hat Zöliakie');
+  });
+
+  it('speichert keine Firmendaten bei Privat', () => {
+    const firma = { name: 'TEST Muster GmbH', strasse: 'Hauptstraße', nr: '1', plz: '16767', ort: 'Leegebruch', ust_id: 'DE123456789' };
+    expect(anfrage({ kundenart: 'privat', firma })).toMatchObject({ firma_name: null, firma_adresse: null, firma_ust_id: null });
+    expect(anfrage({ kundenart: 'firma', firma }).firma_name).toBe('TEST Muster GmbH');
+  });
+
+  it('beide Mails nennen gewählte Gerichte, Uhrzeit und Zusatzwünsche', () => {
+    const a = { ...anfrage(), event_uhrzeit: '17:30:00' };
+    for (const { html } of [janaMail(a), kundenMail(a)]) {
+      expect(html).toMatch(/Hauptgerichte:<\/strong> Gulasch, Lachsfilet, Schweinebraten/);
+      expect(html).toMatch(/Fingerfood dazu:<\/strong> Miniwraps, Miniburger/);
+      expect(html).toContain('17:30 Uhr');
+      expect(html).toMatch(/Zusatzwünsche:<\/strong> Getränkeservice/);
+    }
+  });
+
+  it('Kundenmail sagt "zzgl. Liefergebühr", wenn die Zone unbekannt ist', () => {
+    expect(kundenMail(anfrage({}, null)).html).toContain('zzgl. Liefergebühr');
+    expect(kundenMail(anfrage({}, 25)).html).not.toContain('zzgl. Liefergebühr');
+  });
+
+  it('Datum in der Mail ist der gespeicherte Tag, unabhängig von der Uhrzeit des Browsers', () => {
+    expect(kundenMail(anfrage({ datum: '2026-12-05' })).html).toContain('05. Dezember 2026');
   });
 });
