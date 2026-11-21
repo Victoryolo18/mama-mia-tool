@@ -22,6 +22,7 @@ import SchrittExtras from "./angebot/SchrittExtras.jsx";
 import SchrittAnfrage from "./angebot/SchrittAnfrage.jsx";
 import Preisleiste from "./angebot/Preisleiste.jsx";
 import { OEFFNEN } from "./einwilligung.js";
+import { inklusiveNamen } from "./angebot/inklusive.js";
 import { blockAnker, ersterOffenerBlock } from "./angebot/fehlendes.js";
 import { schrittAusVerlauf, sprungPlan, verlaufFuer, vonDerWebsite } from "./angebot/verlauf.js";
 
@@ -274,7 +275,7 @@ export default function MamaMiaAngebotsgenerator() {
 
       // E-Mails versenden (Fehler hier blockieren das Submit nicht: die Anfrage ist gespeichert)
       try {
-        await sendeAnfrageMails(anfrage, { t, essensart: A.essensart, stil: A.stil, paket: A.paket, aufpreise: ergebnisAnzeige.aufpreise });
+        await sendeAnfrageMails(anfrage, { t, essensart: A.essensart, stil: A.stil, paket: A.paket, aufpreise: ergebnisAnzeige.aufpreise, inklusive: inklusiveNamen(A.bloecke, A.gerichtKarte) });
       } catch (emailErr) {
         reportError("send_email", emailErr, { request_number: requestNumber });
       }
