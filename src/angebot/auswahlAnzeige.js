@@ -10,10 +10,9 @@ export function gewaehltNachBlock(bloecke, auswahl = {}, gerichte = {}) {
     .filter((b) => b.namen.length > 0);
 }
 
-/** Gewählte Zusatzwünsche mit ihrem Namen in der Sprache; der Getränkeservice steht fest im Generator. */
+/** Gewählte Zusatzwünsche mit ihrem Namen in der Sprache, aus dem Katalog. */
 export function zusatzwuenscheInSprache(extras = [], katalog = [], t) {
   return extras.map((e) => {
-    if (e === "Getränkeservice") return t.getraenke;
     const z = katalog.find((k) => k.label === e);
     return z ? lokal(z, "label", t.sprache) : e;
   });
