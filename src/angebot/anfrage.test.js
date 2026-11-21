@@ -385,3 +385,14 @@ describe('Anmerkungen, Firma, Mails (Prüfung 21.11.2026)', () => {
     expect(kundenMail(anfrage({ datum: '2026-12-05' })).html).toContain('05. Dezember 2026');
   });
 });
+
+describe('fester Teil ohne aktives Gericht (Prüfung 21.11.2026)', () => {
+  it('speichert den Block mit seinem Namen, statt ihn still wegzulassen', () => {
+    const ohneBrot = { ...gerichte };
+    delete ohneBrot.brot;
+    const data = eingabe();
+    const ergebnis = berechneAngebot({ paket, bloecke, gruppen, gerichte: ohneBrot, auswahl: data.auswahl, plusEins: data.plusEins, gaeste: data.gaeste, lieferzuschlag: 25 });
+    const a = baueAnfrage({ requestNumber: 'MM-26-1234', data, essensart, paket, stil, bloecke, gerichte: ohneBrot, ergebnis });
+    expect(a.angebot_snapshot.bloecke.find((b) => b.id === 'b-brot').gerichte).toEqual([{ id: 'brot', name: 'Brot & Butter' }]);
+  });
+});
