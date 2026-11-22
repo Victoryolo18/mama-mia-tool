@@ -142,8 +142,6 @@ const DE = {
 
   extrasTitel: "Noch etwas *Besonderes*?",
   extrasSub: "Diese Extras sind optional, Preise auf Anfrage.",
-  getraenke: "Getränkeservice",
-  getraenkeDesc: "Auf Anfrage. Wir besprechen gemeinsam das passende Getränkeangebot für Ihren Anlass.",
   keineExtras: "Keine Extras verfügbar.",
   weiterAnfrage: "Weiter zur Anfrage →",
 
@@ -327,8 +325,6 @@ const EN = {
 
   extrasTitel: "Anything *special*?",
   extrasSub: "These extras are optional, prices on request.",
-  getraenke: "Drinks service",
-  getraenkeDesc: "On request. We will discuss the right drinks for your occasion together.",
   keineExtras: "No extras available.",
   weiterAnfrage: "Continue to your request →",
 
@@ -556,8 +552,6 @@ const RU = {
 
   extrasTitel: "Что-нибудь *особенное*?",
   extrasSub: "Эти дополнения по желанию, цены по запросу.",
-  getraenke: "Напитки",
-  getraenkeDesc: "По запросу. Вместе подберём подходящие напитки для вашего праздника.",
   keineExtras: "Дополнений нет.",
   weiterAnfrage: "Дальше к заявке →",
 
